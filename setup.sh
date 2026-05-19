@@ -303,6 +303,9 @@ start_runtime() {
 
 main() {
   cd "$ROOT_DIR"
+  if [[ "${SETUP_SKIP_STOP:-0}" != "1" && -x "$ROOT_DIR/stop.sh" ]]; then
+    "$ROOT_DIR/stop.sh" || true
+  fi
   print_banner
   load_env_file
   cleanup_logs
