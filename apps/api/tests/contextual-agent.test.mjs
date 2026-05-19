@@ -6,6 +6,7 @@ const { UserAnalysisAgentService } = await import('../dist/services/agents/user-
 const { MemoryAgentService } = await import('../dist/services/agents/memory-agent.service.js');
 const { ProductManagerAgentService } = await import('../dist/services/agents/product-manager-agent.service.js');
 const { RecommendationAgentService } = await import('../dist/services/agents/recommendation-agent.service.js');
+const { AgentQualityGateService } = await import('../dist/services/agents/agent-quality-gate.service.js');
 
 test('detectSalesIntent does not recommend from product mention alone', () => {
   assert.equal(detectSalesIntent('sản phẩm trong giỏ hiện tại có gì?'), 'cart_status');
@@ -56,6 +57,27 @@ test('user analysis resolves category-like add follow-up from memory', async () 
   assert.match(analysis.references.productName, /máy lọc/);
 });
 
+test('user analysis treats cart view as cart status', async () => {
+  const service = new UserAnalysisAgentService();
+  const analysis = await service.analyze({
+    message: 'cho xem giỏ hàng',
+    memoryInvestigation: {
+      requiresHistory: false,
+      resolvedReference: 'none',
+      referenceProductIds: [],
+      lastSelectedProductIds: [],
+      lastCartActionProductIds: [],
+      confidence: 0.9,
+    },
+  });
+
+  assert.equal(analysis.intent, 'cart_status');
+  assert.equal(analysis.cartOperation, undefined);
+  assert.equal(analysis.retrievalMode, 'none');
+  assert.equal(analysis.shouldShowProducts, false);
+  assert.equal(analysis.needsClarification, undefined);
+});
+
 test('user analysis treats more product request as alternatives', async () => {
   const service = new UserAnalysisAgentService();
   const analysis = await service.analyze({
@@ -95,6 +117,42 @@ test('user analysis handles add all last recommendations without clarification',
   assert.equal(analysis.references.allLastRecommendations, true);
   assert.deepEqual(analysis.references.resolvedProductIds, ['prod-1', 'prod-2']);
   assert.equal(analysis.needsClarification, undefined);
+});
+
+test('quality gate blocks contradictory cart status operation', async () => {
+  const modelGateway = { async chat() { throw new Error('force fallback'); } };
+  const history = { async getHistory() { return { agent: 'user-analysis-agent', entries: [], summary: '' }; }, async appendHistory() {} };
+  const service = new AgentQualityGateService(modelGateway, history);
+  const result = await service.evaluate({
+    agent: 'user-analysis-agent',
+    job: 'intent analysis',
+    userMessage: 'xem giỏ hàng',
+    inputSummary: 'cart status',
+    output: { intent: 'cart_status', cartOperation: 'add', retrievalMode: 'none', shouldShowProducts: false },
+    contract: ['cart_status không được có cartOperation'],
+  });
+
+  assert.equal(result.pass, false);
+  assert.equal(result.severity, 'block');
+  assert.equal(result.outcome, 'revise');
+});
+
+test('quality gate refuses clear out-of-scope questions', async () => {
+  const modelGateway = { async chat() { throw new Error('force fallback'); } };
+  const history = { async getHistory() { return { agent: 'sales-agent', entries: [], summary: '' }; }, async appendHistory() {} };
+  const service = new AgentQualityGateService(modelGateway, history);
+  const result = await service.evaluate({
+    agent: 'sales-agent',
+    job: 'final response',
+    userMessage: 'ai là tổng thống Mỹ',
+    inputSummary: 'out of scope',
+    output: { draft: 'Tổng thống Mỹ là ...' },
+    contract: ['Không trả lời chủ đề ngoài RetailHome'],
+  });
+
+  assert.equal(result.pass, false);
+  assert.equal(result.outcome, 'refuse');
+  assert.match(result.safeResponse ?? '', /RetailHome/);
 });
 
 test('memory agent expands bounded history graph', async () => {
@@ -195,6 +253,24 @@ test('recommendation agent does not show unrelated cards for unresolved cart act
   assert.equal(result.status, 'blocked');
   assert.equal(result.shouldShowProducts, false);
   assert.deepEqual(result.products, []);
+});
+
+test('product manager treats budget number as price not product count', async () => {
+  const products = [
+    { id: 'fresh-mini', title: 'FreshHome Mini 20', brand: 'FreshHome', category: 'Máy lọc không khí', price: 1990000, currency: 'VND', inventory: 3, attributes: { roomSize: '15-22m2' }, description: 'máy lọc nhỏ gọn' },
+    { id: 'expensive-air', title: 'AiroClean P35', brand: 'AiroClean', category: 'Máy lọc không khí', price: 3490000, currency: 'VND', inventory: 3, attributes: { roomSize: '25-35m2' }, description: 'máy lọc phòng lớn' },
+  ];
+  const catalog = { async searchProducts() { return products.filter((product) => product.price <= 2000000); } };
+  const service = new ProductManagerAgentService(catalog);
+  const result = await service.resolveProducts({
+    message: 'tư vấn máy lọc dưới 2 triệu',
+    analysis: { intent: 'recommend', retrievalMode: 'fresh', shouldShowProducts: true, references: {}, constraints: { budgetMax: 2000000, category: 'máy lọc' }, confidence: 0.8 },
+    memoryInvestigation: { requiresHistory: false, referenceProductIds: [], lastSelectedProductIds: [], lastCartActionProductIds: [], confidence: 0.7 },
+    cart: emptyCart(),
+    allProducts: products,
+  });
+
+  assert.deepEqual(result.selectedProducts.map((item) => item.id), ['fresh-mini']);
 });
 
 test('product manager excludes recent and cart products for alternatives', async () => {

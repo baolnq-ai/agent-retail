@@ -7,6 +7,10 @@
     "build": "corepack pnpm -r build",
     "test": "corepack pnpm -r test",
     "typecheck": "corepack pnpm -r typecheck",
+    "validate": "corepack pnpm typecheck && corepack pnpm --filter @retail-agent/api test",
+    "provider:compose:config": "docker compose -f infra/docker/docker-compose.yml config --quiet",
+    "provider:stop": "./stop.sh",
+    "provider:clean": "./clean.sh",
     "dev:api": "corepack pnpm --filter @retail-agent/api dev",
     "dev:web": "corepack pnpm --filter @retail-agent/web dev",
     "test:runtime": "corepack pnpm --filter @retail-agent/api test:runtime && corepack pnpm --filter @retail-agent/web test:runtime"

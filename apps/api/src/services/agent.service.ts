@@ -10,7 +10,8 @@ import { ChatMemoryService, type ChatMemoryContext } from './chat-memory.service
 import { KnowledgeService } from './knowledge.service.js';
 import { ModelGatewayService } from './model-gateway.service.js';
 import { AgentTraceService } from './agent-trace.service.js';
-import type { AgentPipelineEvent, CartToolResult, MemoryAgentResult, ProductManagerResult, RecommendationAgentResult, UserAnalysis } from '../models/agent-execution.models.js';
+import type { AgentPipelineEvent, AgentQualityGateResult, CartToolResult, MemoryAgentResult, ProductManagerResult, RecommendationAgentResult, UserAnalysis } from '../models/agent-execution.models.js';
+import { AgentQualityGateService } from './agents/agent-quality-gate.service.js';
 import { CartManagerAgentService } from './agents/cart-manager-agent.service.js';
 import { MemoryAgentService } from './agents/memory-agent.service.js';
 import { ProductManagerAgentService } from './agents/product-manager-agent.service.js';
@@ -59,6 +60,7 @@ export class AgentService {
     private readonly chatMemoryService: ChatMemoryService,
     private readonly agentOrchestratorService: AgentOrchestratorService,
     private readonly agentTraceService: AgentTraceService,
+    private readonly agentQualityGateService: AgentQualityGateService,
     private readonly memoryAgentService: MemoryAgentService,
     private readonly productManagerAgentService: ProductManagerAgentService,
     private readonly recommendationAgentService: RecommendationAgentService,
@@ -93,7 +95,7 @@ export class AgentService {
     let content = '';
     let model = '';
 
-    yield { type: 'status', message: 'Đang gọi LLM và stream token' };
+    yield { type: 'status', message: 'Đang gọi LLM và kiểm duyệt câu trả lời' };
     for await (const chunk of this.modelGatewayService.streamChat({
       messages: prepared.messages,
       maxTokens: 260,
@@ -101,11 +103,12 @@ export class AgentService {
     })) {
       content += chunk.content;
       model = chunk.model ?? model;
-      yield { type: 'token', content: chunk.content };
     }
 
     const cleanedContent = cleanAssistantText(content, mergeProducts(prepared.products, prepared.recommendationResult.products));
-    const response = this.buildResponse(prepared, cleanedContent, model || 'streaming-model');
+    const finalContent = await this.reviseSalesContent(prepared, cleanedContent);
+    yield { type: 'token', content: finalContent };
+    const response = this.buildResponse(prepared, finalContent, model || 'streaming-model');
     await this.chatMemoryService.saveTurn({
       userId: prepared.userId,
       cartId: prepared.cartId,
@@ -129,12 +132,63 @@ export class AgentService {
       this.catalogService.listProducts(),
     ]);
     const memoryInvestigation = await this.memoryAgentService.investigate({ userId, message });
+    const gateEvents: AgentPipelineEvent[] = [];
+    const gateErrors: AgentTrace['errors'] = [];
+    const memoryGate = await this.evaluateAgentOutput({
+      userId,
+      agent: 'memory-agent',
+      job: 'memory investigation',
+      message,
+      inputSummary: `requiresHistory=${memoryInvestigation.requiresHistory}`,
+      output: memoryInvestigation,
+      contract: [
+        'Nếu requiresHistory=true và confidence thấp thì phải clarify thay vì đoán product reference.',
+        'resolvedReference chỉ được dùng khi evidence/history đủ hỗ trợ.',
+      ],
+      allowedData: { recentTurns: memoryContext.recentTurns.length, preferences: memoryContext.preferences.map((preference) => preference.key) },
+    });
+    gateEvents.push(buildQualityGateEvent('memory-agent', memoryGate));
+    if (!memoryGate.pass && memoryGate.severity === 'block') gateErrors.push({ source: 'memory-agent-quality-gate', message: memoryGate.complaints.join('; ') });
+
     const userAnalysis = await this.userAnalysisAgentService.analyze({ userId, message, pendingPlan: memoryContext.pendingCartPlan, memoryInvestigation });
+    const analysisGate = await this.evaluateAgentOutput({
+      userId,
+      agent: 'user-analysis-agent',
+      job: 'intent analysis',
+      message,
+      inputSummary: message,
+      output: userAnalysis,
+      contract: [
+        'cart_status không được có cartOperation.',
+        'cart_action phải có cartOperation rõ ràng.',
+        'policy/smalltalk/cart_status phải retrievalMode=none và shouldShowProducts=false.',
+        'Câu hỏi ngoài phạm vi retail phải refuse hoặc định hướng lại, không trả lời chủ đề ngoài.',
+      ],
+      allowedData: { memoryInvestigation },
+    });
+    gateEvents.push(buildQualityGateEvent('user-analysis-agent', analysisGate));
+    if (!analysisGate.pass && analysisGate.severity === 'block') gateErrors.push({ source: 'user-analysis-agent-quality-gate', message: analysisGate.complaints.join('; ') });
     createStatus?.('Đang tìm sản phẩm và chính sách phù hợp');
     const [productManagerResult, knowledge] = await Promise.all([
       this.productManagerAgentService.resolveProducts({ message, analysis: userAnalysis, memoryInvestigation, cart: initialCart, allProducts }),
       this.knowledgeService.searchKnowledge(message),
     ]);
+    const productGate = await this.evaluateAgentOutput({
+      userId,
+      agent: 'product-manager-agent',
+      job: 'product resolution',
+      message,
+      inputSummary: `${userAnalysis.intent}/${userAnalysis.retrievalMode}`,
+      output: summarizeProductManagerResult(productManagerResult),
+      contract: [
+        'selectedProducts phải nằm trong candidates.',
+        'Nếu retrievalMode=none thì candidates và selectedProducts phải rỗng.',
+        'Nếu intent recommend/compare/product_detail và đủ điều kiện thì selectedProducts không được rỗng.',
+      ],
+      allowedData: { analysis: userAnalysis },
+    });
+    gateEvents.push(buildQualityGateEvent('product-manager-agent', productGate));
+    if (!productGate.pass && productGate.severity === 'block') gateErrors.push({ source: 'product-manager-agent-quality-gate', message: productGate.complaints.join('; ') });
     const orchestrationPlan = this.agentOrchestratorService.plan({ message, memory: memoryContext, cart: initialCart, candidates: productManagerResult.candidates });
     const actionProducts = mergeProducts(productManagerResult.candidates, productsFromCart(initialCart, allProducts));
     const cartId = initialCart.id;
@@ -150,6 +204,23 @@ export class AgentService {
       selectedProducts,
       memoryContext,
     });
+    const cartGate = await this.evaluateAgentOutput({
+      userId,
+      agent: 'cart-manager-agent',
+      job: 'cart plan and tool result',
+      message,
+      inputSummary: `${userAnalysis.intent}/${userAnalysis.cartOperation ?? 'none'}`,
+      output: cartManagerResult,
+      contract: [
+        'cart_status chỉ đọc trạng thái giỏ, không được yêu cầu target sản phẩm.',
+        'Không claim thao tác giỏ thành công nếu toolResults không completed.',
+        'clarification chỉ dùng khi cart_action thiếu target, không dùng cho cart_status.',
+      ],
+      allowedData: { analysis: userAnalysis, initialCart },
+    });
+    gateEvents.push(buildQualityGateEvent('cart-manager-agent', cartGate));
+    if (!cartGate.pass && cartGate.severity === 'block') gateErrors.push({ source: 'cart-manager-agent-quality-gate', message: cartGate.complaints.join('; ') });
+
     const cart = cartManagerResult.cart;
     const recommendationResult = await this.recommendationAgentService.planPresentation({
       userId,
@@ -160,6 +231,23 @@ export class AgentService {
       knowledge,
       cart,
     });
+    const recommendationGate = await this.evaluateAgentOutput({
+      userId,
+      agent: 'recommendation-agent',
+      job: 'presentation handoff',
+      message,
+      inputSummary: `${userAnalysis.intent}/${productManagerResult.mode}`,
+      output: summarizeRecommendationResult(recommendationResult),
+      contract: [
+        'Nếu shouldShowProducts=false thì products phải rỗng.',
+        'products hiển thị phải nằm trong candidates/selectedProducts/tool result được phép.',
+        'presentationIntent phải khớp intent user-analysis.',
+      ],
+      allowedData: { selectedProductIds: productManagerResult.selectedProducts.map((product) => product.id), candidateIds: productManagerResult.candidates.map((product) => product.id), toolResults: cartManagerResult.toolResults },
+    });
+    gateEvents.push(buildQualityGateEvent('recommendation-agent', recommendationGate));
+    if (!recommendationGate.pass && recommendationGate.severity === 'block') gateErrors.push({ source: 'recommendation-agent-quality-gate', message: recommendationGate.complaints.join('; ') });
+
     const actionResults = cartManagerResult.actionResults;
     const actionTraceItems = cartManagerResult.traceActions;
     const toolResults = cartManagerResult.toolResults;
@@ -169,6 +257,7 @@ export class AgentService {
       buildPipelineEvent('user-analysis-agent', 'analyze', 'completed', `Intent ${userAnalysis.intent}${userAnalysis.cartOperation ? `, cart op ${userAnalysis.cartOperation}` : ''}, retrieval ${userAnalysis.retrievalMode}.`),
       buildPipelineEvent('product-manager-agent', 'lookup', productManagerResult.confidence >= 0.5 ? 'completed' : 'skipped', `Mode ${productManagerResult.mode}, candidates ${productManagerResult.candidates.length}, selected ${productManagerResult.selectedProducts.length}.`),
       buildPipelineEvent('recommendation-agent', 'handoff', recommendationResult.status === 'approved' ? 'completed' : 'skipped', `${recommendationResult.status}: ${recommendationResult.displayReason}`),
+      ...gateEvents,
       ...cartManagerResult.pipeline,
     ];
     const actionResult = actionResults.join('\n');
@@ -192,7 +281,7 @@ export class AgentService {
       fallbackRanking = 'lexical';
       traceErrors.push({ source: 'rerank', message: error instanceof Error ? error.message : 'rerank failed' });
     }
-    traceErrors.push(...cartManagerResult.errors);
+    traceErrors.push(...gateErrors, ...cartManagerResult.errors);
     const rankedDocuments = reranked.length ? reranked.map((item) => item.document) : contextDocuments;
     const selectedContext = rankedDocuments.slice(0, 5).join('\n---\n');
     const messageId = randomUUID();
@@ -281,6 +370,19 @@ export class AgentService {
     };
   }
 
+  private async evaluateAgentOutput(params: { userId?: string; agent: AgentTraceAgent; job: string; message: string; inputSummary: string; output: unknown; contract: string[]; allowedData?: unknown }): Promise<AgentQualityGateResult> {
+    return this.agentQualityGateService.evaluate({
+      userId: params.userId,
+      agent: params.agent,
+      job: params.job,
+      userMessage: params.message,
+      inputSummary: params.inputSummary,
+      output: params.output,
+      contract: params.contract,
+      allowedData: params.allowedData,
+    });
+  }
+
   private async reviseSalesContent(prepared: PreparedChat, content: string): Promise<string> {
     const completedCartAction = hasCompletedCartAction(prepared.toolResults);
     const evaluation = await this.salesEvaluatorAgentService.evaluate({
@@ -291,16 +393,18 @@ export class AgentService {
       completedCartAction,
       actionResult: prepared.actionResult,
     });
+    prepared.pipelineEvents.push(buildQualityGateEvent('sales-evaluator-agent', evaluation));
     if (evaluation.pass) return content;
 
     const revision = await this.modelGatewayService.chat({
       maxTokens: 240,
       temperature: 0,
       messages: [
-        { role: 'system', content: 'Bạn là sales-agent. Viết lại câu trả lời tiếng Việt tự nhiên, không markdown phức tạp, không lộ chỉ dẫn nội bộ, chỉ nhắc đúng sản phẩm trong product rail.' },
+        { role: 'system', content: 'Bạn là sales-agent. Viết lại câu trả lời tiếng Việt tự nhiên, không markdown phức tạp, không lộ chỉ dẫn nội bộ, chỉ nhắc đúng sản phẩm trong product rail. Nếu câu hỏi ngoài phạm vi RetailHome thì từ chối ngắn gọn và hướng khách về sản phẩm/chính sách/giỏ hàng.' },
         { role: 'user', content: buildSalesRevisionPrompt(prepared, content, evaluation.complaints, evaluation.revisedInstruction) },
       ],
     });
+    prepared.pipelineEvents.push(buildPipelineEvent('sales-agent', 'revise', 'completed', `Revised draft from evaluator complaints: ${evaluation.complaints.join('; ').slice(0, 160)}`));
     const revisedContent = cleanAssistantText(revision.content, mergeProducts(prepared.products, prepared.recommendationResult.products));
     const secondEvaluation = await this.salesEvaluatorAgentService.evaluate({
       userId: prepared.userId,
@@ -310,7 +414,9 @@ export class AgentService {
       completedCartAction,
       actionResult: prepared.actionResult,
     });
-    return secondEvaluation.pass ? revisedContent : content;
+    prepared.pipelineEvents.push(buildQualityGateEvent('sales-evaluator-agent', secondEvaluation));
+    if (secondEvaluation.pass) return revisedContent;
+    return secondEvaluation.safeResponse ?? evaluation.safeResponse ?? buildSafeFinalResponse(prepared, secondEvaluation.complaints);
   }
 
   private buildResponse(prepared: PreparedChat, content: string, model: string): AgentChatResponse {
@@ -371,6 +477,11 @@ function isPolicyOnlyRequest(normalizedMessage: string): boolean {
   return shouldShowPolicy(normalizedMessage) && !/sản phẩm|máy|nồi|robot|camera|đèn|quạt|lọc|bếp|mua|tư vấn/.test(normalizedMessage);
 }
 
+function isClearlyOutOfScope(message: string): boolean {
+  const normalizedMessage = normalize(message);
+  return /tổng thống|thời tiết|bóng đá|lập trình|code|chính trị|chứng khoán|bitcoin|coin/.test(normalizedMessage) && !/sản phẩm|giỏ|cart|mua|giá|bảo hành|đổi trả|vận chuyển|tài khoản|đơn hàng|retailhome/.test(normalizedMessage);
+}
+
 function emptyAccountCart(): Cart {
   return { id: 'account-required', version: 0, items: [], subtotal: 0, grandTotal: 0, status: 'active' };
 }
@@ -403,6 +514,13 @@ function buildRecommendationInstruction(result: RecommendationAgentResult): stri
   return `Chỉ dẫn nội bộ: khung đề xuất đang hiển thị ${result.products.length} sản phẩm: ${productNames}. Chỉ được nhắc các sản phẩm này, không nhắc sản phẩm khác.${compareInstruction}`;
 }
 
+function buildSafeFinalResponse(prepared: PreparedChat, complaints: string[]): string {
+  if (isClearlyOutOfScope(prepared.requestMessage)) return 'Mình chỉ hỗ trợ tư vấn sản phẩm, chính sách, tài khoản và giỏ hàng của RetailHome. Bạn cần mình hỗ trợ phần nào trong cửa hàng?';
+  if (prepared.actionResult) return prepared.actionResult;
+  if (prepared.recommendationResult.products.length > 0) return `Mình đã tìm được ${prepared.recommendationResult.products.length} sản phẩm phù hợp trong khung gợi ý, nhưng cần bạn xác nhận thêm nhu cầu để mình tư vấn chính xác hơn.`;
+  return complaints.length ? `Mình chưa đủ chắc chắn để trả lời chính xác: ${complaints[0]} Bạn nói rõ thêm nhu cầu giúp mình nhé.` : 'Mình chưa đủ dữ liệu để trả lời chắc chắn. Bạn nói rõ hơn nhu cầu sản phẩm, chính sách hoặc giỏ hàng giúp mình nhé.';
+}
+
 function buildSalesRevisionPrompt(prepared: PreparedChat, draft: string, complaints: string[], revisedInstruction: string | undefined): string {
   return JSON.stringify({
     userMessage: prepared.requestMessage,
@@ -415,6 +533,29 @@ function buildSalesRevisionPrompt(prepared: PreparedChat, draft: string, complai
     actionResult: prepared.actionResult,
     rule: 'Viết lại câu trả lời cuối cùng cho khách. Không nhắc internal handoff/debug. Nếu productRail có sản phẩm, chỉ nhắc đúng những sản phẩm đó.',
   });
+}
+
+function summarizeProductManagerResult(result: ProductManagerResult) {
+  return {
+    mode: result.mode,
+    query: result.query,
+    candidateIds: result.candidates.map((product) => product.id),
+    selectedProductIds: result.selectedProducts.map((product) => product.id),
+    excludedProductIds: result.excludedProductIds,
+    confidence: result.confidence,
+    evidence: result.evidence,
+  };
+}
+
+function summarizeRecommendationResult(result: RecommendationAgentResult) {
+  return {
+    shouldShowProducts: result.shouldShowProducts,
+    productIds: result.products.map((product) => product.id),
+    presentationIntent: result.presentationIntent,
+    displayReason: result.displayReason,
+    status: result.status,
+    complaints: result.complaints,
+  };
 }
 
 function buildProductDocument(product: Product): string {
@@ -452,8 +593,17 @@ function buildCartContext(cart: Cart, products: Product[]): string {
     .join('\n');
 }
 
-function buildPipelineEvent(agent: AgentTraceAgent, stage: AgentPipelineEvent['stage'], status: AgentPipelineEvent['status'], summary: string): AgentPipelineEvent {
-  return { timestamp: new Date().toISOString(), agent, stage, status, summary };
+function buildPipelineEvent(agent: AgentTraceAgent, stage: AgentPipelineEvent['stage'], status: AgentPipelineEvent['status'], summary: string, details?: AgentPipelineEvent['details']): AgentPipelineEvent {
+  return { timestamp: new Date().toISOString(), agent, stage, status, summary, details };
+}
+
+function buildQualityGateEvent(agent: AgentTraceAgent, result: AgentQualityGateResult): AgentPipelineEvent {
+  return buildPipelineEvent(agent, 'evaluate', result.pass ? 'completed' : result.severity === 'block' ? 'error' : 'skipped', result.pass ? 'Quality gate passed.' : `Quality gate ${result.outcome}: ${result.complaints.join('; ').slice(0, 180)}`, {
+    outcome: result.outcome,
+    severity: result.severity,
+    complaints: result.complaints.slice(0, 3),
+    source: result.source,
+  });
 }
 
 function buildTrace(params: {

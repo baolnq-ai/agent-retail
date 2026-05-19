@@ -1,0 +1,56 @@
+name: Provider source CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+        node-version:
+          - 22
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: corepack pnpm install --frozen-lockfile
+
+      - name: Typecheck workspace
+        run: corepack pnpm typecheck
+
+      - name: Run API tests
+        run: corepack pnpm --filter @retail-agent/api test
+
+      - name: Build workspace
+        run: corepack pnpm build
+
+      - name: Validate Docker Compose config
+        if: runner.os == 'Linux'
+        env:
+          POSTGRES_PORT: 55432
+          REDIS_PORT: 56379
+          COMPOSE_PROJECT_NAME: retail_agent_provider_ci
+        run: docker compose -f infra/docker/docker-compose.yml config --quiet

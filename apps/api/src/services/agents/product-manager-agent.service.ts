@@ -74,6 +74,10 @@ function selectProductsForRequest(message: string, products: Product[], analysis
 }
 
 function parseRequestedCount(normalizedMessage: string): number | undefined {
+  if (/\b\d+(?:[,.]\d+)?\s*(?:triệu|tr|k|nghìn|ngàn|đ|vnd|vnđ)\b/.test(normalizedMessage)) {
+    const explicitCount = normalizedMessage.match(/(?:tìm|gợi ý|đề xuất|cho|lấy)\s*(\d+)\s*(?:sản phẩm|món|cái|lựa chọn)/);
+    return explicitCount ? Math.min(6, Math.max(1, Number.parseInt(explicitCount[1], 10))) : undefined;
+  }
   const numericMatch = normalizedMessage.match(/(?:tìm|gợi ý|đề xuất|cho|lấy)?\s*(\d+)\s*(?:sản phẩm|món|cái|lựa chọn)?/);
   if (numericMatch) return Math.min(6, Math.max(1, Number.parseInt(numericMatch[1], 10)));
   if (/một|1 cái|1 sản phẩm/.test(normalizedMessage)) return 1;

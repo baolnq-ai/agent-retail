@@ -11,6 +11,7 @@ STOP_LOG="$SETUP_LOG_DIR/stop-$(date +%Y%m%d-%H%M%S).log"
 ENV_FILE="$ROOT_DIR/.env"
 API_PORT="${API_PORT:-7010}"
 WEB_PORT="${WEB_PORT:-7000}"
+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-retail_agent_provider}"
 
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -64,6 +65,10 @@ command_exists() {
 }
 
 load_env_file() {
+  local incoming_api_port="${API_PORT:-}"
+  local incoming_web_port="${WEB_PORT:-}"
+  local incoming_compose_project_name="${COMPOSE_PROJECT_NAME:-}"
+
   if [[ -f "$ENV_FILE" ]]; then
     set -a
     # shellcheck disable=SC1090
@@ -74,8 +79,9 @@ load_env_file() {
     warn "No .env found; using default ports"
   fi
 
-  export API_PORT="${API_PORT:-7010}"
-  export WEB_PORT="${WEB_PORT:-7000}"
+  export API_PORT="${incoming_api_port:-${API_PORT:-7010}}"
+  export WEB_PORT="${incoming_web_port:-${WEB_PORT:-7000}}"
+  export COMPOSE_PROJECT_NAME="${incoming_compose_project_name:-${COMPOSE_PROJECT_NAME:-retail_agent_provider}}"
 }
 
 is_pid_running() {
@@ -114,39 +120,34 @@ stop_pid_file() {
   rm -f "$pid_file"
 }
 
-stop_port() {
-  local port="$1"
-  local label="$2"
-
-  if command_exists powershell.exe; then
-    powershell.exe -NoProfile -Command "\$portNumber=$port; Get-NetTCPConnection -LocalPort \$portNumber -State Listen -ErrorAction SilentlyContinue | Where-Object { \$_.OwningProcess -gt 0 } | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id \$_ -Force -ErrorAction SilentlyContinue }" >> "$STOP_LOG" 2>&1 || true
-    ok "Cleared $label listeners on port $port when present"
+stop_repo_runtime_processes() {
+  if ! command_exists powershell.exe; then
+    warn "Repo-scoped process cleanup is only available on Windows PowerShell from this shell"
     return
   fi
 
-  if command_exists lsof; then
-    local pids
-    pids="$(lsof -ti tcp:"$port" 2>/dev/null || true)"
-    if [[ -n "$pids" ]]; then
-      printf '%s\n' "$pids" | xargs -r kill -TERM >> "$STOP_LOG" 2>&1 || true
-      sleep 1
-      printf '%s\n' "$pids" | xargs -r kill -KILL >> "$STOP_LOG" 2>&1 || true
-      ok "Cleared $label listeners on port $port"
-    else
-      warn "No $label listener found on port $port"
-    fi
-    return
+  local root_path="$ROOT_DIR"
+  if command_exists cygpath; then
+    root_path="$(cygpath -w "$ROOT_DIR")"
   fi
 
-  warn "No supported port cleanup tool found for $label on port $port"
+  powershell.exe -NoProfile -Command "\$root = '$root_path'.ToLowerInvariant(); Get-CimInstance Win32_Process | Where-Object { \$_.CommandLine -and \$_.CommandLine.ToLowerInvariant().Contains(\$root) -and (\$_.CommandLine.ToLowerInvariant().Contains('@retail-agent/api') -or \$_.CommandLine.ToLowerInvariant().Contains('apps\\web') -or \$_.CommandLine.ToLowerInvariant().Contains('next dev')) } | ForEach-Object { Stop-Process -Id \$_.ProcessId -Force -ErrorAction SilentlyContinue }" >> "$STOP_LOG" 2>&1 || true
+  ok "Stopped provider runtime processes scoped to this repo when present"
 }
 
-stop_next_dev_servers() {
-  if command_exists powershell.exe; then
-    powershell.exe -NoProfile -Command "\$webDir = (Resolve-Path '$ROOT_DIR/apps/web').Path.ToLowerInvariant(); Get-CimInstance Win32_Process | Where-Object { \$_.CommandLine -and \$_.CommandLine.ToLowerInvariant().Contains('next') -and \$_.CommandLine.ToLowerInvariant().Contains(\$webDir) } | ForEach-Object { Stop-Process -Id \$_.ProcessId -Force -ErrorAction SilentlyContinue }" >> "$STOP_LOG" 2>&1 || true
+stop_compose_services() {
+  if ! command_exists docker; then
+    warn "Docker not found; skipping provider compose shutdown"
+    return
   fi
+
+  docker compose -p "$COMPOSE_PROJECT_NAME" -f "$ROOT_DIR/infra/docker/docker-compose.yml" down --remove-orphans >> "$STOP_LOG" 2>&1 || true
+  ok "Stopped provider Docker Compose project: $COMPOSE_PROJECT_NAME"
+}
+
+cleanup_next_locks() {
   rm -rf "$ROOT_DIR/apps/web/.next/dev/lock" "$ROOT_DIR/apps/web/.next/dev/server" >> "$STOP_LOG" 2>&1 || true
-  ok "Cleared stale Next dev servers and locks for apps/web when present"
+  ok "Cleared stale Next dev locks for apps/web when present"
 }
 
 main() {
@@ -158,16 +159,19 @@ main() {
   stop_pid_file "$API_LOG_DIR/api.pid" "backend"
   stop_pid_file "$WEB_LOG_DIR/web.pid" "frontend"
 
-  step "Fallback cleanup by configured ports"
-  stop_port "$API_PORT" "backend"
-  stop_port "$WEB_PORT" "frontend"
-  stop_port 3000 "legacy frontend"
-  stop_port 3001 "legacy backend"
-  stop_next_dev_servers
+  step "Stop repo-scoped runtime processes"
+  stop_repo_runtime_processes
+
+  step "Stop provider Docker services"
+  stop_compose_services
+
+  step "Clean provider web runtime locks"
+  cleanup_next_locks
 
   printf "\n${GREEN}${BOLD}Stopped${RESET}\n"
-  printf "  API port checked:  %s\n" "$API_PORT"
-  printf "  Web port checked:  %s\n" "$WEB_PORT"
+  printf "  API pid file: %s\n" "$API_LOG_DIR/api.pid"
+  printf "  Web pid file: %s\n" "$WEB_LOG_DIR/web.pid"
+  printf "  Compose project: %s\n" "$COMPOSE_PROJECT_NAME"
   printf "  Log: %s\n" "$STOP_LOG"
 }
 

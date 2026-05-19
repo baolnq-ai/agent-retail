@@ -38,6 +38,7 @@ export class AgentOrchestratorService {
 
 export function detectSalesIntent(message: string): SalesAgentIntent {
   const normalizedMessage = normalize(message);
+  if (isCartStatusViewRequest(normalizedMessage)) return 'cart_status';
   if (/(thêm|add|bỏ|mua|xóa|xoá|dọn|clear|empty|sửa|đổi|cập nhật|update).*(giỏ|cart)|(?:giỏ|cart).*(xóa|xoá|dọn|clear|empty|sửa|đổi|cập nhật|update)/.test(normalizedMessage)) return 'cart_action';
   if (/(giỏ|cart).*(có gì|bao nhiêu|hiện tại|đang có)|(?:có gì|bao nhiêu).*(giỏ|cart)/.test(normalizedMessage)) return 'cart_status';
   if (isPolicyOnlyRequest(normalizedMessage)) return 'policy';
@@ -56,6 +57,10 @@ function buildMemoryBrief(memory: ChatMemoryContext): string {
 
 function isPolicyOnlyRequest(normalizedMessage: string): boolean {
   return /đổi trả|hoàn tiền|bảo hành|vận chuyển|chính sách/.test(normalizedMessage) && !/sản phẩm|máy|nồi|robot|camera|đèn|quạt|lọc|bếp|mua|tư vấn/.test(normalizedMessage);
+}
+
+function isCartStatusViewRequest(normalizedMessage: string): boolean {
+  return /(?:xem|coi|mở|mo|hiện|hien|kiểm tra|kiem tra|show|view).*(giỏ|cart)|(?:giỏ|cart).*(đâu|dau|hiện|hien|xem|coi|show|view)/.test(normalizedMessage);
 }
 
 function normalize(value: string): string {

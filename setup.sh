@@ -14,6 +14,9 @@ ENV_FILE="$ROOT_DIR/.env"
 ENV_EXAMPLE="$ROOT_DIR/.env.example"
 API_PORT="${API_PORT:-7010}"
 WEB_PORT="${WEB_PORT:-7000}"
+POSTGRES_PORT="${POSTGRES_PORT:-55432}"
+REDIS_PORT="${REDIS_PORT:-56379}"
+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-retail_agent_provider}"
 LOG_RETENTION_DAYS="${LOG_RETENTION_DAYS:-7}"
 LOG_MAX_SIZE_MB="${LOG_MAX_SIZE_MB:-20}"
 RUN_TESTS="${RUN_TESTS:-0}"
@@ -76,6 +79,17 @@ command_exists() {
 }
 
 load_env_file() {
+  local incoming_api_port="${API_PORT:-}"
+  local incoming_web_port="${WEB_PORT:-}"
+  local incoming_postgres_port="${POSTGRES_PORT:-}"
+  local incoming_redis_port="${REDIS_PORT:-}"
+  local incoming_compose_project_name="${COMPOSE_PROJECT_NAME:-}"
+  local incoming_database_url="${DATABASE_URL:-}"
+  local incoming_chat_model_base_url="${CHAT_MODEL_BASE_URL:-}"
+  local incoming_chat_model_id="${CHAT_MODEL_ID:-}"
+  local incoming_embed_rerank_base_url="${EMBED_RERANK_BASE_URL:-}"
+  local incoming_redis_url="${REDIS_URL:-}"
+
   if [[ -f "$ENV_FILE" ]]; then
     set -a
     # shellcheck disable=SC1090
@@ -93,13 +107,16 @@ load_env_file() {
     warn "No .env or .env.example found; using process environment"
   fi
 
-  export API_PORT="${API_PORT:-7010}"
-  export WEB_PORT="${WEB_PORT:-7000}"
-  export DATABASE_URL="${DATABASE_URL:-postgresql://retail:retail_password@localhost:55432/retail_agent?schema=public}"
-  export CHAT_MODEL_BASE_URL="${CHAT_MODEL_BASE_URL:-https://replace-with-your-vllm-gateway.example.invalid}"
-  export CHAT_MODEL_ID="${CHAT_MODEL_ID:-google/gemma-4-E4B-it}"
-  export EMBED_RERANK_BASE_URL="${EMBED_RERANK_BASE_URL:-https://replace-with-your-embed-rerank-gateway.example.invalid}"
-  export REDIS_URL="${REDIS_URL:-redis://localhost:56379}"
+  export API_PORT="${incoming_api_port:-${API_PORT:-7010}}"
+  export WEB_PORT="${incoming_web_port:-${WEB_PORT:-7000}}"
+  export POSTGRES_PORT="${incoming_postgres_port:-${POSTGRES_PORT:-55432}}"
+  export REDIS_PORT="${incoming_redis_port:-${REDIS_PORT:-56379}}"
+  export COMPOSE_PROJECT_NAME="${incoming_compose_project_name:-${COMPOSE_PROJECT_NAME:-retail_agent_provider}}"
+  export DATABASE_URL="${incoming_database_url:-${DATABASE_URL:-postgresql://retail:retail_password@localhost:${POSTGRES_PORT}/retail_agent?schema=public}}"
+  export CHAT_MODEL_BASE_URL="${incoming_chat_model_base_url:-${CHAT_MODEL_BASE_URL:-https://replace-with-your-vllm-gateway.example.invalid}}"
+  export CHAT_MODEL_ID="${incoming_chat_model_id:-${CHAT_MODEL_ID:-replace-with-your-chat-model-id}}"
+  export EMBED_RERANK_BASE_URL="${incoming_embed_rerank_base_url:-${EMBED_RERANK_BASE_URL:-https://replace-with-your-embed-rerank-gateway.example.invalid}}"
+  export REDIS_URL="${incoming_redis_url:-${REDIS_URL:-redis://localhost:${REDIS_PORT}}}"
   export API_BASE_URL="http://127.0.0.1:${API_PORT}"
   API_LOG="$API_LOG_DIR/api-${API_PORT}.log"
   WEB_LOG="$WEB_LOG_DIR/web-${WEB_PORT}.log"
@@ -171,10 +188,10 @@ start_docker_services() {
 
   step "Start PostgreSQL and Redis"
   command_exists docker || fail "Docker is required to start local PostgreSQL/Redis. Set SKIP_DOCKER=1 to skip."
-  if docker compose -f "$ROOT_DIR/infra/docker/docker-compose.yml" up -d >> "$SETUP_LOG" 2>&1; then
+  if docker compose -p "$COMPOSE_PROJECT_NAME" -f "$ROOT_DIR/infra/docker/docker-compose.yml" up -d >> "$SETUP_LOG" 2>&1; then
     ok "Docker services requested"
   else
-    warn "Docker compose failed; continuing to check whether database ports are already available"
+    fail "Docker compose failed. Check Docker Desktop and make sure POSTGRES_PORT=$POSTGRES_PORT and REDIS_PORT=$REDIS_PORT are free, or set SKIP_DOCKER=1 with external services."
   fi
 }
 
@@ -221,7 +238,8 @@ wait_for_http() {
 
 prepare_database() {
   step "Prepare Prisma database"
-  wait_for_port 127.0.0.1 55432 PostgreSQL 90
+  wait_for_port 127.0.0.1 "$POSTGRES_PORT" PostgreSQL 90
+  wait_for_port 127.0.0.1 "$REDIS_PORT" Redis 90
   run corepack pnpm --filter @retail-agent/api db:generate
   run corepack pnpm --filter @retail-agent/api db:push
   run corepack pnpm --filter @retail-agent/api db:seed
@@ -241,33 +259,14 @@ run_optional_tests() {
   ok "Selected checks passed"
 }
 
-kill_port() {
-  local port="$1"
-  local label="$2"
-
-  if command_exists powershell.exe; then
-    powershell.exe -NoProfile -Command "\$portNumber=$port; Get-NetTCPConnection -LocalPort \$portNumber -State Listen -ErrorAction SilentlyContinue | Where-Object { \$_.OwningProcess -gt 0 } | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id \$_ -Force -ErrorAction SilentlyContinue }" >> "$SETUP_LOG" 2>&1 || true
-  elif command_exists lsof; then
-    lsof -ti tcp:"$port" | xargs -r kill -TERM >> "$SETUP_LOG" 2>&1 || true
-  fi
-  ok "Cleared existing $label process on port $port when present"
-}
-
-kill_next_dev_servers() {
-  if command_exists powershell.exe; then
-    powershell.exe -NoProfile -Command "\$webDir = (Resolve-Path '$ROOT_DIR/apps/web').Path.ToLowerInvariant(); Get-CimInstance Win32_Process | Where-Object { \$_.CommandLine -and \$_.CommandLine.ToLowerInvariant().Contains('next') -and \$_.CommandLine.ToLowerInvariant().Contains(\$webDir) } | ForEach-Object { Stop-Process -Id \$_.ProcessId -Force -ErrorAction SilentlyContinue }" >> "$SETUP_LOG" 2>&1 || true
-  fi
+cleanup_next_locks() {
   rm -rf "$ROOT_DIR/apps/web/.next/dev/lock" "$ROOT_DIR/apps/web/.next/dev/server" >> "$SETUP_LOG" 2>&1 || true
-  ok "Cleared stale Next dev servers and locks for apps/web when present"
+  ok "Cleared stale Next dev locks for apps/web when present"
 }
 
 start_runtime() {
   step "Start backend and frontend"
-  kill_port "$API_PORT" "backend"
-  kill_port "$WEB_PORT" "frontend"
-  kill_port 3000 "legacy frontend"
-  kill_port 3001 "legacy backend"
-  kill_next_dev_servers
+  cleanup_next_locks
 
   run corepack pnpm --filter @retail-agent/api build
 
@@ -298,7 +297,7 @@ start_runtime() {
   printf "  API:  http://127.0.0.1:%s\n" "$API_PORT"
   printf "  Web:  http://127.0.0.1:%s\n" "$WEB_PORT"
   printf "  Logs: %s\n        %s\n" "$API_LOG" "$WEB_LOG"
-  printf "\n${GRAY}Stop later with: kill \$(cat logs/runtime/backend/api.pid) \$(cat logs/runtime/frontend/web.pid)${RESET}\n"
+  printf "\n${GRAY}Stop later with: ./stop.sh${RESET}\n"
 }
 
 main() {

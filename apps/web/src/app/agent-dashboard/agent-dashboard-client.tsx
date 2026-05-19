@@ -155,6 +155,9 @@ export function AgentDashboardClient() {
               <TraceMetric label="Tài liệu ngữ cảnh" value={trace.llm.contextDocumentCount} />
               <ListBlock title="Phần prompt" items={trace.llm.promptSections} />
             </TracePanel>
+            <TracePanel title="Kiểm duyệt agent" wide>
+              <QualityGateList trace={trace} />
+            </TracePanel>
             <TracePanel title="Lỗi/dự phòng" wide>
               {trace.errors.length ? trace.errors.map((error) => <p className="trace-error" key={`${error.source}-${error.message}`}><strong>{error.source}</strong>: {error.message}</p>) : <p>Không có lỗi không nghiêm trọng trong lượt này.</p>}
             </TracePanel>
@@ -283,6 +286,23 @@ function isImportantSupportNode(id: string): boolean {
     'llm-call',
     'assistant-response',
   ].includes(id);
+}
+
+function QualityGateList({ trace }: { trace: AgentTrace }) {
+  const gateEvents = (trace.pipeline ?? []).filter((event) => event.stage === 'evaluate');
+  if (!gateEvents.length) return <p>Chưa có gate kiểm duyệt trong trace này.</p>;
+
+  return (
+    <div className="agent-interaction-strip">
+      {gateEvents.slice(-8).map((event, index) => (
+        <div className={`agent-interaction-item ${event.status === 'error' ? 'return' : 'data'}`} key={`${event.agent}-${event.timestamp}-${index}`}>
+          <span>{event.status === 'completed' ? 'pass' : event.details?.outcome ?? event.status}</span>
+          <strong>{agentLabels[event.agent] ?? event.agent}</strong>
+          <small>{event.summary}</small>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function GraphInteractionList({ trace }: { trace: AgentTrace }) {
@@ -445,7 +465,7 @@ function ListBlock({ title, items }: { title: string; items: string[] }) {
   return (
     <div className="trace-list-block">
       <span>{title}</span>
-      {items.length ? <div>{items.map((item) => <code key={item}>{item}</code>)}</div> : <p>Không có dữ liệu.</p>}
+      {items.length ? <div>{items.map((item, index) => <code key={`${title}-${item}-${index}`}>{item}</code>)}</div> : <p>Không có dữ liệu.</p>}
     </div>
   );
 }

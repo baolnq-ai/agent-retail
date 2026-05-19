@@ -68,10 +68,15 @@ function buildEvaluationPrompt(params: { message: string; draft: string; recomme
 
 function readEvaluation(content: string): SalesEvaluationResult {
   const parsed = JSON.parse(content.replace(/```json|```/gi, '').trim()) as Partial<SalesEvaluationResult>;
+  const pass = parsed.pass === true;
+  const complaints = Array.isArray(parsed.complaints) ? parsed.complaints.filter((item): item is string => typeof item === 'string') : [];
   return {
-    pass: parsed.pass === true,
-    complaints: Array.isArray(parsed.complaints) ? parsed.complaints.filter((item): item is string => typeof item === 'string') : [],
+    pass,
+    outcome: pass ? 'pass' : 'revise',
+    severity: pass ? 'info' : 'block',
+    complaints,
     revisedInstruction: typeof parsed.revisedInstruction === 'string' ? parsed.revisedInstruction : undefined,
+    safeResponse: typeof parsed.safeResponse === 'string' ? parsed.safeResponse : undefined,
     source: 'llm',
   };
 }
@@ -83,5 +88,6 @@ function evaluateWithGuardrails(draft: string, products: Product[]): SalesEvalua
   const mentionedOutside = /AiroClean|LumiAir|Windy|ThermoCare|CoolMate|HeatHome/i.test(draft)
     && productTitles.every((title) => !draft.toLocaleLowerCase('vi-VN').includes(title));
   if (mentionedOutside) complaints.push('Draft có vẻ nhắc sản phẩm không nằm trong product rail.');
-  return { pass: complaints.length === 0, complaints, revisedInstruction: complaints.length ? complaints.join(' ') : undefined, source: 'fallback' };
+  const pass = complaints.length === 0;
+  return { pass, outcome: pass ? 'pass' : 'revise', severity: pass ? 'info' : 'block', complaints, revisedInstruction: complaints.length ? complaints.join(' ') : undefined, safeResponse: pass ? undefined : 'Mình chưa thể trả lời chắc chắn theo dữ liệu hiện có. Bạn cho mình thêm nhu cầu hoặc chọn lại sản phẩm trong khung gợi ý nhé.', source: 'fallback' };
 }

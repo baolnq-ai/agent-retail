@@ -56,8 +56,9 @@ function buildRuleAnalysis(params: { message: string; pendingPlan?: PendingCartP
     }
 
     const references = detectReferences(normalizedMessage, params.memoryInvestigation);
-    const cartOperation = detectCartOperation(normalizedMessage, references);
-    const intent = cartOperation ? 'cart_action' : references.anotherOption ? 'recommend' : detectSalesIntent(params.message);
+    const detectedIntent = detectSalesIntent(params.message);
+    const cartOperation = detectedIntent === 'cart_status' ? undefined : detectCartOperation(normalizedMessage, references);
+    const intent = cartOperation ? 'cart_action' : references.anotherOption ? 'recommend' : detectedIntent;
     const retrievalMode = detectRetrievalMode(intent, references, params.memoryInvestigation);
     const analysis = baseAnalysis(intent, cartOperation ? 0.9 : 0.78, retrievalMode, shouldShowProducts(intent, retrievalMode, cartOperation));
     analysis.cartOperation = cartOperation;
@@ -90,6 +91,7 @@ function buildAnalysisPrompt(params: { message: string; pendingPlan?: PendingCar
     agentHistory: historySummary,
     preSignal: fallback,
     rules: [
+      'Nếu khách nói xem/coi/mở/kiểm tra giỏ hàng hoặc hỏi giỏ hàng đang có gì thì intent=cart_status, cartOperation=undefined, retrievalMode=none, shouldShowProducts=false.',
       'Nếu khách nói cho nhiều sản phẩm hơn/xem thêm/gợi ý thêm thì intent=recommend và retrievalMode=alternatives.',
       'Nếu khách nói thêm/mua/bỏ vào giỏ và memory đã resolve product ids thì intent=cart_action, cartOperation=add, retrievalMode=recent.',
       'Nếu hỏi chính sách thuần thì không show products.',

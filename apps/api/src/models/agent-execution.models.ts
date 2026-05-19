@@ -2,7 +2,7 @@ import type { Product, KnowledgeDocument } from './catalog.models.js';
 import type { Cart } from './commerce.models.js';
 import type { AgentTraceAgent, AgentTraceStepStatus } from './agent.models.js';
 
-export type AgentPipelineStage = 'analyze' | 'lookup' | 'investigate' | 'plan' | 'execute' | 'verify' | 'handoff';
+export type AgentPipelineStage = 'analyze' | 'lookup' | 'investigate' | 'plan' | 'execute' | 'verify' | 'handoff' | 'evaluate' | 'revise';
 export type AgentPipelineStatus = AgentTraceStepStatus;
 export type CartToolName = 'cart.clear' | 'cart.add' | 'cart.remove' | 'cart.setQuantity' | 'cart.incrementQuantity' | 'cart.decrementQuantity' | 'cart.confirmPendingPlan' | 'cart.cancelPendingPlan';
 export type CartOperationKind = 'clear' | 'add' | 'remove' | 'set_quantity' | 'increment_quantity' | 'decrement_quantity';
@@ -104,12 +104,17 @@ export interface AgentHistoryEntry {
   source: 'llm' | 'fallback' | 'tool';
 }
 
-export interface SalesEvaluationResult {
+export interface AgentQualityGateResult {
   pass: boolean;
+  outcome: 'pass' | 'revise' | 'refuse' | 'clarify';
+  severity: 'info' | 'warn' | 'block';
   complaints: string[];
   revisedInstruction?: string;
+  safeResponse?: string;
   source: 'llm' | 'fallback';
 }
+
+export interface SalesEvaluationResult extends AgentQualityGateResult {}
 
 export interface AgentHistoryContext {
   agent: AgentTraceAgent;

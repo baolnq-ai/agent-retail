@@ -12,6 +12,7 @@ import { ModelSettingsController } from './controllers/model-settings.controller
 import { AgentHistoryService } from './services/agent-history.service.js';
 import { AgentOrchestratorService } from './services/agent-orchestrator.service.js';
 import { AgentTraceService } from './services/agent-trace.service.js';
+import { AgentQualityGateService } from './services/agents/agent-quality-gate.service.js';
 import { CartManagerAgentService } from './services/agents/cart-manager-agent.service.js';
 import { MemoryAgentService } from './services/agents/memory-agent.service.js';
 import { ProductManagerAgentService } from './services/agents/product-manager-agent.service.js';
@@ -31,6 +32,6 @@ import { PrismaService } from './services/prisma.service.js';
 
 @Module({
   controllers: [HealthController, ModelGatewayController, ModelSettingsController, CatalogController, KnowledgeController, CommerceController, AccountMemoryController, AgentController, AgentObservabilityController, AuthController],
-  providers: [PrismaService, HealthService, ModelSettingsService, ModelGatewayService, CatalogService, KnowledgeService, CommerceService, AgentHistoryService, AgentOrchestratorService, AgentTraceService, CartManagerAgentService, MemoryAgentService, ProductManagerAgentService, RecommendationAgentService, SalesEvaluatorAgentService, UserAnalysisAgentService, AgentService, AuthService, ChatMemoryService],
+  providers: [PrismaService, HealthService, ModelSettingsService, ModelGatewayService, CatalogService, KnowledgeService, CommerceService, AgentHistoryService, AgentOrchestratorService, AgentTraceService, AgentQualityGateService, CartManagerAgentService, MemoryAgentService, ProductManagerAgentService, RecommendationAgentService, SalesEvaluatorAgentService, UserAnalysisAgentService, AgentService, AuthService, ChatMemoryService],
 })
 export class AppModule {}
