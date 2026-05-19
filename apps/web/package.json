@@ -1,0 +1,24 @@
+{
+  "name": "@retail-agent/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev -H 0.0.0.0",
+    "start": "next start -H 0.0.0.0",
+    "test": "node --test tests/*.test.mjs",
+    "test:runtime": "corepack pnpm build && node tests/runtime-home.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@retail-agent/shared": "workspace:*",
+    "next": "^16.0.7",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3"
+  }
+}

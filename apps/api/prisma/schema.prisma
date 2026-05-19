@@ -1,0 +1,187 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions     UserSession[]
+  carts        Cart[]
+  chatThreads  ChatThread[]
+  preferences  UserPreference[]
+  interactions UserInteractionEvent[]
+}
+
+model UserSession {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Product {
+  id          String   @id
+  title       String
+  brand       String
+  category    String
+  price       Int
+  currency    String
+  inventory   Int
+  attributes  Json
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  cartItems    CartItem[]
+  interactions UserInteractionEvent[]
+}
+
+model KnowledgeDocument {
+  id         String   @id
+  type       String
+  title      String
+  content    String
+  trustLevel String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Cart {
+  id         String   @id
+  userId     String?
+  version    Int      @default(1)
+  status     String   @default("active")
+  subtotal   Int      @default(0)
+  grandTotal Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user   User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items  CartItem[]
+  orders Order[]
+
+  @@index([userId])
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  productId String
+  quantity  Int
+  unitPrice Int
+  lineTotal Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cart    Cart    @relation(fields: [cartId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([cartId, productId])
+}
+
+model Order {
+  id        String   @id @default(cuid())
+  cartId    String
+  status    String
+  total     Int
+  items     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cart Cart @relation(fields: [cartId], references: [id])
+  payments PaymentIntent[]
+}
+
+model PaymentIntent {
+  id         String   @id @default(cuid())
+  orderId    String
+  provider   String
+  status     String
+  amount     Int
+  paymentUrl String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id])
+}
+
+model IdempotencyKey {
+  scope        String
+  key          String
+  responseJson Json
+  createdAt    DateTime @default(now())
+
+  @@id([scope, key])
+}
+
+model ChatThread {
+  id        String   @id @default(cuid())
+  userId    String?
+  cartId    String?
+  title     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  messages ChatMessage[]
+
+  @@index([userId])
+  @@index([cartId])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  threadId  String
+  role      String
+  content   String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  thread ChatThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
+}
+
+model UserPreference {
+  id        String   @id @default(cuid())
+  userId    String
+  key       String
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key])
+}
+
+model UserInteractionEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  productId String?
+  type      String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([productId])
+  @@index([type])
+}
