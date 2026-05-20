@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { loadEnvironment } from '../config/environment.js';
 import { hashPassword, verifyPassword } from '../utils/password.js';
 import { createSessionToken, hashSessionToken, readCookie, sessionCookieName, sessionMaxAgeSeconds } from '../utils/session-cookie.js';
@@ -90,14 +90,14 @@ export class AuthService {
 function validateName(value: string): string {
   const name = value.trim().toLocaleLowerCase('vi-VN');
   if (!/^[a-z0-9_]{3,32}$/.test(name)) {
-    throw new Error('name must be 3-32 characters and contain only lowercase letters, numbers, or underscore');
+    throw new BadRequestException('name must be 3-32 characters and contain only lowercase letters, numbers, or underscore');
   }
   return name;
 }
 
 function validatePassword(value: string): string {
   if (value.length < 8 || value.length > 128) {
-    throw new Error('password must be 8-128 characters');
+    throw new BadRequestException('password must be 8-128 characters');
   }
   return value;
 }

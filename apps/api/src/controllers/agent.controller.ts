@@ -1,4 +1,4 @@
-import { Body, Controller, Options, Post, Req, Res } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Options, Post, Req, Res } from '@nestjs/common';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { AgentService } from '../services/agent.service.js';
 import { AuthService } from '../services/auth.service.js';
@@ -14,7 +14,7 @@ export class AgentController {
   async chat(@Body() body: { message?: string; cartId?: string }, @Req() request: FastifyRequest) {
     const message = body.message?.trim();
     if (!message) {
-      throw new Error('message is required');
+      throw new BadRequestException('message is required');
     }
 
     const user = await this.authService.getUserFromCookie(request.headers.cookie);
@@ -31,7 +31,7 @@ export class AgentController {
   async chatStream(@Body() body: { message?: string; cartId?: string }, @Res() reply: FastifyReply) {
     const message = body.message?.trim();
     if (!message) {
-      throw new Error('message is required');
+      throw new BadRequestException('message is required');
     }
 
     writeStreamCorsHeaders(reply, 200, {

@@ -71,14 +71,21 @@ export class AgentService {
 
   async chat(request: AgentChatRequest): Promise<AgentChatResponse> {
     const prepared = await this.prepareChat(request);
-    const modelResponse = await this.modelGatewayService.chat({
-      messages: prepared.messages,
-      maxTokens: 260,
-      temperature: 0.1,
-    });
+    let content: string;
+    let model = 'safe-fallback';
+    try {
+      const modelResponse = await this.modelGatewayService.chat({
+        messages: prepared.messages,
+        maxTokens: 260,
+        temperature: 0.1,
+      });
+      model = modelResponse.model;
+      content = await this.reviseSalesContent(prepared, cleanAssistantText(modelResponse.content, mergeProducts(prepared.products, prepared.recommendationResult.products)));
+    } catch (error) {
+      content = buildModelUnavailableResponse(prepared);
+    }
 
-    const content = await this.reviseSalesContent(prepared, cleanAssistantText(modelResponse.content, mergeProducts(prepared.products, prepared.recommendationResult.products)));
-    const response = this.buildResponse(prepared, content, modelResponse.model);
+    const response = this.buildResponse(prepared, content, model);
     await this.chatMemoryService.saveTurn({
       userId: prepared.userId,
       cartId: prepared.cartId,
@@ -96,17 +103,22 @@ export class AgentService {
     let model = '';
 
     yield { type: 'status', message: 'Đang gọi LLM và kiểm duyệt câu trả lời' };
-    for await (const chunk of this.modelGatewayService.streamChat({
-      messages: prepared.messages,
-      maxTokens: 260,
-      temperature: 0.1,
-    })) {
-      content += chunk.content;
-      model = chunk.model ?? model;
+    try {
+      for await (const chunk of this.modelGatewayService.streamChat({
+        messages: prepared.messages,
+        maxTokens: 260,
+        temperature: 0.1,
+      })) {
+        content += chunk.content;
+        model = chunk.model ?? model;
+      }
+    } catch (error) {
+      content = buildModelUnavailableResponse(prepared);
+      model = 'safe-fallback';
     }
 
     const cleanedContent = cleanAssistantText(content, mergeProducts(prepared.products, prepared.recommendationResult.products));
-    const finalContent = await this.reviseSalesContent(prepared, cleanedContent);
+    const finalContent = model === 'safe-fallback' ? cleanedContent : await this.reviseSalesContent(prepared, cleanedContent);
     yield { type: 'token', content: finalContent };
     const response = this.buildResponse(prepared, finalContent, model || 'streaming-model');
     await this.chatMemoryService.saveTurn({
@@ -265,7 +277,12 @@ export class AgentService {
     const traceErrors: AgentTrace['errors'] = [];
 
     createStatus?.('Đang gọi embedding thật');
-    const embeddings = await this.modelGatewayService.embed([message, ...contextDocuments]);
+    let embeddings: number[][] = [];
+    try {
+      embeddings = await this.modelGatewayService.embed([message, ...contextDocuments]);
+    } catch (error) {
+      traceErrors.push({ source: 'embedding', message: error instanceof Error ? error.message : 'embedding failed' });
+    }
 
     createStatus?.('Đang rerank bằng model rerank thật');
     let reranked: Array<{ document: string; score: number }> = [];
@@ -519,6 +536,14 @@ function buildSafeFinalResponse(prepared: PreparedChat, complaints: string[]): s
   if (prepared.actionResult) return prepared.actionResult;
   if (prepared.recommendationResult.products.length > 0) return `Mình đã tìm được ${prepared.recommendationResult.products.length} sản phẩm phù hợp trong khung gợi ý, nhưng cần bạn xác nhận thêm nhu cầu để mình tư vấn chính xác hơn.`;
   return complaints.length ? `Mình chưa đủ chắc chắn để trả lời chính xác: ${complaints[0]} Bạn nói rõ thêm nhu cầu giúp mình nhé.` : 'Mình chưa đủ dữ liệu để trả lời chắc chắn. Bạn nói rõ hơn nhu cầu sản phẩm, chính sách hoặc giỏ hàng giúp mình nhé.';
+}
+
+function buildModelUnavailableResponse(prepared: PreparedChat): string {
+  if (prepared.actionResult) return prepared.actionResult;
+  if (prepared.recommendationResult.products.length > 0) {
+    return `Mình đã tìm được ${prepared.recommendationResult.products.length} sản phẩm phù hợp trong khung gợi ý. Hiện kết nối mô hình trả lời đang chưa sẵn sàng, bạn có thể xem sản phẩm trong khung hoặc thử lại sau khi cấu hình model.`;
+  }
+  return 'Hiện kết nối mô hình trả lời đang chưa sẵn sàng nên mình chưa thể tạo câu trả lời chi tiết. Bạn kiểm tra cấu hình model trong phần cài đặt hoặc thử lại sau nhé.';
 }
 
 function buildSalesRevisionPrompt(prepared: PreparedChat, draft: string, complaints: string[], revisedInstruction: string | undefined): string {

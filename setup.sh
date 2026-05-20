@@ -283,7 +283,7 @@ start_runtime() {
 
   (
     cd "$ROOT_DIR/apps/web"
-    API_BASE_URL="http://127.0.0.1:${API_PORT}" PORT="$WEB_PORT" corepack pnpm exec next dev -H 0.0.0.0 -p "$WEB_PORT" >> "$WEB_LOG" 2>&1
+    API_BASE_URL="http://127.0.0.1:${API_PORT}" NEXT_PUBLIC_API_BASE_URL="http://127.0.0.1:${API_PORT}" PORT="$WEB_PORT" corepack pnpm exec next dev -H 0.0.0.0 -p "$WEB_PORT" >> "$WEB_LOG" 2>&1
   ) &
   local web_pid=$!
 

@@ -181,6 +181,9 @@ $apiProductsUrl = 'http://127.0.0.1:' + $env:API_PORT + '/api/v1/products'
 Test-Http $apiHealthUrl 'API health' 90
 Test-Http $apiProductsUrl 'API products' 90
 $webErrorLog = $WebLog -replace '\.log$', '.error.log'
+$apiBaseUrl = 'http://127.0.0.1:' + $env:API_PORT
+$env:API_BASE_URL = $apiBaseUrl
+$env:NEXT_PUBLIC_API_BASE_URL = $apiBaseUrl
 $webProcess = Start-Process -FilePath 'corepack' -ArgumentList @('pnpm', 'exec', 'next', 'dev', '-H', '0.0.0.0', '-p', $env:WEB_PORT) -WorkingDirectory (Join-Path $RootDir 'apps\web') -RedirectStandardOutput $WebLog -RedirectStandardError $webErrorLog -PassThru -WindowStyle Hidden
 Test-Port '127.0.0.1' ([int]$env:WEB_PORT) 'Web' 90
 
