@@ -40,6 +40,9 @@ jobs:
       - name: Install dependencies
         run: corepack pnpm install --frozen-lockfile
 
+      - name: Prepare generated clients
+        run: corepack pnpm prepare:generated
+
       - name: Typecheck workspace
         run: corepack pnpm typecheck
 
