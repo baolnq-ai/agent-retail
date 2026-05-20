@@ -268,6 +268,7 @@ start_runtime() {
   step "Start backend and frontend"
   cleanup_next_locks
 
+  run corepack pnpm prepare:generated
   run corepack pnpm --filter @retail-agent/api build
 
   (
