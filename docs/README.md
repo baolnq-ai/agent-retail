@@ -43,6 +43,7 @@
 
 | Tài liệu | Nội dung |
 | --- | --- |
+| [reports/production-architecture-audit-20260526.md](reports/production-architecture-audit-20260526.md) | Audit Docker, DB, vector search, ảnh và readiness production |
 | [reports/provider-source-hub-readiness-checklist.md](reports/provider-source-hub-readiness-checklist.md) | Checklist provider source readiness |
 | [../test/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/README.md](../test/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/README.md) | Benchmark 20 câu khó và audit flow |
 | [../test/agent-dashboard-icon-legend-density-evidence-2026-05-26/README.md](../test/agent-dashboard-icon-legend-density-evidence-2026-05-26/README.md) | Evidence dashboard icon/legend/flow |

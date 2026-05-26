@@ -76,9 +76,12 @@ function Import-EnvFile {
     NGINX_PORT = $env:NGINX_PORT
     POSTGRES_PORT = $env:POSTGRES_PORT
     REDIS_PORT = $env:REDIS_PORT
+    QDRANT_PORT = $env:QDRANT_PORT
+    QDRANT_GRPC_PORT = $env:QDRANT_GRPC_PORT
     COMPOSE_PROJECT_NAME = $env:COMPOSE_PROJECT_NAME
     DATABASE_URL = $env:DATABASE_URL
     REDIS_URL = $env:REDIS_URL
+    QDRANT_URL = $env:QDRANT_URL
     CHAT_MODEL_BASE_URL = $env:CHAT_MODEL_BASE_URL
     CHAT_MODEL_ID = $env:CHAT_MODEL_ID
     EMBED_RERANK_BASE_URL = $env:EMBED_RERANK_BASE_URL
@@ -120,9 +123,12 @@ function Import-EnvFile {
   if (-not $env:NGINX_PORT) { $env:NGINX_PORT = '7080' }
   if (-not $env:POSTGRES_PORT) { $env:POSTGRES_PORT = '55432' }
   if (-not $env:REDIS_PORT) { $env:REDIS_PORT = '56379' }
+  if (-not $env:QDRANT_PORT) { $env:QDRANT_PORT = '6333' }
+  if (-not $env:QDRANT_GRPC_PORT) { $env:QDRANT_GRPC_PORT = '6334' }
   if (-not $env:COMPOSE_PROJECT_NAME) { $env:COMPOSE_PROJECT_NAME = 'retail_agent_provider' }
   if (-not $env:DATABASE_URL) { $env:DATABASE_URL = 'postgresql://retail:retail_password@localhost:' + $env:POSTGRES_PORT + '/retail_agent?schema=public' }
   if (-not $env:REDIS_URL) { $env:REDIS_URL = 'redis://localhost:' + $env:REDIS_PORT }
+  if (-not $env:QDRANT_URL) { $env:QDRANT_URL = 'http://localhost:' + $env:QDRANT_PORT }
   if (-not $env:CHAT_MODEL_BASE_URL) { $env:CHAT_MODEL_BASE_URL = 'https://replace-with-your-vllm-gateway.example.invalid' }
   if (-not $env:CHAT_MODEL_ID) { $env:CHAT_MODEL_ID = 'google/gemma-4-E4B-it' }
   if (-not $env:EMBED_RERANK_BASE_URL) { $env:EMBED_RERANK_BASE_URL = 'https://replace-with-your-embed-rerank-gateway.example.invalid' }
@@ -196,13 +202,13 @@ Invoke-Logged { corepack pnpm install }
 Write-Ok 'Node dependencies installed'
 
 if ($env:SKIP_DOCKER -ne '1') {
-  Write-Step 'Start PostgreSQL, Redis and nginx'
+  Write-Step 'Start PostgreSQL, Redis, Qdrant and nginx'
   $composeFile = Join-Path $RootDir 'infra\docker\docker-compose.yml'
   try {
     Invoke-Logged { docker compose -p $env:COMPOSE_PROJECT_NAME -f $composeFile up -d }
     Write-Ok 'Docker services requested'
   } catch {
-    throw ('Docker compose failed. Check Docker Desktop and make sure POSTGRES_PORT=' + $env:POSTGRES_PORT + ', REDIS_PORT=' + $env:REDIS_PORT + ' and NGINX_PORT=' + $env:NGINX_PORT + ' are free, or set SKIP_DOCKER=1 with external services.')
+    throw ('Docker compose failed. Check Docker Desktop and make sure POSTGRES_PORT=' + $env:POSTGRES_PORT + ', REDIS_PORT=' + $env:REDIS_PORT + ', QDRANT_PORT=' + $env:QDRANT_PORT + ' and NGINX_PORT=' + $env:NGINX_PORT + ' are free, or set SKIP_DOCKER=1 with external services.')
   }
 }
 
@@ -210,6 +216,7 @@ Write-Step 'Prepare Prisma database'
 Test-Port '127.0.0.1' ([int]$env:POSTGRES_PORT) 'PostgreSQL' 90
 Test-Port '127.0.0.1' ([int]$env:REDIS_PORT) 'Redis' 90
 if ($env:SKIP_DOCKER -ne '1') {
+  Test-Http ($env:QDRANT_URL + '/healthz') 'Qdrant' 90
   Test-Http ('http://127.0.0.1:' + $env:NGINX_PORT + '/nginx-health') 'nginx' 90
 }
 Invoke-Logged { corepack pnpm --filter '@retail-agent/api' db:generate }
@@ -236,6 +243,7 @@ $apiEnv = @{
   CHAT_MODEL_ID = $env:CHAT_MODEL_ID
   EMBED_RERANK_BASE_URL = $env:EMBED_RERANK_BASE_URL
   REDIS_URL = $env:REDIS_URL
+  QDRANT_URL = $env:QDRANT_URL
 }
 if ($TerminalMode -eq 'window') {
   $apiProcess = Start-RuntimeWindow 'Retail API - @retail-agent/api' $RootDir $apiEnv "corepack pnpm --filter '@retail-agent/api' start" $ApiLog

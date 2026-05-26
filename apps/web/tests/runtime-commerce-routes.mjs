@@ -17,6 +17,7 @@ const env = {
   CHAT_MODEL_BASE_URL: process.env.CHAT_MODEL_BASE_URL ?? 'https://replace-with-your-vllm-gateway.example.invalid',
   CHAT_MODEL_ID: process.env.CHAT_MODEL_ID ?? 'google/gemma-4-E4B-it',
   EMBED_RERANK_BASE_URL: process.env.EMBED_RERANK_BASE_URL ?? 'https://replace-with-your-embed-rerank-gateway.example.invalid',
+  QDRANT_URL: process.env.QDRANT_URL ?? 'http://localhost:6333',
 };
 
 test('commerce web routes render against a real API server', async () => {
@@ -52,13 +53,13 @@ test('commerce web routes render against a real API server', async () => {
     assert.equal(productPayload.items.length > 0, true);
     const productId = productPayload.items[0].id;
 
-    await assertRoute('/', [/RetailHome/, /Mua sáº¯m ngay|Mua sắm ngay/, /Sáº£n pháº©m|Sản phẩm/]);
-    await assertRoute('/products', [/Catalog/, /Danh sÃ¡ch sáº£n pháº©m|Danh sách sản phẩm/, new RegExp(escapeRegex(productPayload.items[0].title.slice(0, 12)))]);
-    await assertRoute(`/products/${productId}`, [/Chi tiáº¿t|Chi tiết/, /ThÃªm vÃ o giá»|Thêm vào giỏ/]);
-    await assertRoute('/cart', [/cart-page-shell/, /Đang tải giỏ hàng|Äang táº£i giá» hÃ ng/, /initialProducts/]);
-    await assertRoute('/account', [/account-auth-page/, /Đang kiểm tra phiên đăng nhập|Äang kiá»ƒm tra phiÃªn Ä‘Äƒng nháº­p/, /AccountClient/]);
-    await assertRoute('/test-api', [/Model|API|Endpoint|Provider|Kiá»ƒm tra|Kiểm tra/]);
-    await assertRoute('/agent-settings', [/Model|API|Endpoint|Provider|Kiá»ƒm tra|Kiểm tra/]);
+    await assertRoute('/', [/RetailHome/, /Mua sắm ngay/, /Sản phẩm/]);
+    await assertRoute('/products', [/Danh mục sản phẩm/, /Danh sách sản phẩm/, new RegExp(escapeRegex(productPayload.items[0].title.slice(0, 12)))]);
+    await assertRoute(`/products/${productId}`, [/Chi tiết/, /Thêm vào giỏ|Đăng nhập để thêm giỏ/]);
+    await assertRoute('/cart', [/cart-page-shell/, /Đang tải giỏ hàng|Giỏ hàng/, /initialProducts/]);
+    await assertRoute('/account', [/account-auth-page/, /Đang kiểm tra phiên đăng nhập|Tài khoản/, /AccountClient/]);
+    await assertRoute('/test-api', [/Model|API|Endpoint|Provider|Kiểm tra/]);
+    await assertRoute('/agent-settings', [/Model|API|Endpoint|Provider|Kiểm tra/]);
     await assertRoute('/agent-dashboard?demoTrace=dense', [/agent-dashboard-shell|Agent Ops|Dashboard agent/]);
   } finally {
     web.kill('SIGTERM');

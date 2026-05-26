@@ -397,7 +397,7 @@ function buildGraphView(trace: AgentTrace): { activeAgent: string | undefined; v
   if (trace.nodes?.length) {
     const graphEdges = buildGraphEdges(trace);
     const expandedGraph = expandPrivateGraphInstances(augmentPipelineNodes(trace, buildPositionedGraphNodes(trace)), graphEdges);
-    const positionedNodes = applySessionFlowLayout(expandedGraph.nodes, trace, expandedGraph.edges);
+    const positionedNodes = spreadNearbyNodes(applySessionFlowLayout(expandedGraph.nodes, trace, expandedGraph.edges));
     const expandedEdges = expandedGraph.edges;
     const connectedNodeIds = new Set(expandedEdges.flatMap((edge) => [edge.from, edge.to]));
     const visibleNodes = compactVisibleGraphNodes(positionedNodes.filter((node) => shouldShowNode(node, connectedNodeIds)));
@@ -424,7 +424,7 @@ function buildGraphView(trace: AgentTrace): { activeAgent: string | undefined; v
   const supportNodes = buildSupportNodes(trace, activeAgents);
   const graphEdges = buildGraphEdges(trace);
   const expandedGraph = expandPrivateGraphInstances([...agentNodes, ...supportNodes], graphEdges);
-  const visibleNodes = applySessionFlowLayout(expandedGraph.nodes, trace, expandedGraph.edges);
+  const visibleNodes = spreadNearbyNodes(applySessionFlowLayout(expandedGraph.nodes, trace, expandedGraph.edges));
   const nodeIds = new Set(visibleNodes.map((node) => node.id));
   const visibleEdges = selectVisibleGraphEdges(expandedGraph.edges, nodeIds, 160);
 
@@ -2131,10 +2131,10 @@ function applySessionFlowLayout(nodes: PositionedGraphNode[], trace: AgentTrace,
       ['search-agent', { x: 49, y: 23 }],
       ['rag-agent', { x: 43, y: 82 }],
       ['recommendation-agent', { x: 56, y: 75 }],
-      ['security-agent', { x: 69, y: 27 }],
-      ['customer-support-agent', { x: 74, y: 47 }],
+      ['security-agent', { x: 76, y: 23 }],
+      ['customer-support-agent', { x: 76, y: 48 }],
       ['cart-agent', { x: 70, y: 82 }],
-      ['sales-agent', { x: 83, y: 60 }],
+      ['sales-agent', { x: 84, y: 62 }],
     ]);
     const remainingAgents = agentNodes.filter((node) => !preferredAgentGrid.has(node.id));
     for (const node of agentNodes) {
@@ -2168,7 +2168,10 @@ function applySessionFlowLayout(nodes: PositionedGraphNode[], trace: AgentTrace,
     if (ownerAgentId && ownerPosition) {
       const slot = toolSlotByAgent.get(ownerAgentId) ?? 0;
       toolSlotByAgent.set(ownerAgentId, slot + 1);
-      fixedPositions.set(node.id, { x: clampPercent(ownerPosition.x + 12 + (slot % 2) * 9, 18, 90), y: clampPercent(ownerPosition.y - 12 + Math.floor(slot / 2) * 15, 15, 88) });
+      fixedPositions.set(node.id, {
+        x: clampPercent(ownerPosition.x + 15 + (slot % 2) * 11, 18, 90),
+        y: clampPercent(ownerPosition.y - 17 + Math.floor(slot / 2) * 17, 15, 88),
+      });
       return;
     }
     const count = Math.min(Math.max(toolNodes.length, 1), 3);
@@ -2184,20 +2187,20 @@ function applySessionFlowLayout(nodes: PositionedGraphNode[], trace: AgentTrace,
       if (!ownerId || !ownerPosition) return;
       if (ownerId === 'sales-agent') {
         fixedPositions.set(node.id, {
-          x: clampPercent(ownerPosition.x - 14, 16, 86),
-          y: clampPercent(ownerPosition.y - 12, 15, 88),
+          x: clampPercent(ownerPosition.x - 16, 16, 86),
+          y: clampPercent(ownerPosition.y - 15, 15, 88),
         });
         return;
       }
       fixedPositions.set(node.id, {
-        x: clampPercent(ownerPosition.x - 13, 16, 86),
-        y: clampPercent(ownerPosition.y + 8, 15, 88),
+        x: clampPercent(ownerPosition.x - 16, 16, 86),
+        y: clampPercent(ownerPosition.y + 12, 15, 88),
       });
     });
 
   const preferredDbPositions = new Map<string, { x: number; y: number }>([
     ['postgres-db', { x: 22, y: 17 }],
-    ['qdrant-db', { x: 66, y: 35 }],
+    ['qdrant-db', { x: 63, y: 40 }],
     ['llm-service', { x: 74, y: 71 }],
     ['cart-state', { x: 75, y: 83 }],
   ]);

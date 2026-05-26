@@ -17,6 +17,7 @@
 | --- | --- | --- |
 | `logs/implementation/*.md` | Log triển khai code/UI/runtime | Ghi file đổi, quyết định, verify |
 | `logs/documentation/*.md` | Log tài liệu, format, README | Link về doc/plan liên quan |
+| `logs/security/*.md` | Log audit security/production readiness | Ghi finding, risk và khuyến nghị |
 | `logs/planning/agent-pipeline/` | Log planning agent pipeline | Giữ theo từng agent/phase |
 | `logs/planning/archive/` | Log lịch sử | Không dùng cho task active mới |
 | `logs/setup/*.log` | Log generated từ setup/stop/clean | Không sửa tay, không coi là source of truth |

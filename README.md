@@ -4,30 +4,33 @@
 
 # RetailHome AI Agent
 
-Trợ lý bán hàng retail dùng Next.js, NestJS, PostgreSQL, Redis, pipeline nhiều agent, dashboard trace và nginx tunnel entry.
+Trợ lý bán hàng retail dùng Next.js, NestJS, PostgreSQL, Redis, Qdrant, pipeline nhiều agent, dashboard trace và nginx tunnel entry.
 
 ![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)
 ![pnpm](https://img.shields.io/badge/pnpm-10.20.0-F69220?logo=pnpm&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Frontend-Next.js-000000?logo=next.js&logoColor=white)
 ![NestJS](https://img.shields.io/badge/Backend-NestJS-E0234E?logo=nestjs&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-Postgres%20%2B%20Redis%20%2B%20nginx-2496ED?logo=docker&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Postgres%20%2B%20Redis%20%2B%20Qdrant%20%2B%20nginx-2496ED?logo=docker&logoColor=white)
 
-[Chạy nhanh](#chạy-nhanh) · [Port](#port-mặc-định) · [Kiến trúc](#kiến-trúc) · [API](#api-chính) · [Test](#test-và-benchmark) · [Docs](#tài-liệu-và-báo-cáo)
+[Chạy nhanh](#chạy-nhanh) · [Port](#port-mặc-định) · [Kiến trúc](#kiến-trúc) · [API](#api-chính) · [Test](#test-và-benchmark) · [Production](#production-readiness)
 
 </div>
 
 ## Tổng Quan
 
-Repo này là hệ thống retail chatbot có web storefront, chat widget, giỏ hàng theo tài khoản, backend API, bộ nhớ hội thoại, pipeline agent và dashboard quan sát flow. Mục tiêu hiện tại là chạy được local bằng script, có Docker Compose quản lý hạ tầng, và có một cổng nginx để tunnel dễ hơn.
+Repo này là hệ thống retail chatbot có web storefront, chat widget, giỏ hàng theo tài khoản, backend API, bộ nhớ hội thoại, pipeline agent và dashboard quan sát flow. Mục tiêu hiện tại là chạy local ổn định bằng script, quản lý hạ tầng bằng một Docker Compose, và có một cổng nginx để tunnel dễ hơn.
 
 | Phần | Công nghệ | Vai trò |
 | --- | --- | --- |
 | Frontend | Next.js 16, React 19 | Trang mua sắm, chat widget, tài khoản, giỏ hàng, dashboard agent |
 | Backend | NestJS 11, Fastify, Prisma | API sản phẩm, auth, cart/order/payment mock, model gateway, agent pipeline |
-| Database | PostgreSQL 16 + pgvector | Catalog, user, cart, memory, dữ liệu test |
+| Database chính | PostgreSQL 16 | Catalog, user, cart, memory, audit, dữ liệu test |
+| Vector DB | Qdrant | Vector search/RAG production target cho product/doc chunks |
 | Cache | Redis 7 | Runtime cache/session phụ trợ |
 | Proxy | nginx Docker | Một cổng vào cho tunnel: web + API cùng origin |
 | Model | API ngoài | vLLM/chat model, embedding, rerank qua HTTP |
+
+Ghi chú thực tế: runtime search hiện vẫn có semantic fallback dạng heuristic trên text trong PostgreSQL. Qdrant đã được đưa vào Docker Compose để chuẩn hóa hạ tầng, nhưng phần ingest/query vector thật cần được hoàn thiện trước khi gọi hệ thống là production-ready cho semantic search.
 
 ## Port Mặc Định
 
@@ -40,8 +43,10 @@ Repo này là hệ thống retail chatbot có web storefront, chat widget, giỏ
 | API health | `http://127.0.0.1:7010/health` hoặc `http://127.0.0.1:7080/health` |
 | PostgreSQL | `127.0.0.1:55432` |
 | Redis | `127.0.0.1:56379` |
+| Qdrant HTTP | `http://127.0.0.1:6333` |
+| Qdrant gRPC | `127.0.0.1:6334` |
 
-Khi cần tunnel, trỏ tunnel vào `http://127.0.0.1:7080`. nginx sẽ proxy:
+Khi cần tunnel, trỏ tunnel vào `http://127.0.0.1:7080`. nginx proxy các path chính:
 
 | Path | Proxy đến |
 | --- | --- |
@@ -72,7 +77,7 @@ Script sẽ:
 
 1. đọc `.env`;
 2. cài workspace bằng `pnpm`;
-3. chạy Docker Compose cho PostgreSQL, Redis, nginx;
+3. chạy Docker Compose cho PostgreSQL, Redis, Qdrant và nginx;
 4. generate/push/seed Prisma;
 5. build API;
 6. chạy API và web;
@@ -94,7 +99,7 @@ Script sẽ:
 
 ## Cấu Hình
 
-File `.env.example` là cấu hình mẫu an toàn để copy sang `.env`.
+File `.env.example` là cấu hình mẫu để copy sang `.env`.
 
 | Biến | Mặc định | Ý nghĩa |
 | --- | --- | --- |
@@ -103,14 +108,17 @@ File `.env.example` là cấu hình mẫu an toàn để copy sang `.env`.
 | `NGINX_PORT` | `7080` | Port nginx dùng để tunnel |
 | `POSTGRES_PORT` | `55432` | Port PostgreSQL trên host |
 | `REDIS_PORT` | `56379` | Port Redis trên host |
+| `QDRANT_PORT` | `6333` | Port HTTP của Qdrant |
+| `QDRANT_GRPC_PORT` | `6334` | Port gRPC của Qdrant |
 | `COMPOSE_PROJECT_NAME` | `retail_agent_provider` | Tên project Docker Compose |
 | `DATABASE_URL` | localhost PostgreSQL | Prisma connection string |
 | `REDIS_URL` | localhost Redis | Redis connection string |
+| `QDRANT_URL` | `http://localhost:6333` | Qdrant HTTP endpoint |
 | `CHAT_MODEL_BASE_URL` | `https://replace-with-your-vllm-gateway.example.invalid` | API vLLM/chat model |
 | `CHAT_MODEL_ID` | `google/gemma-4-E4B-it` | Model chat dùng cho sales agent |
 | `EMBED_RERANK_BASE_URL` | `https://replace-with-your-embed-rerank-gateway.example.invalid` | API embedding/rerank |
 
-Không commit `.env`, token, cookie, private endpoint hoặc log có dữ liệu nhạy cảm.
+Không commit `.env`, token, cookie, private key hoặc log có dữ liệu nhạy cảm.
 
 ## Kiến Trúc
 
@@ -130,8 +138,10 @@ flowchart LR
   Lead --> Cart[Cart agent]
   Lead --> Security[Security agent]
   Lead --> Sales[Sales agent]
-  Sales --> ChatModel[vLLM/chat API]
   Search --> Postgres[(PostgreSQL)]
+  Search -. semantic target .-> Qdrant[(Qdrant)]
+  RAG --> Qdrant
+  Sales --> ChatModel[vLLM/chat API]
   RAG --> Embed[Embedding/Rerank API]
   API --> Redis[(Redis)]
   API --> Dashboard[Trace dashboard]
@@ -200,8 +210,6 @@ Stream trả token và final payload để UI cập nhật chat theo thời gian
 
 Backend bọc model service ngoài qua `/model-gateway/*`.
 
-Chat request:
-
 ```http
 POST /model-gateway/chat
 Content-Type: application/json
@@ -217,8 +225,6 @@ Content-Type: application/json
 }
 ```
 
-Chat response:
-
 ```json
 {
   "content": "Nội dung trả lời của model",
@@ -230,8 +236,6 @@ Chat response:
 }
 ```
 
-Embedding request:
-
 ```http
 POST /model-gateway/embed
 Content-Type: application/json
@@ -239,16 +243,12 @@ Content-Type: application/json
 { "input": ["máy lọc không khí phòng ngủ"] }
 ```
 
-Embedding response:
-
 ```json
 {
   "embeddings": [[0.01, -0.02, 0.03]],
   "dimensions": 768
 }
 ```
-
-Rerank request:
 
 ```http
 POST /model-gateway/rerank
@@ -262,8 +262,6 @@ Content-Type: application/json
   "topK": 3
 }
 ```
-
-Rerank response:
 
 ```json
 {
@@ -285,14 +283,27 @@ node --test apps/api/tests/agent-trace-contract.test.mjs apps/api/tests/pipeline
 node test/agent-pipeline/retail-chatbot-hard-flow-benchmark-20/runtime-chatbot-hard-flow-benchmark-20.mjs
 ```
 
-Benchmark mới nhất:
-
-| Bộ test | Kết quả | Evidence |
+| Bộ test | Kết quả gần nhất | Evidence |
 | --- | --- | --- |
 | Hard flow 20 câu | 19 pass, 1 warn, 0 fail, `flowFail=0` | [`test/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/README.md`](test/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/README.md) |
 | Dashboard legend/flow | 20 node, 48 edge, 0 overlap, 0 unresolved call | [`test/agent-dashboard-icon-legend-density-evidence-2026-05-26/README.md`](test/agent-dashboard-icon-legend-density-evidence-2026-05-26/README.md) |
 | 30 câu chatbot | Report benchmark cũ | [`test/retail-chatbot-30q-benchmark-evidence-2026-05-25/README.md`](test/retail-chatbot-30q-benchmark-evidence-2026-05-25/README.md) |
 | 100 câu chatbot | Report benchmark cũ | [`test/retail-chatbot-100q-agent-evidence-2026-05-25/README.md`](test/retail-chatbot-100q-agent-evidence-2026-05-25/README.md) |
+
+## Production Readiness
+
+Hiện trạng đạt cho local/dev và demo có bằng chứng test. Chưa nên gọi là production-ready hoàn toàn vì còn các điểm cần khóa:
+
+| Mảng | Hiện trạng | Cần làm trước production |
+| --- | --- | --- |
+| Docker runtime | Compose quản lý PostgreSQL, Redis, Qdrant, nginx | Thêm profile build API/Web container nếu muốn chạy toàn bộ app trong Docker |
+| Vector search | Qdrant đã có trong hạ tầng; code search vẫn fallback heuristic | Ingest product/doc chunks vào Qdrant, query bằng embedding thật, version collection |
+| PostgreSQL | Prisma schema rõ, nhiều bảng memory/cart/search | Bổ sung migration versioned thay cho chỉ `db push` khi deploy |
+| Ảnh sản phẩm | Seed dùng URL ảnh ngoài | Production nên có CDN/object storage, cache, fallback image và kiểm soát license |
+| Security | Có HttpOnly cookie, redaction trong memory service | Cần audit authz, CORS allowlist production, rate limit, secret manager |
+| Observability | Có logs và dashboard trace | Cần structured logs, metrics, alerting, trace id xuyên suốt request |
+
+Chi tiết audit mới: [`docs/reports/production-architecture-audit-20260526.md`](docs/reports/production-architecture-audit-20260526.md).
 
 ## Repository Map
 
@@ -316,6 +327,7 @@ Benchmark mới nhất:
 | [`docs/agent-pipeline/legacy/current-sales-pipeline.md`](docs/agent-pipeline/legacy/current-sales-pipeline.md) | Pipeline chatbot hiện tại |
 | [`docs/task/agent-dashboard-cluster-flow-20260526-v1.md`](docs/task/agent-dashboard-cluster-flow-20260526-v1.md) | Dashboard flow và logic node/edge |
 | [`docs/reports/chatbot-pipeline-audit-report.md`](docs/reports/chatbot-pipeline-audit-report.md) | Audit pipeline chatbot |
+| [`docs/reports/production-architecture-audit-20260526.md`](docs/reports/production-architecture-audit-20260526.md) | Audit kiến trúc production |
 | [`plans/README.md`](plans/README.md) | Index plan |
 | [`logs/README.md`](logs/README.md) | Index log |
 | [`test/agent-pipeline/README.md`](test/agent-pipeline/README.md) | Index test agent pipeline |

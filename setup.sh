@@ -17,6 +17,8 @@ WEB_PORT="${WEB_PORT:-7000}"
 NGINX_PORT="${NGINX_PORT:-7080}"
 POSTGRES_PORT="${POSTGRES_PORT:-55432}"
 REDIS_PORT="${REDIS_PORT:-56379}"
+QDRANT_PORT="${QDRANT_PORT:-6333}"
+QDRANT_GRPC_PORT="${QDRANT_GRPC_PORT:-6334}"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-retail_agent_provider}"
 LOG_RETENTION_DAYS="${LOG_RETENTION_DAYS:-7}"
 LOG_MAX_SIZE_MB="${LOG_MAX_SIZE_MB:-20}"
@@ -87,12 +89,15 @@ load_env_file() {
   local incoming_nginx_port="${NGINX_PORT:-}"
   local incoming_postgres_port="${POSTGRES_PORT:-}"
   local incoming_redis_port="${REDIS_PORT:-}"
+  local incoming_qdrant_port="${QDRANT_PORT:-}"
+  local incoming_qdrant_grpc_port="${QDRANT_GRPC_PORT:-}"
   local incoming_compose_project_name="${COMPOSE_PROJECT_NAME:-}"
   local incoming_database_url="${DATABASE_URL:-}"
   local incoming_chat_model_base_url="${CHAT_MODEL_BASE_URL:-}"
   local incoming_chat_model_id="${CHAT_MODEL_ID:-}"
   local incoming_embed_rerank_base_url="${EMBED_RERANK_BASE_URL:-}"
   local incoming_redis_url="${REDIS_URL:-}"
+  local incoming_qdrant_url="${QDRANT_URL:-}"
 
   if [[ -f "$ENV_FILE" ]]; then
     set -a
@@ -120,6 +125,8 @@ load_env_file() {
   export NGINX_PORT="${incoming_nginx_port:-${NGINX_PORT:-7080}}"
   export POSTGRES_PORT="${incoming_postgres_port:-${POSTGRES_PORT:-55432}}"
   export REDIS_PORT="${incoming_redis_port:-${REDIS_PORT:-56379}}"
+  export QDRANT_PORT="${incoming_qdrant_port:-${QDRANT_PORT:-6333}}"
+  export QDRANT_GRPC_PORT="${incoming_qdrant_grpc_port:-${QDRANT_GRPC_PORT:-6334}}"
   export COMPOSE_PROJECT_NAME="${incoming_compose_project_name:-${COMPOSE_PROJECT_NAME:-retail_agent_provider}}"
   export DATABASE_URL="${incoming_database_url:-${DATABASE_URL:-postgresql://retail:retail_password@localhost:${POSTGRES_PORT}/retail_agent?schema=public}}"
   if [[ "$incoming_chat_model_base_url" =~ ^http://(localhost|127\.0\.0\.1):8007$ ]]; then incoming_chat_model_base_url=""; fi
@@ -137,6 +144,7 @@ load_env_file() {
   fi
   ok "Effective model config: CHAT_MODEL_BASE_URL=$CHAT_MODEL_BASE_URL; CHAT_MODEL_ID=$CHAT_MODEL_ID; EMBED_RERANK_BASE_URL=$EMBED_RERANK_BASE_URL"
   export REDIS_URL="${incoming_redis_url:-${REDIS_URL:-redis://localhost:${REDIS_PORT}}}"
+  export QDRANT_URL="${incoming_qdrant_url:-${QDRANT_URL:-http://localhost:${QDRANT_PORT}}}"
   export API_BASE_URL="http://127.0.0.1:${API_PORT}"
   if [[ "$SKIP_DOCKER" == "1" ]]; then
     export NEXT_PUBLIC_API_BASE_URL="http://127.0.0.1:${API_PORT}"
@@ -211,12 +219,12 @@ start_docker_services() {
     return
   fi
 
-  step "Start PostgreSQL, Redis and nginx"
-  command_exists docker || fail "Docker is required to start local PostgreSQL/Redis. Set SKIP_DOCKER=1 to skip."
+  step "Start PostgreSQL, Redis, Qdrant and nginx"
+  command_exists docker || fail "Docker is required to start local PostgreSQL/Redis/Qdrant. Set SKIP_DOCKER=1 to skip."
   if docker compose -p "$COMPOSE_PROJECT_NAME" -f "$ROOT_DIR/infra/docker/docker-compose.yml" up -d >> "$SETUP_LOG" 2>&1; then
     ok "Docker services requested"
   else
-    fail "Docker compose failed. Check Docker Desktop and make sure POSTGRES_PORT=$POSTGRES_PORT and REDIS_PORT=$REDIS_PORT are free, or set SKIP_DOCKER=1 with external services."
+    fail "Docker compose failed. Check Docker Desktop and make sure POSTGRES_PORT=$POSTGRES_PORT, REDIS_PORT=$REDIS_PORT, QDRANT_PORT=$QDRANT_PORT and NGINX_PORT=$NGINX_PORT are free, or set SKIP_DOCKER=1 with external services."
   fi
 }
 
@@ -266,6 +274,7 @@ prepare_database() {
   wait_for_port 127.0.0.1 "$POSTGRES_PORT" PostgreSQL 90
   wait_for_port 127.0.0.1 "$REDIS_PORT" Redis 90
   if [[ "$SKIP_DOCKER" != "1" ]]; then
+    wait_for_http "${QDRANT_URL}/healthz" "Qdrant" 90
     wait_for_http "http://127.0.0.1:${NGINX_PORT}/nginx-health" "nginx" 90
   fi
   run corepack pnpm --filter @retail-agent/api db:generate
@@ -308,7 +317,7 @@ start_runtime_tmux() {
     warn "Replaced existing tmux session: $TMUX_SESSION"
   fi
 
-  local root_q api_log_q web_log_q api_pid_q web_pid_q api_port_q web_port_q database_url_q chat_base_q chat_id_q embed_base_q redis_url_q api_base_q public_api_base_q
+  local root_q api_log_q web_log_q api_pid_q web_pid_q api_port_q web_port_q database_url_q chat_base_q chat_id_q embed_base_q redis_url_q qdrant_url_q api_base_q public_api_base_q
   root_q="$(quote_arg "$ROOT_DIR")"
   api_log_q="$(quote_arg "$API_LOG")"
   web_log_q="$(quote_arg "$WEB_LOG")"
@@ -321,11 +330,12 @@ start_runtime_tmux() {
   chat_id_q="$(quote_arg "$CHAT_MODEL_ID")"
   embed_base_q="$(quote_arg "$EMBED_RERANK_BASE_URL")"
   redis_url_q="$(quote_arg "$REDIS_URL")"
+  qdrant_url_q="$(quote_arg "$QDRANT_URL")"
   api_base_q="$(quote_arg "http://127.0.0.1:${API_PORT}")"
   public_api_base_q="$(quote_arg "$NEXT_PUBLIC_API_BASE_URL")"
 
   local api_cmd web_cmd
-  api_cmd="cd $root_q && echo \$\$ > $api_pid_q && exec > >(tee -a $api_log_q) 2>&1 && exec env API_PORT=$api_port_q PORT=$api_port_q DATABASE_URL=$database_url_q CHAT_MODEL_BASE_URL=$chat_base_q CHAT_MODEL_ID=$chat_id_q EMBED_RERANK_BASE_URL=$embed_base_q REDIS_URL=$redis_url_q corepack pnpm --filter @retail-agent/api start"
+  api_cmd="cd $root_q && echo \$\$ > $api_pid_q && exec > >(tee -a $api_log_q) 2>&1 && exec env API_PORT=$api_port_q PORT=$api_port_q DATABASE_URL=$database_url_q CHAT_MODEL_BASE_URL=$chat_base_q CHAT_MODEL_ID=$chat_id_q EMBED_RERANK_BASE_URL=$embed_base_q REDIS_URL=$redis_url_q QDRANT_URL=$qdrant_url_q corepack pnpm --filter @retail-agent/api start"
   web_cmd="cd $root_q/apps/web && echo \$\$ > $web_pid_q && exec > >(tee -a $web_log_q) 2>&1 && exec env API_BASE_URL=$api_base_q NEXT_PUBLIC_API_BASE_URL=$public_api_base_q PORT=$web_port_q corepack pnpm exec next dev -H 0.0.0.0 -p $web_port_q"
 
   tmux new-session -d -s "$TMUX_SESSION" -n api "bash -lc $(quote_arg "$api_cmd")" >> "$SETUP_LOG" 2>&1
@@ -360,7 +370,7 @@ start_runtime_background() {
 
   (
     cd "$ROOT_DIR"
-    API_PORT="$API_PORT" PORT="$API_PORT" DATABASE_URL="$DATABASE_URL" CHAT_MODEL_BASE_URL="$CHAT_MODEL_BASE_URL" CHAT_MODEL_ID="$CHAT_MODEL_ID" EMBED_RERANK_BASE_URL="$EMBED_RERANK_BASE_URL" REDIS_URL="$REDIS_URL" corepack pnpm --filter @retail-agent/api start >> "$API_LOG" 2>&1
+    API_PORT="$API_PORT" PORT="$API_PORT" DATABASE_URL="$DATABASE_URL" CHAT_MODEL_BASE_URL="$CHAT_MODEL_BASE_URL" CHAT_MODEL_ID="$CHAT_MODEL_ID" EMBED_RERANK_BASE_URL="$EMBED_RERANK_BASE_URL" REDIS_URL="$REDIS_URL" QDRANT_URL="$QDRANT_URL" corepack pnpm --filter @retail-agent/api start >> "$API_LOG" 2>&1
   ) &
   local api_pid=$!
 
