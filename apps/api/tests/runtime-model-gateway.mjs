@@ -12,9 +12,9 @@ test('model gateway performs real runtime requests through the running API', asy
       ...process.env,
       API_PORT: String(port),
       DATABASE_URL: 'postgresql://retail:retail_password@localhost:55432/retail_agent?schema=public',
-      CHAT_MODEL_BASE_URL: process.env.CHAT_MODEL_BASE_URL ?? 'https://replace-with-your-vllm-gateway.example.invalid',
-      CHAT_MODEL_ID: process.env.CHAT_MODEL_ID ?? 'google/gemma-4-E4B-it',
-      EMBED_RERANK_BASE_URL: process.env.EMBED_RERANK_BASE_URL ?? 'https://replace-with-your-embed-rerank-gateway.example.invalid',
+      CHAT_MODEL_BASE_URL: 'https://replace-with-your-vllm-gateway.example.invalid',
+      CHAT_MODEL_ID: 'google/gemma-4-E4B-it',
+      EMBED_RERANK_BASE_URL: 'https://replace-with-your-embed-rerank-gateway.example.invalid',
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -24,6 +24,19 @@ test('model gateway performs real runtime requests through the running API', asy
 
     const health = await getJson(`${baseUrl}/model-gateway/health`);
     assert.deepEqual(health, { chat: 'ok', embedding: 'ok' });
+
+    const suffix = Date.now().toString(36);
+    const user = await postJsonWithCookie(`${baseUrl}/api/v1/auth/register`, { name: `gateway_ping_${suffix}`, password: `StrongPass_${suffix}` });
+    const ping = await postJson(`${baseUrl}/api/v1/model-settings/ping`, {
+      chatModelBaseUrl: 'https://replace-with-your-vllm-gateway.example.invalid',
+      chatModelId: 'google/gemma-4-E4B-it',
+      embedRerankBaseUrl: 'https://replace-with-your-embed-rerank-gateway.example.invalid',
+    }, user.cookie);
+    assert.equal(ping.ok, true);
+    for (const key of ['chatModels', 'chatCompletions', 'embedding', 'rerank']) {
+      assert.equal(ping.checks[key].ok, true, JSON.stringify(ping.checks[key]));
+      assert.equal(typeof ping.checks[key].endpoint, 'string');
+    }
 
     const chat = await postJson(`${baseUrl}/model-gateway/chat`, { message: 'Trả lời đúng một từ: ổn' });
     assert.equal(typeof chat.content, 'string');
@@ -59,15 +72,29 @@ async function getJson(url) {
   return response.json();
 }
 
-async function postJson(url, body) {
+async function postJson(url, body, cookie = '') {
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'content-type': 'application/json; charset=utf-8' },
+    headers: { 'content-type': 'application/json; charset=utf-8', ...(cookie ? { cookie } : {}) },
     body: JSON.stringify(body),
   });
   const text = await response.text();
   assert.equal(response.status, 201, text);
   return JSON.parse(text);
+}
+
+async function postJsonWithCookie(url, body, cookie = '') {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json; charset=utf-8', ...(cookie ? { cookie } : {}) },
+    body: JSON.stringify(body),
+  });
+  const text = await response.text();
+  assert.equal(response.status, 201, text);
+  return {
+    cookie: response.headers.get('set-cookie') ?? cookie,
+    body: text ? JSON.parse(text) : {},
+  };
 }
 
 async function waitForHealth(url) {

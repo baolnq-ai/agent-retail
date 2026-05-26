@@ -74,6 +74,11 @@ function parseProductConstraints(normalizedQuery: string): ProductConstraints {
 }
 
 function parseMinPrice(normalizedQuery: string): number | undefined {
+  const asciiMillionMatch = normalizedQuery.match(/(?:tren|hon|lon hon|>=|tu)\s*(\d+(?:[,.]\d+)?)\s*(?:trieu|tr)\b/);
+  if (asciiMillionMatch) {
+    return Math.round(Number.parseFloat(asciiMillionMatch[1].replace(',', '.')) * 1_000_000);
+  }
+
   const millionMatch = normalizedQuery.match(/(?:trên|hơn|lớn hơn|>=|từ)\s*(\d+(?:[,.]\d+)?)\s*(?:triệu|tr)\b/);
   if (millionMatch) {
     return Math.round(Number.parseFloat(millionMatch[1].replace(',', '.')) * 1_000_000);
@@ -88,6 +93,12 @@ function parseMinPrice(normalizedQuery: string): number | undefined {
 }
 
 function parseMaxPrice(normalizedQuery: string): number | undefined {
+  if (/(?:tren|hon|lon hon|>=|tu)\s*\d/.test(normalizedQuery)) return undefined;
+  const asciiMillionMatch = normalizedQuery.match(/(?:duoi|khong qua|toi da|<=|it hon|tam|khoang)?\s*(\d+(?:[,.]\d+)?)\s*(?:trieu|tr)\b/);
+  if (asciiMillionMatch) {
+    return Math.round(Number.parseFloat(asciiMillionMatch[1].replace(',', '.')) * 1_000_000);
+  }
+
   if (/(?:trên|hơn|lớn hơn|>=|từ)\s*\d/.test(normalizedQuery)) return undefined;
   const millionMatch = normalizedQuery.match(/(?:dưới|không quá|tối đa|<=|ít hơn|tầm|khoảng)?\s*(\d+(?:[,.]\d+)?)\s*(?:triệu|tr)\b/);
   if (millionMatch) {
@@ -108,5 +119,11 @@ function parseMaxPrice(normalizedQuery: string): number | undefined {
 }
 
 function normalize(value: string): string {
-  return value.toLocaleLowerCase('vi-VN').replace(/\s+/g, ' ').trim();
+  return value
+    .toLocaleLowerCase('vi-VN')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/\s+/g, ' ')
+    .trim();
 }

@@ -25,12 +25,11 @@ test('web runtime home page responds to a real HTTP request', async () => {
 
     assert.equal(response.status, 200);
     assert.match(html, /RetailHome/);
-    assert.match(html, /Mua sắm gia dụng thông minh/);
+    assert.match(html, /Thiết bị gia dụng phù hợp nhà bạn/);
     assert.match(html, /Mua sắm ngay/);
-    assert.match(html, /Đăng nhập \/ Đăng ký/);
-    assert.match(html, /Giỏ hàng theo account/);
-    assert.match(html, /Catalog nhiều trang/);
-    assert.match(html, /AI sales assistant/);
+    assert.match(html, /Sản phẩm/);
+    assert.match(html, /Tài khoản/);
+    assert.match(html, /Test API/);
     assert.match(html, /Sản phẩm đang được quan tâm/);
     assert.match(html, /Chi tiết sản phẩm/);
     assert.match(html, /Trợ lý mua sắm/);

@@ -1,6 +1,7 @@
 import type { Product, KnowledgeDocument } from './catalog.models.js';
 import type { Cart } from './commerce.models.js';
 import type { AgentPipelineEvent, CartToolResult, PendingCartPlan } from './agent-execution.models.js';
+import type { PipelineTracePlaybackEvent } from './pipeline-runtime.models.js';
 
 export interface AgentChatRequest {
   message: string;
@@ -15,9 +16,25 @@ export type AgentMessageBlock =
   | { type: 'policy_answer'; version: 1; items: KnowledgeDocument[] }
   | { type: 'quick_replies'; version: 1; items: string[] };
 
-export type AgentTraceAgent = 'memory-agent' | 'user-analysis-agent' | 'product-manager-agent' | 'recommendation-agent' | 'retrieval-agent' | 'cart-manager-agent' | 'sales-agent' | 'sales-evaluator-agent';
-export type AgentTraceStepStatus = 'pending' | 'running' | 'completed' | 'skipped' | 'error';
-export type AgentTraceNodeKind = 'agent' | 'db' | 'tool' | 'text' | 'file' | 'service';
+export type AgentTraceAgent =
+  | 'lead-agent'
+  | 'storage-memory-agent'
+  | 'history-agent'
+  | 'search-agent'
+  | 'recommendation-agent'
+  | 'cart-agent'
+  | 'rag-agent'
+  | 'security-agent'
+  | 'customer-support-agent'
+  | 'sales-agent'
+  | 'memory-agent'
+  | 'user-analysis-agent'
+  | 'product-manager-agent'
+  | 'retrieval-agent'
+  | 'cart-manager-agent'
+  | 'sales-evaluator-agent';
+export type AgentTraceStepStatus = 'pending' | 'running' | 'completed' | 'skipped' | 'error' | 'blocked';
+export type AgentTraceNodeKind = 'agent' | 'db' | 'vector_db' | 'tool' | 'text' | 'file' | 'service' | 'llm';
 
 export interface AgentTraceNode {
   id: string;
@@ -28,6 +45,8 @@ export interface AgentTraceNode {
   metric?: string;
   agentName?: AgentTraceAgent;
   order?: number;
+  iconKey?: string;
+  shortCode?: string;
 }
 
 export interface AgentTraceGraphEdge {
@@ -36,7 +55,7 @@ export interface AgentTraceGraphEdge {
   status?: AgentTraceStepStatus;
   order?: number;
   label?: string;
-  direction?: 'call' | 'return' | 'data';
+  direction?: 'call' | 'return' | 'data' | 'guard' | 'write';
 }
 
 export interface AgentTraceStep {
@@ -61,6 +80,7 @@ export interface AgentTrace {
   edges: Array<{ from: AgentTraceAgent; to: AgentTraceAgent; status?: AgentTraceStepStatus; order?: number }>;
   nodes?: AgentTraceNode[];
   graphEdges?: AgentTraceGraphEdge[];
+  playbackEvents?: PipelineTracePlaybackEvent[];
   steps: AgentTraceStep[];
   events: AgentTraceEvent[];
   memory: {

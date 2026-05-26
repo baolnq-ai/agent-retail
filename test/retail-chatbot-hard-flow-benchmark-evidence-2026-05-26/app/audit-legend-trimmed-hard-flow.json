@@ -1,0 +1,21 @@
+{
+  "createdAt": "2026-05-26T06:00:58.746Z",
+  "webUrl": "http://127.0.0.1:7000/agent-dashboard?demoTrace=recommendation",
+  "screenshot": "09-dashboard-legend-trimmed-hard-flow.png",
+  "audit": {
+    "legendText": "Chú thíchGửi điTrả vềFlowAgentLeadDBToolLLMTa kHi  chungHi  agentPhản hồi",
+    "legendHasDataWriteGuard": false,
+    "legendHasCallReturnFlow": true,
+    "nodeCount": 20,
+    "edgeCount": 48,
+    "overlapPairs": 0,
+    "clusterRegionCount": 0,
+    "extraPanelCount": 0,
+    "svgIconCount": 30,
+    "stepFont": "11.5px",
+    "edgeAnimation": "1e-05s",
+    "unresolvedCallCount": 0,
+    "maxNodeWidth": 78,
+    "maxNodeHeight": 121
+  }
+}

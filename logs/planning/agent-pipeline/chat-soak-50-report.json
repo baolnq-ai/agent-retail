@@ -1,0 +1,1031 @@
+{
+  "generatedAt": "2026-05-22T07:53:06.894Z",
+  "suite": "agent-chat-soak-50",
+  "total": 50,
+  "completed": 50,
+  "passed": 39,
+  "failed": 11,
+  "inProgress": false,
+  "results": [
+    {
+      "name": "recommend-1",
+      "message": "Tu van 2 may loc khong khi phong ngu 25m2 duoi 4 trieu",
+      "status": "passed",
+      "durationMs": 16906,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 237,
+      "productIds": [
+        "prod_air_clean_p35",
+        "prod_air_04",
+        "prod_fresh_home_mini_20"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 1
+    },
+    {
+      "name": "recommend-2",
+      "message": "Goi y san pham nha bep duoi 3 trieu de nau nhanh",
+      "status": "passed",
+      "durationMs": 14128,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 255,
+      "productIds": [
+        "prod_kitchen_01"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 0
+    },
+    {
+      "name": "recommend-3",
+      "message": "Tim robot hut bui hoac do ve sinh nha cua tam 3 trieu",
+      "status": "passed",
+      "durationMs": 15389,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 253,
+      "productIds": [
+        "prod_clean_01"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 1
+    },
+    {
+      "name": "recommend-4",
+      "message": "Can do cham soc ca nhan nho gon duoi 1 trieu",
+      "status": "passed",
+      "durationMs": 13468,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 229,
+      "productIds": [
+        "prod_care_01"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 2
+    },
+    {
+      "name": "recommend-5",
+      "message": "De xuat thiet bi nha thong minh co gia mem",
+      "status": "passed",
+      "durationMs": 17360,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 173,
+      "productIds": [
+        "prod_kitchen_01"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 0
+    },
+    {
+      "name": "recommend-6",
+      "message": "Goi y quat hoac may lam mat phong 20m2",
+      "status": "passed",
+      "durationMs": 19353,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 293,
+      "productIds": [
+        "prod_climate_01"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 1
+    },
+    {
+      "name": "recommend-7",
+      "message": "Cho toi 3 san pham dang mua nhat duoi 2 trieu",
+      "status": "passed",
+      "durationMs": 19023,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 288,
+      "productIds": [
+        "prod_clean_01",
+        "prod_care_05",
+        "prod_fresh_home_mini_20"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 2
+    },
+    {
+      "name": "recommend-8",
+      "message": "Tim san pham tiet kiem dien cho can ho nho",
+      "status": "passed",
+      "durationMs": 21234,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 120,
+      "productIds": [
+        "prod_clean_01",
+        "prod_fresh_home_mini_20"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 3
+    },
+    {
+      "name": "recommend-9",
+      "message": "Toi can qua tang gia dung duoi 1 trieu",
+      "status": "passed",
+      "durationMs": 13552,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 265,
+      "productIds": [
+        "prod_smart_01"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 2
+    },
+    {
+      "name": "recommend-10",
+      "message": "Goi y san pham ban chay va de dung",
+      "status": "passed",
+      "durationMs": 14241,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 276,
+      "productIds": [
+        "prod_clean_01",
+        "prod_clean_02",
+        "prod_clean_03"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 1
+    },
+    {
+      "name": "product-1",
+      "message": "Thong tin chi tiet prod_air_clean_p35",
+      "status": "passed",
+      "durationMs": 12657,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 307,
+      "productIds": [
+        "prod_air_clean_p35"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 2
+    },
+    {
+      "name": "product-2",
+      "message": "So sanh prod_air_clean_p35 voi prod_fresh_home_mini_20",
+      "status": "passed",
+      "durationMs": 22018,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 120,
+      "productIds": [
+        "prod_air_clean_p35",
+        "prod_fresh_home_mini_20"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 2
+    },
+    {
+      "name": "product-3",
+      "message": "San pham prod_air_clean_p35 co hop phong ngu khong",
+      "status": "passed",
+      "durationMs": 19156,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 292,
+      "productIds": [
+        "prod_air_clean_p35"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 3
+    },
+    {
+      "name": "product-4",
+      "message": "May loc khong khi nao em nhat cho phong ngu",
+      "status": "passed",
+      "durationMs": 18330,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 283,
+      "productIds": [
+        "prod_air_clean_p35"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 3
+    },
+    {
+      "name": "product-5",
+      "message": "Noi chien khong dau nao dung tich lon",
+      "status": "passed",
+      "durationMs": 15403,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 225,
+      "productIds": [
+        "prod_chefmax_af55"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 2
+    },
+    {
+      "name": "product-6",
+      "message": "May hut bui nao hop nha co thu cung",
+      "status": "passed",
+      "durationMs": 13221,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 258,
+      "productIds": [
+        "prod_clean_01"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 1
+    },
+    {
+      "name": "product-7",
+      "message": "Camera thong minh nao de lap dat",
+      "status": "passed",
+      "durationMs": 16869,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 255,
+      "productIds": [
+        "prod_smart_02"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 0
+    },
+    {
+      "name": "product-8",
+      "message": "Ban co may loc khong khi duoi 2 trieu khong",
+      "status": "passed",
+      "durationMs": 16080,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 329,
+      "productIds": [
+        "prod_air_01",
+        "prod_fresh_home_mini_20"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 2
+    },
+    {
+      "name": "product-9",
+      "message": "San pham ve sinh nha cua nao gia tot",
+      "status": "passed",
+      "durationMs": 15497,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 270,
+      "productIds": [
+        "prod_clean_01",
+        "prod_clean_02"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 2
+    },
+    {
+      "index": 20,
+      "name": "product-10",
+      "message": "Thiet bi nha bep nao bao hanh tot",
+      "status": "failed",
+      "error": "case 20 expected product rail\n\nfalse !== true\n"
+    },
+    {
+      "name": "policy-1",
+      "message": "Chinh sach doi tra nhu the nao",
+      "status": "passed",
+      "durationMs": 17449,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 240,
+      "productIds": [],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "rag-agent",
+        "security-agent",
+        "customer-support-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 29,
+      "errorCount": 3
+    },
+    {
+      "name": "policy-2",
+      "message": "Neu san pham loi nha san xuat thi xu ly sao",
+      "status": "passed",
+      "durationMs": 19108,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 263,
+      "productIds": [],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 0
+    },
+    {
+      "name": "policy-3",
+      "message": "Don da giao co sua doi san pham duoc khong",
+      "status": "passed",
+      "durationMs": 18904,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 237,
+      "productIds": [],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "rag-agent",
+        "security-agent",
+        "customer-support-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 29,
+      "errorCount": 3
+    },
+    {
+      "name": "policy-4",
+      "message": "Thoi gian hoan tien bao lau",
+      "status": "passed",
+      "durationMs": 17843,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 351,
+      "productIds": [],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "rag-agent",
+        "security-agent",
+        "customer-support-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 29,
+      "errorCount": 2
+    },
+    {
+      "name": "policy-5",
+      "message": "Co mien phi giao hang khong",
+      "status": "passed",
+      "durationMs": 12518,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 165,
+      "productIds": [],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "rag-agent",
+        "security-agent",
+        "customer-support-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 29,
+      "errorCount": 3
+    },
+    {
+      "name": "policy-6",
+      "message": "Toi can ho tro khieu nai ve don hang",
+      "status": "passed",
+      "durationMs": 17902,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 277,
+      "productIds": [],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "rag-agent",
+        "security-agent",
+        "customer-support-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 29,
+      "errorCount": 3
+    },
+    {
+      "name": "policy-7",
+      "message": "Hang bi loi thi lien he bo phan nao",
+      "status": "passed",
+      "durationMs": 12995,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 263,
+      "productIds": [],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "rag-agent",
+        "security-agent",
+        "customer-support-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 29,
+      "errorCount": 2
+    },
+    {
+      "name": "policy-8",
+      "message": "Bao hanh san pham tinh nhu the nao",
+      "status": "passed",
+      "durationMs": 13923,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 270,
+      "productIds": [],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "customer-support-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 35,
+      "errorCount": 2
+    },
+    {
+      "name": "policy-9",
+      "message": "Chinh sach ho tro nguoi dung cua shop la gi",
+      "status": "passed",
+      "durationMs": 13469,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 284,
+      "productIds": [],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "rag-agent",
+        "security-agent",
+        "customer-support-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 29,
+      "errorCount": 1
+    },
+    {
+      "name": "policy-10",
+      "message": "Toi muon biet thong tin doanh nghiep va chinh sach mua hang",
+      "status": "passed",
+      "durationMs": 13070,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 324,
+      "productIds": [],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "rag-agent",
+        "security-agent",
+        "customer-support-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 29,
+      "errorCount": 4
+    },
+    {
+      "name": "cart-1",
+      "message": "Xem gio hang hien tai",
+      "status": "passed",
+      "durationMs": 12442,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 135,
+      "productIds": [],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "rag-agent",
+        "cart-agent",
+        "security-agent",
+        "customer-support-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 3
+    },
+    {
+      "name": "cart-2",
+      "message": "Them prod_air_clean_p35 vao gio hang",
+      "status": "passed",
+      "durationMs": 16611,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 124,
+      "productIds": [],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "cart-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 29,
+      "errorCount": 3
+    },
+    {
+      "index": 33,
+      "name": "cart-3",
+      "message": "Gio hang co san pham vua them khong va tong tien bao nhieu",
+      "status": "failed",
+      "error": "{\"statusCode\":500,\"message\":\"Internal server error\"}\n\n500 !== 201\n"
+    },
+    {
+      "index": 34,
+      "name": "cart-4",
+      "message": "Tang so luong prod_air_clean_p35 len 2",
+      "status": "failed",
+      "error": "{\"statusCode\":500,\"message\":\"Internal server error\"}\n\n500 !== 201\n"
+    },
+    {
+      "index": 35,
+      "name": "cart-5",
+      "message": "Tong tien gio hang hien tai la bao nhieu",
+      "status": "failed",
+      "error": "{\"statusCode\":500,\"message\":\"Internal server error\"}\n\n500 !== 201\n"
+    },
+    {
+      "name": "cart-6",
+      "message": "Giam so luong prod_air_clean_p35 xuong 1",
+      "status": "passed",
+      "durationMs": 16923,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 207,
+      "productIds": [
+        "prod_air_clean_p35"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "cart-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 37,
+      "errorCount": 2
+    },
+    {
+      "name": "cart-7",
+      "message": "Xoa prod_air_clean_p35 khoi gio hang",
+      "status": "passed",
+      "durationMs": 16054,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 222,
+      "productIds": [
+        "prod_air_clean_p35"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "cart-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 34,
+      "errorCount": 5
+    },
+    {
+      "name": "cart-8",
+      "message": "Kiem tra gio hang sau khi xoa",
+      "status": "passed",
+      "durationMs": 13625,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 168,
+      "productIds": [],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "cart-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 29,
+      "errorCount": 2
+    },
+    {
+      "name": "cart-9",
+      "message": "Them prod_fresh_home_mini_20 vao gio hang",
+      "status": "passed",
+      "durationMs": 21146,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 164,
+      "productIds": [],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "cart-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 29,
+      "errorCount": 5
+    },
+    {
+      "name": "cart-10",
+      "message": "Xem gio hang va de xuat them san pham phu hop",
+      "status": "passed",
+      "durationMs": 21139,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 107,
+      "productIds": [],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "cart-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 29,
+      "errorCount": 3
+    },
+    {
+      "index": 41,
+      "name": "followup-1",
+      "message": "San pham vua de xuat luc nay la gi",
+      "status": "failed",
+      "error": "case 41 expected product rail\n\nfalse !== true\n"
+    },
+    {
+      "index": 42,
+      "name": "followup-2",
+      "message": "Cai do co nen mua khong",
+      "status": "failed",
+      "error": "case 42 expected product rail\n\nfalse !== true\n"
+    },
+    {
+      "name": "followup-3",
+      "message": "Cho toi san pham gan giong nhung re hon",
+      "status": "passed",
+      "durationMs": 14369,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 214,
+      "productIds": [
+        "prod_climate_03",
+        "prod_climate_04"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 2
+    },
+    {
+      "index": 44,
+      "name": "followup-4",
+      "message": "Cai thu hai trong goi y co uu diem gi",
+      "status": "failed",
+      "error": "case 44 expected product rail\n\nfalse !== true\n"
+    },
+    {
+      "index": 45,
+      "name": "followup-5",
+      "message": "Them san pham do vao gio neu hop ly",
+      "status": "failed",
+      "error": "case 45 expected product rail\n\nfalse !== true\n"
+    },
+    {
+      "name": "followup-6",
+      "message": "May pha espresso NASA Quantum Z9 co ban khong",
+      "status": "passed",
+      "durationMs": 18173,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 107,
+      "productIds": [],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "cart-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 27,
+      "errorCount": 3
+    },
+    {
+      "index": 47,
+      "name": "followup-7",
+      "message": "Neu khong dung san pham do thi co lua chon gan nhat nao",
+      "status": "failed",
+      "error": "case 47 expected product rail\n\nfalse !== true\n"
+    },
+    {
+      "name": "followup-8",
+      "message": "Toi muon nhan tu van ngan gon, dung trong 3 cau",
+      "status": "passed",
+      "durationMs": 19652,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 209,
+      "productIds": [
+        "prod_care_01"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 0
+    },
+    {
+      "index": 49,
+      "name": "followup-9",
+      "message": "Ban vua lam duoc gi trong pipeline nay",
+      "status": "failed",
+      "error": "case 49 expected product rail\n\nfalse !== true\n"
+    },
+    {
+      "index": 50,
+      "name": "followup-10",
+      "message": "Tong ket lai cac lua chon dang phu hop nhat",
+      "status": "failed",
+      "error": "case 50 expected product rail\n\nfalse !== true\n"
+    }
+  ]
+}

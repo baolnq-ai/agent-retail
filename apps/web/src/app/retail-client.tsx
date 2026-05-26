@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { productImageUrl, productSpec } from './product-media.js';
 
 export interface Product {
   id: string;
@@ -68,6 +69,7 @@ interface ChatMessage {
   policies?: KnowledgeDocument[];
   quickReplies?: string[];
   isStreaming?: boolean;
+  isError?: boolean;
 }
 
 type StreamEvent =
@@ -85,8 +87,8 @@ interface RetailChatWidgetProps {
   onRequireLogin: (message?: string) => void;
 }
 
-const initialQuickReplies = ['Máy lọc phòng 25m2 dưới 4 triệu', 'So sánh sản phẩm đang có', 'Chính sách đổi trả thế nào?'];
-const progressSteps = ['Phân tích', 'Catalog', 'Embedding', 'Rerank', 'Trả lời'];
+const initialQuickReplies = ['Máy lọc phòng 25m2 dưới 4 triệu', 'So sánh các lựa chọn phù hợp', 'Chính sách đổi trả thế nào?'];
+const progressSteps = ['Phân tích', 'Ngữ cảnh', 'Xử lý', 'Trả lời'];
 
 export function RetailChatWidget({ apiBaseUrl, initialProducts, authUser, cart, onCartChange, onRequireLogin }: RetailChatWidgetProps) {
   const [products, setProducts] = useState(initialProducts);
@@ -106,6 +108,10 @@ export function RetailChatWidget({ apiBaseUrl, initialProducts, authUser, cart, 
   const [activeStep, setActiveStep] = useState(-1);
   const [chatMode, setChatMode] = useState<'open' | 'minimized' | 'closed'>('closed');
   const chatMessagesRef = useRef<HTMLDivElement>(null);
+  const tokenQueueRef = useRef('');
+  const tokenTimerRef = useRef<number | undefined>(undefined);
+  const streamedContentRef = useRef('');
+  const pendingFinalRef = useRef<{ messageId: string; response: AgentChatResponse } | undefined>(undefined);
 
   useEffect(() => {
     setProducts((current) => mergeProducts(current, initialProducts));
@@ -125,11 +131,16 @@ export function RetailChatWidget({ apiBaseUrl, initialProducts, authUser, cart, 
     return () => window.cancelAnimationFrame(scrollFrame);
   }, [messages, chatMode]);
 
+  useEffect(() => () => {
+    resetTokenBuffer();
+  }, []);
+
   async function submitChat(message: string) {
     const trimmedMessage = message.trim();
     if (!trimmedMessage || isChatBusy) return;
 
     const assistantMessageId = crypto.randomUUID();
+    resetTokenBuffer();
     setChatMode('open');
     setInput('');
     setIsChatBusy(true);
@@ -141,69 +152,139 @@ export function RetailChatWidget({ apiBaseUrl, initialProducts, authUser, cart, 
       { id: assistantMessageId, role: 'assistant', content: '', isStreaming: true },
     ]);
 
+    let isFinalQueued = false;
     try {
       await streamChat(`${apiBaseUrl}/api/v1/chat/stream`, { message: trimmedMessage }, (event) => {
         if (event.type === 'status') {
           setStatusText(event.message);
-          setActiveStep((current) => Math.min(current + 1, progressSteps.length - 1));
+          setActiveStep(resolveStatusStep(event.message));
           return;
         }
 
         if (event.type === 'token') {
-          setMessages((current) => current.map((item) => (
-            item.id === assistantMessageId ? { ...item, content: item.content + event.content } : item
-          )));
+          queueTokenChunk(assistantMessageId, event.content);
           return;
         }
 
         if (event.type === 'final') {
-          const textBlock = event.response.blocks.find((block) => block.type === 'text');
-          const productBlock = event.response.blocks.find((block) => block.type === 'product_list');
-          const policyBlock = event.response.blocks.find((block) => block.type === 'policy_answer');
-          const cartBlock = event.response.blocks.find((block) => block.type === 'cart_summary');
-          const quickReplyBlock = event.response.blocks.find((block) => block.type === 'quick_replies');
-
-          if (productBlock?.items.length) setProducts((current) => mergeProducts(current, productBlock.items));
-          if (cartBlock) onCartChange(cartBlock.cart);
-          setMessages((current) => current.map((item) => (
-            item.id === assistantMessageId
-              ? {
-                ...item,
-                content: textBlock?.content ?? item.content,
-                products: productBlock?.items.slice(0, 3),
-                policies: policyBlock?.items,
-                quickReplies: quickReplyBlock?.items,
-                isStreaming: false,
-              }
-              : item
-          )));
-          setActiveStep(progressSteps.length);
-          setStatusText(cartBlock ? `Đã cập nhật giỏ · ${cartBlock.cart.items.length} dòng` : 'Đã có câu trả lời');
+          isFinalQueued = true;
+          queueFinalResponse(assistantMessageId, event.response);
           return;
         }
 
+        resetTokenBuffer();
+        pendingFinalRef.current = undefined;
+
         setMessages((current) => current.map((item) => (
-          item.id === assistantMessageId ? { ...item, content: event.message, isStreaming: false } : item
+          item.id === assistantMessageId ? { ...item, content: event.message, isStreaming: false, isError: true } : item
         )));
         setActiveStep(-1);
         setStatusText(event.message);
+        setIsChatBusy(false);
       });
     } catch (error) {
+      resetTokenBuffer();
+      pendingFinalRef.current = undefined;
       setActiveStep(-1);
       setMessages((current) => current.map((item) => (
         item.id === assistantMessageId
-          ? { ...item, content: error instanceof Error ? error.message : 'Yêu cầu chat thất bại', isStreaming: false }
+          ? { ...item, content: error instanceof Error ? error.message : 'Yêu cầu chat thất bại', isStreaming: false, isError: true }
           : item
       )));
       setStatusText(error instanceof Error ? error.message : 'Yêu cầu chat thất bại');
-    } finally {
       setIsChatBusy(false);
+    } finally {
+      if (!isFinalQueued) setIsChatBusy(false);
     }
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     void submitChat(input.trim() || initialQuickReplies[0]);
+  }
+
+  function queueTokenChunk(messageId: string, content: string) {
+    tokenQueueRef.current += content;
+    scheduleTokenDrain(messageId);
+  }
+
+  function scheduleTokenDrain(messageId: string) {
+    if (tokenTimerRef.current !== undefined) return;
+    tokenTimerRef.current = window.setTimeout(() => {
+      tokenTimerRef.current = undefined;
+      drainTokenQueue(messageId);
+    }, 24);
+  }
+
+  function drainTokenQueue(messageId: string) {
+    const nextChunk = takeTypewriterChunk(tokenQueueRef.current);
+    if (!nextChunk) {
+      applyPendingFinalResponse();
+      return;
+    }
+
+    tokenQueueRef.current = tokenQueueRef.current.slice(nextChunk.length);
+    const nextContent = sanitizeAssistantContent(streamedContentRef.current + nextChunk, false);
+    if (nextContent !== streamedContentRef.current) {
+      streamedContentRef.current = nextContent;
+      setMessages((current) => current.map((item) => (
+        item.id === messageId ? { ...item, content: nextContent } : item
+      )));
+    }
+
+    if (tokenQueueRef.current) {
+      scheduleTokenDrain(messageId);
+      return;
+    }
+
+    applyPendingFinalResponse();
+  }
+
+  function queueFinalResponse(messageId: string, response: AgentChatResponse) {
+    pendingFinalRef.current = { messageId, response };
+    if (!tokenQueueRef.current && tokenTimerRef.current === undefined) applyPendingFinalResponse();
+  }
+
+  function applyPendingFinalResponse() {
+    const pendingFinal = pendingFinalRef.current;
+    if (!pendingFinal) return;
+    pendingFinalRef.current = undefined;
+    applyFinalResponse(pendingFinal.messageId, pendingFinal.response);
+  }
+
+  function applyFinalResponse(messageId: string, response: AgentChatResponse) {
+    const textBlock = response.blocks.find((block) => block.type === 'text');
+    const productBlock = response.blocks.find((block) => block.type === 'product_list');
+    const policyBlock = response.blocks.find((block) => block.type === 'policy_answer');
+    const cartBlock = response.blocks.find((block) => block.type === 'cart_summary');
+    const quickReplyBlock = response.blocks.find((block) => block.type === 'quick_replies');
+
+    if (productBlock?.items.length) setProducts((current) => mergeProducts(current, productBlock.items));
+    if (cartBlock) onCartChange(cartBlock.cart);
+    setMessages((current) => current.map((item) => (
+      item.id === messageId
+        ? {
+          ...item,
+          content: reconcileAssistantContent(item.content, textBlock?.content ?? ''),
+          products: productBlock?.items.slice(0, 4),
+          policies: policyBlock?.items,
+          quickReplies: quickReplyBlock?.items,
+          isStreaming: false,
+        }
+        : item
+    )));
+    setActiveStep(progressSteps.length);
+    setStatusText(cartBlock ? `Đã cập nhật giỏ · ${cartBlock.cart.items.length} dòng` : 'Đã có câu trả lời');
+    setIsChatBusy(false);
+  }
+
+  function resetTokenBuffer() {
+    tokenQueueRef.current = '';
+    streamedContentRef.current = '';
+    if (tokenTimerRef.current !== undefined) {
+      window.clearTimeout(tokenTimerRef.current);
+      tokenTimerRef.current = undefined;
+    }
   }
 
   async function handleClearHistory() {
@@ -232,10 +313,10 @@ export function RetailChatWidget({ apiBaseUrl, initialProducts, authUser, cart, 
     if (isActionBusy) return;
     if (!authUser) {
       setChatMode('open');
-      onRequireLogin('Đăng nhập để thêm sản phẩm vào giỏ hàng thật');
+      onRequireLogin('Đăng nhập để thêm sản phẩm vào giỏ hàng');
       setMessages((current) => [
         ...current,
-        { id: crypto.randomUUID(), role: 'assistant', content: 'Bạn cần đăng nhập hoặc đăng ký trước, sau đó mình sẽ thêm sản phẩm vào đúng giỏ hàng theo account của bạn.', quickReplies: ['Đăng nhập / Đăng ký'] },
+        { id: crypto.randomUUID(), role: 'assistant', content: 'Bạn cần đăng nhập hoặc đăng ký trước, sau đó mình sẽ thêm sản phẩm vào giỏ hàng của bạn.', quickReplies: ['Đăng nhập / Đăng ký'] },
       ]);
       return;
     }
@@ -245,7 +326,7 @@ export function RetailChatWidget({ apiBaseUrl, initialProducts, authUser, cart, 
       const nextCart = await postJson<Cart>(`${apiBaseUrl}/api/v1/cart/current/items`, { productId, quantity: 1 });
       onCartChange(nextCart);
       window.dispatchEvent(new CustomEvent('retail-cart-changed', { detail: nextCart }));
-      setStatusText(`Đã thêm vào giỏ thật · ${nextCart.items.length} dòng`);
+      setStatusText(`Đã thêm vào giỏ hàng · ${nextCart.items.length} dòng`);
     } catch (error) {
       setStatusText(error instanceof Error ? error.message : 'Không thêm được sản phẩm');
     } finally {
@@ -265,18 +346,28 @@ export function RetailChatWidget({ apiBaseUrl, initialProducts, authUser, cart, 
           <span>{statusText}</span>
         </div>
         <div className="chat-window-actions">
-          {authUser ? <button type="button" className="chat-clear-history" aria-label="Xoá lịch sử chat" disabled={isActionBusy} onClick={() => void handleClearHistory()}>Clear lịch sử</button> : null}
-          <button type="button" aria-label="Thu nhỏ chat" onClick={() => setChatMode(chatMode === 'minimized' ? 'open' : 'minimized')}>{chatMode === 'minimized' ? 'Mở' : 'Thu nhỏ'}</button>
-          <button type="button" aria-label="Đóng chat" onClick={() => setChatMode('closed')}>Đóng</button>
+          <a href="/agent-dashboard" target="_blank" rel="noreferrer">Dashboard</a>
+          {authUser ? <button type="button" className="chat-clear-history" disabled={isActionBusy} onClick={() => void handleClearHistory()}>Xoá</button> : null}
+          <button type="button" onClick={() => setChatMode(chatMode === 'minimized' ? 'open' : 'minimized')}>{chatMode === 'minimized' ? 'Mở' : 'Thu nhỏ'}</button>
+          <button type="button" onClick={() => setChatMode('closed')}>Đóng</button>
         </div>
       </div>
       <div className="progress-line" aria-label="Tiến trình xử lý chat">
         {progressSteps.map((step, index) => <span className={index <= activeStep ? 'active' : ''} title={step} key={step} />)}
       </div>
+      {isChatBusy ? (
+        <div className="chat-run-status" role="status" aria-live="polite">
+          <span className="assistant-pulse" aria-hidden="true"><i /><i /><i /></span>
+          <div>
+            <strong>{statusText}</strong>
+            <small>{activeStep >= 0 && activeStep < progressSteps.length ? progressSteps[activeStep] : 'Hoàn tất'}</small>
+          </div>
+        </div>
+      ) : null}
       <div className="chat-messages" ref={chatMessagesRef}>
         {messages.map((message) => (
-          <article className={`chat-bubble ${message.role}`} key={message.id}>
-            <p>{message.content}{message.isStreaming ? <span className="stream-cursor" /> : null}</p>
+          <article className={`chat-bubble ${message.role}${message.isError ? ' error' : ''}`} key={message.id}>
+            {message.content ? <p>{message.content}{message.isStreaming ? <span className="stream-cursor" /> : null}</p> : null}
             {message.products?.length ? <ProductRecommendationRail products={message.products} onAddToCart={handleAddToCart} /> : null}
             {message.policies?.map((policy) => (
               <div className="policy-card" key={policy.id}>
@@ -284,7 +375,7 @@ export function RetailChatWidget({ apiBaseUrl, initialProducts, authUser, cart, 
                 <p>{policy.content}</p>
               </div>
             ))}
-            {message.quickReplies ? (
+            {message.quickReplies && !message.isStreaming ? (
               <div className="quick-replies">
                 {message.quickReplies.map((reply) => (
                   <button key={reply} type="button" disabled={isChatBusy} onClick={() => reply === 'Đăng nhập / Đăng ký' ? window.location.assign('/account') : void submitChat(reply)}>{reply}</button>
@@ -293,7 +384,11 @@ export function RetailChatWidget({ apiBaseUrl, initialProducts, authUser, cart, 
             ) : null}
           </article>
         ))}
-        {isChatBusy ? <div className="typing"><span /><span /><span /></div> : null}
+        {isChatBusy ? (
+          <div className="typing" aria-label="Trợ lý đang soạn trả lời">
+            <span /><span /><span />
+          </div>
+        ) : null}
       </div>
       {chatMode === 'open' ? (
         <form className="chat-composer" onSubmit={handleSubmit}>
@@ -308,11 +403,27 @@ export function RetailChatWidget({ apiBaseUrl, initialProducts, authUser, cart, 
 function ProductRecommendationRail({ products, onAddToCart }: { products: Product[]; onAddToCart: (productId: string) => void }) {
   const visibleProducts = products.slice(0, 4);
   const [activeIndex, setActiveIndex] = useState(0);
+  const railTrackRef = useRef<HTMLDivElement>(null);
+  const safeActiveIndex = Math.min(activeIndex, Math.max(visibleProducts.length - 1, 0));
+
+  useEffect(() => {
+    const track = railTrackRef.current;
+    if (!track || visibleProducts.length <= 1) return;
+    track.scrollTo({ left: track.clientWidth * safeActiveIndex, behavior: 'smooth' });
+  }, [safeActiveIndex, visibleProducts.length]);
+
   if (visibleProducts.length === 0) return null;
-  const safeActiveIndex = Math.min(activeIndex, visibleProducts.length - 1);
 
   function moveRail(direction: -1 | 1) {
     setActiveIndex((current) => Math.min(Math.max(current + direction, 0), visibleProducts.length - 1));
+  }
+
+  function handleRailScroll() {
+    const track = railTrackRef.current;
+    if (!track) return;
+    const nextIndex = Math.round(track.scrollLeft / Math.max(track.clientWidth, 1));
+    const boundedIndex = Math.min(Math.max(nextIndex, 0), visibleProducts.length - 1);
+    if (boundedIndex !== safeActiveIndex) setActiveIndex(boundedIndex);
   }
 
   return (
@@ -323,8 +434,8 @@ function ProductRecommendationRail({ products, onAddToCart }: { products: Produc
       </div>
       <div className={visibleProducts.length > 1 ? 'chat-product-rail-body' : 'chat-product-rail-body single'}>
         {visibleProducts.length > 1 ? <button className="rail-nav previous" type="button" aria-label="Xem sản phẩm trước" disabled={safeActiveIndex === 0} onClick={() => moveRail(-1)}>‹</button> : null}
-        <div className="chat-product-rail-track">
-          <div className="chat-product-rail-track-inner" style={{ transform: `translateX(-${safeActiveIndex * 100}%)` }}>
+        <div className="chat-product-rail-track" ref={railTrackRef} onScroll={handleRailScroll}>
+          <div className="chat-product-rail-track-inner">
             {visibleProducts.map((product) => (
               <div className="chat-product-rail-slide" key={product.id}>
                 <ProductRecommendation product={product} onAddToCart={onAddToCart} />
@@ -341,11 +452,11 @@ function ProductRecommendationRail({ products, onAddToCart }: { products: Produc
 function ProductRecommendation({ product, onAddToCart }: { product: Product; onAddToCart: (productId: string) => void }) {
   return (
     <div className="chat-product-card">
-      <div className="product-visual compact">{product.brand.slice(0, 2).toUpperCase()}</div>
+      <div className="chat-product-media"><img src={productImageUrl(product)} alt={product.title} loading="lazy" /></div>
       <div className="chat-product-card-copy">
         <strong>{product.title}</strong>
         <span>{formatPrice(product.price)}</span>
-        <small>{product.category} · {product.brand}</small>
+        <small>{productSpec(product)}</small>
         <button type="button" onClick={() => onAddToCart(product.id)}>Thêm giỏ</button>
       </div>
     </div>
@@ -386,6 +497,60 @@ function mergeProducts(currentProducts: Product[], nextProducts: Product[]): Pro
   const productById = new Map(currentProducts.map((product) => [product.id, product]));
   for (const product of nextProducts) productById.set(product.id, product);
   return Array.from(productById.values());
+}
+
+const internalResponseMarkerPattern = /Recommendation-agent|Chỉ dẫn nội bộ|shouldShowProducts=|presentationIntent=|displayReason=|mustMentionProductIds=|selectedProductIds=|handoff status=|status=/i;
+
+function takeTypewriterChunk(content: string): string {
+  if (!content) return '';
+  const maxChars = 18;
+  if (content.length <= maxChars) return content;
+
+  const readableWindow = content.slice(0, maxChars);
+  const lineBreakIndex = readableWindow.indexOf('\n');
+  if (lineBreakIndex >= 0) return content.slice(0, Math.max(lineBreakIndex + 1, 1));
+
+  const punctuationMatch = readableWindow.match(/^.{6,}?[,.!?;:]\s/);
+  if (punctuationMatch?.[0]) return punctuationMatch[0];
+
+  const wordBoundary = readableWindow.lastIndexOf(' ');
+  if (wordBoundary >= 6) return content.slice(0, wordBoundary + 1);
+
+  return content.slice(0, maxChars);
+}
+
+function sanitizeAssistantContent(content: string, shouldTrim = true): string {
+  const withoutInternalFences = content.replace(/```[\s\S]*?(Recommendation-agent|Chỉ dẫn nội bộ|shouldShowProducts=|presentationIntent=|displayReason=|mustMentionProductIds=|selectedProductIds=|handoff status=|status=)[\s\S]*?```/gi, '');
+  const markerIndex = withoutInternalFences.search(internalResponseMarkerPattern);
+  const visibleContent = markerIndex >= 0 ? withoutInternalFences.slice(0, markerIndex) : withoutInternalFences;
+  const normalizedContent = visibleContent.replace(/\n{3,}/g, '\n\n');
+  return shouldTrim ? normalizedContent.trim() : normalizedContent;
+}
+
+function reconcileAssistantContent(streamedContent: string, finalContent: string): string {
+  const cleanStreamed = sanitizeAssistantContent(streamedContent);
+  const cleanFinal = sanitizeAssistantContent(finalContent);
+  if (!cleanStreamed) return cleanFinal;
+  if (cleanStreamed !== streamedContent.trim()) return cleanFinal || cleanStreamed;
+  if (cleanFinal && Math.abs(cleanFinal.length - cleanStreamed.length) > 48) return cleanFinal;
+  return cleanStreamed;
+}
+
+function resolveStatusStep(message: string): number {
+  const normalized = removeVietnameseTone(message).toLocaleLowerCase('vi-VN');
+  if (/phan tich|nhu cau/.test(normalized)) return 0;
+  if (/lich su|ngu canh|pham vi|chinh sach|ho tro|gio hang/.test(normalized)) return 1;
+  if (/tim|chon|lay|kiem tra|xac minh|xep hang|nguon|san pham|so sanh|thao tac/.test(normalized)) return 2;
+  if (/soan|tra loi|gui/.test(normalized)) return 3;
+  return 2;
+}
+
+function removeVietnameseTone(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'd');
 }
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {

@@ -13,15 +13,14 @@ export class UserAnalysisAgentService {
 
   async analyze(params: { userId?: string; message: string; pendingPlan?: PendingCartPlan; memoryInvestigation?: MemoryInvestigationResult }): Promise<UserAnalysis> {
     const fallback = buildRuleAnalysis(params);
-    if (!this.modelGatewayService) return { ...fallback, decisionSource: 'fallback' };
-    const history = await this.agentHistoryService?.getHistory(params.userId, 'user-analysis-agent');
+    if (!this.modelGatewayService || process.env.AGENT_LLM_USER_ANALYSIS !== '1') return { ...fallback, decisionSource: 'fallback' };
     try {
       const response = await this.modelGatewayService.chat({
         maxTokens: 360,
         temperature: 0,
         messages: [
           { role: 'system', content: 'Bạn là user-analysis-agent. Trả về JSON thuần, không markdown. Nhiệm vụ: phân tích intent, cartOperation, retrievalMode, references, constraints cho chatbot bán hàng. Dùng preSignal như gợi ý, nhưng quyết định theo ngữ cảnh user và memory.' },
-          { role: 'user', content: buildAnalysisPrompt(params, fallback, history?.summary) },
+          { role: 'user', content: buildAnalysisPrompt(params, fallback) },
         ],
       });
       const analysis = readUserAnalysis(response.content, fallback);
@@ -57,9 +56,10 @@ function buildRuleAnalysis(params: { message: string; pendingPlan?: PendingCartP
 
     const references = detectReferences(normalizedMessage, params.memoryInvestigation);
     const detectedIntent = detectSalesIntent(params.message);
-    const cartOperation = detectedIntent === 'cart_status' ? undefined : detectCartOperation(normalizedMessage, references);
-    const intent = cartOperation ? 'cart_action' : references.anotherOption ? 'recommend' : detectedIntent;
-    const retrievalMode = detectRetrievalMode(intent, references, params.memoryInvestigation);
+    const isDiscoveryRequest = isProductDiscoveryRequest(normalizedMessage);
+    const cartOperation = detectedIntent === 'cart_status' || detectedIntent === 'policy' || detectedIntent === 'compare' || detectedIntent === 'smalltalk' || isDiscoveryRequest ? undefined : detectCartOperation(normalizedMessage, references);
+    const intent = cartOperation ? 'cart_action' : references.anotherOption ? 'recommend' : detectedIntent === 'smalltalk' && isProductDiscoveryRequest(normalizedMessage) ? 'recommend' : detectedIntent;
+    const retrievalMode = detectRetrievalMode(intent, references, params.memoryInvestigation, cartOperation);
     const analysis = baseAnalysis(intent, cartOperation ? 0.9 : 0.78, retrievalMode, shouldShowProducts(intent, retrievalMode, cartOperation));
     analysis.cartOperation = cartOperation;
     analysis.quantity = detectQuantity(normalizedMessage, cartOperation);
@@ -72,7 +72,7 @@ function buildRuleAnalysis(params: { message: string; pendingPlan?: PendingCartP
     return analysis;
 }
 
-function buildAnalysisPrompt(params: { message: string; pendingPlan?: PendingCartPlan; memoryInvestigation?: MemoryInvestigationResult }, fallback: UserAnalysis, historySummary: string | undefined): string {
+function buildAnalysisPrompt(params: { message: string; pendingPlan?: PendingCartPlan; memoryInvestigation?: MemoryInvestigationResult }, fallback: UserAnalysis): string {
   return JSON.stringify({
     outputSchema: {
       intent: 'recommend|compare|product_detail|policy|cart_action|cart_status|confirm_pending|cancel_pending|smalltalk',
@@ -88,9 +88,9 @@ function buildAnalysisPrompt(params: { message: string; pendingPlan?: PendingCar
     message: params.message,
     pendingPlan: params.pendingPlan ? { id: params.pendingPlan.id, operations: params.pendingPlan.operations, resolvedProductIds: params.pendingPlan.resolvedProductIds } : undefined,
     memoryInvestigation: params.memoryInvestigation,
-    agentHistory: historySummary,
     preSignal: fallback,
     rules: [
+      'Æ¯u tiÃªn cÃ¢u há»i hiá»‡n táº¡i. KhÃ´ng mÆ°á»£n intent/constraints tá»« lá»‹ch sá»­ agent cÅ© náº¿u cÃ¢u má»›i Ä‘Ã£ rÃµ.',
       'Nếu khách nói xem/coi/mở/kiểm tra giỏ hàng hoặc hỏi giỏ hàng đang có gì thì intent=cart_status, cartOperation=undefined, retrievalMode=none, shouldShowProducts=false.',
       'Nếu khách nói cho nhiều sản phẩm hơn/xem thêm/gợi ý thêm thì intent=recommend và retrievalMode=alternatives.',
       'Nếu khách nói thêm/mua/bỏ vào giỏ và memory đã resolve product ids thì intent=cart_action, cartOperation=add, retrievalMode=recent.',
@@ -102,18 +102,26 @@ function buildAnalysisPrompt(params: { message: string; pendingPlan?: PendingCar
 
 function readUserAnalysis(content: string, fallback: UserAnalysis): UserAnalysis {
   const parsed = JSON.parse(stripJsonFence(content)) as Partial<UserAnalysis>;
-  const intent = isIntent(parsed.intent) ? parsed.intent : fallback.intent;
-  const retrievalMode = isRetrievalMode(parsed.retrievalMode) ? parsed.retrievalMode : fallback.retrievalMode;
-  const cartOperation = isCartOperation(parsed.cartOperation) ? parsed.cartOperation : undefined;
+  const references = typeof parsed.references === 'object' && parsed.references ? { ...fallback.references, ...parsed.references } : fallback.references;
+  const hasExplicitProductReference = Boolean(references.resolvedProductIds?.some((productId) => /^prod_/i.test(productId)));
+  const parsedIntent = isIntent(parsed.intent) ? parsed.intent : fallback.intent;
+  const mustKeepFallbackIntent = fallback.intent === 'cart_action' || fallback.intent === 'cart_status' || fallback.intent === 'policy';
+  const shouldKeepFallbackProductIntent = isProductIntent(fallback.intent) && !isProductIntent(parsedIntent);
+  const intent = mustKeepFallbackIntent ? fallback.intent : hasExplicitProductReference && parsedIntent === 'smalltalk' ? 'product_detail' : shouldKeepFallbackProductIntent ? fallback.intent : parsedIntent;
+  const parsedRetrievalMode = isRetrievalMode(parsed.retrievalMode) ? parsed.retrievalMode : fallback.retrievalMode;
+  const shouldKeepProductRetrieval = isProductIntent(fallback.intent) && parsedRetrievalMode === 'none';
+  const retrievalMode = mustKeepFallbackIntent || shouldKeepProductRetrieval ? fallback.retrievalMode : (hasExplicitProductReference || shouldKeepFallbackProductIntent) && parsedRetrievalMode === 'none' ? fallback.retrievalMode === 'none' ? 'fresh' : fallback.retrievalMode : parsedRetrievalMode;
+  const cartOperation = fallback.intent === 'cart_action' ? fallback.cartOperation : intent === 'cart_action' && isCartOperation(parsed.cartOperation) ? parsed.cartOperation : undefined;
+  const constraints = typeof parsed.constraints === 'object' && parsed.constraints ? { ...parsed.constraints, ...fallback.constraints } : fallback.constraints;
   return {
     ...fallback,
     ...parsed,
     intent,
     retrievalMode,
     cartOperation,
-    shouldShowProducts: typeof parsed.shouldShowProducts === 'boolean' ? parsed.shouldShowProducts : fallback.shouldShowProducts,
-    references: typeof parsed.references === 'object' && parsed.references ? parsed.references : fallback.references,
-    constraints: typeof parsed.constraints === 'object' && parsed.constraints ? parsed.constraints : fallback.constraints,
+    shouldShowProducts: mustKeepFallbackIntent ? fallback.shouldShowProducts : (hasExplicitProductReference || shouldKeepFallbackProductIntent || fallback.shouldShowProducts) && isProductIntent(intent) ? true : typeof parsed.shouldShowProducts === 'boolean' ? parsed.shouldShowProducts : fallback.shouldShowProducts,
+    references,
+    constraints,
     confidence: typeof parsed.confidence === 'number' ? Math.max(0, Math.min(1, parsed.confidence)) : fallback.confidence,
   };
 }
@@ -134,6 +142,10 @@ function isCartOperation(value: unknown): value is UserAnalysis['cartOperation']
   return value === 'clear' || value === 'add' || value === 'remove' || value === 'set_quantity' || value === 'increment_quantity' || value === 'decrement_quantity';
 }
 
+function isProductIntent(intent: UserAnalysis['intent']): boolean {
+  return intent === 'recommend' || intent === 'compare' || intent === 'product_detail';
+}
+
 function baseAnalysis(intent: UserAnalysis['intent'], confidence: number, retrievalMode: RetrievalMode, shouldShowProducts: boolean): UserAnalysis {
   return {
     intent,
@@ -146,20 +158,44 @@ function baseAnalysis(intent: UserAnalysis['intent'], confidence: number, retrie
 }
 
 function detectCartOperation(normalizedMessage: string, references: UserAnalysis['references']): UserAnalysis['cartOperation'] | undefined {
-  const mentionsCart = /giỏ|cart|sản phẩm|món|cái|này|đó|thứ|số/.test(normalizedMessage);
+  const asciiMessage = stripVietnameseTone(normalizedMessage);
+  const asciiMentionsCart = /vao gio|bo vao gio|gio hang|cart|san pham|mon|cai|nay|do|thu|so/.test(asciiMessage);
+  const asciiHasResolvedHistoryTarget = Boolean(references.resolvedProductIds?.length);
+  if (/(xoa|don|don sach|clear|empty).*(het|toan bo|\bgio\b|gio hang|cart)|(?:\bgio\b|gio hang|cart).*(xoa|don|don sach|clear|empty)/.test(asciiMessage)) return 'clear';
+  if (/(giam|bot|decrease|tru)/.test(asciiMessage) && asciiMentionsCart) return 'decrement_quantity';
+  if (/(tang|them so luong|increase|cong)/.test(asciiMessage) && asciiMentionsCart) return 'increment_quantity';
+  if (/(sua|doi|cap nhat|update|set).*(so luong|quantity|thanh)|(?:so luong|quantity).*(thanh|la|=)/.test(asciiMessage)) return 'set_quantity';
+  if (/(xoa|go|remove).*(khoi gio|\bgio\b|gio hang|cart|san pham|mon|nay)/.test(asciiMessage)) return 'remove';
+  if (/(them|add|mua|bo).*(vao gio|bo vao gio|gio hang|cart)/.test(asciiMessage)) return 'add';
+  if (asciiHasResolvedHistoryTarget && /^(them|add|lay|chon|mua)\b/.test(asciiMessage)) return 'add';
+  const mentionsCart = /vào giỏ|bỏ vào giỏ|giỏ hàng|cart|sản phẩm|món|cái|này|đó|thứ|số/.test(normalizedMessage);
   const hasResolvedHistoryTarget = Boolean(references.resolvedProductIds?.length);
   if (/(xóa|xoá|dọn|clear|empty).*(hết|toàn bộ|giỏ|cart)|(?:giỏ|cart).*(xóa|xoá|dọn|clear|empty)/.test(normalizedMessage)) return 'clear';
   if (/(giảm|bớt|decrease|trừ)/.test(normalizedMessage) && mentionsCart) return 'decrement_quantity';
   if (/(tăng|thêm số lượng|increase|cộng)/.test(normalizedMessage) && mentionsCart) return 'increment_quantity';
   if (/(sửa|đổi|cập nhật|update|set).*(số lượng|quantity|thành)|(?:số lượng|quantity).*(thành|là|=)/.test(normalizedMessage)) return 'set_quantity';
   if (/(xóa|xoá|gỡ|remove).*(khỏi giỏ|giỏ|cart|sản phẩm|món|này)/.test(normalizedMessage)) return 'remove';
-  if (/(thêm|add|mua|bỏ).*(giỏ|cart)|mua/.test(normalizedMessage)) return 'add';
+  if (/(thêm|add|mua|bỏ).*(vào giỏ|bỏ vào giỏ|giỏ hàng|cart)/.test(normalizedMessage)) return 'add';
   if (hasResolvedHistoryTarget && /^(thêm|add|lấy|chọn|mua)\b/.test(normalizedMessage)) return 'add';
   return undefined;
 }
 
+function isProductDiscoveryRequest(normalizedMessage: string): boolean {
+  const asciiMessage = stripVietnameseTone(normalizedMessage);
+  if (/prod_[a-z0-9_]+/.test(asciiMessage)) return false;
+  if (/san pham\s+(nay|do|hien tai)?.*bao hanh|bao hanh.*san pham\s+(nay|do|hien tai)?/.test(asciiMessage)) return false;
+  if (/abcxyz|\?\?\?|@@@|cai gi do|khong biet nha toi can gi|khong chu de|noi linh tinh|system prompt|prompt he thong|token api|api key|cau hinh noi bo|bo qua .*quy tac|giam gia 99|link thanh toan thu nghiem|tra loi trai nguoc|khong co nguon|tu van tinh cam|bai van|giai bai toan|tich phan|kinh di/.test(asciiMessage)) return false;
+  const hasProductTerm = /\b(san pham|mon|do|do dien|do gia dung|qua|may|noi|robot|camera|den|quat|bep|thiet bi|hut bui|loc|ve sinh|cam bien|bao dong|smart home|ban chai|cham soc ca nhan|lam mat|quat thap|phong|nha|can ho|chung cu|van phong|bep mo|em be|tre nho)\b/.test(asciiMessage);
+  const asksForAdvice = /\b(can|muon|nao|hop|tot|goi y|de xuat|tu van|tim|chon|phu hop|nen mua|dang mua|co gi|co|chi co|ngan sach|gia|duoi|tren|khoang|lap dat|qua app|bao dong|uu tien|dat trong|tac dung|co ich|nho gon|mang di|cong tac|tam|dung duoc|dong nghiep)\b/.test(asciiMessage);
+  const explicitCartAction = /(\bthem\b|add|bo|mua|xoa|don|clear|empty|sua|doi|cap nhat|update).*(vao gio|bo vao gio|gio hang|cart)|(?:gio hang|cart).*(xoa|don|clear|empty|sua|doi|cap nhat|update)/.test(asciiMessage);
+  return hasProductTerm && asksForAdvice && !explicitCartAction;
+}
+
 function detectQuantity(normalizedMessage: string, operation: UserAnalysis['cartOperation']): UserAnalysis['quantity'] | undefined {
   if (!operation) return undefined;
+  if (operation === 'add' && !hasExplicitAddQuantity(normalizedMessage)) {
+    return { targetQuantity: 1, implicitOne: true };
+  }
   const number = parseVietnameseNumber(normalizedMessage);
   const targetMatch = normalizedMessage.match(/(?:thành|là|=|số lượng)\s*(\d+)/);
   if (operation === 'set_quantity') {
@@ -174,6 +210,10 @@ function detectQuantity(normalizedMessage: string, operation: UserAnalysis['cart
   return { targetQuantity: quantity, mentionedQuantity: number, implicitOne: number === undefined };
 }
 
+function hasExplicitAddQuantity(normalizedMessage: string): boolean {
+  return /(?:\d+|một|mot|hai|ba|bốn|bon|tư|năm|nam)\s*(?:cái|sản phẩm|món|chiếc|bộ)\b/.test(normalizedMessage);
+}
+
 function detectReferences(normalizedMessage: string, memoryInvestigation: MemoryInvestigationResult | undefined): UserAnalysis['references'] {
   const references: UserAnalysis['references'] = {};
   const ordinal = parseOrdinal(normalizedMessage);
@@ -186,14 +226,31 @@ function detectReferences(normalizedMessage: string, memoryInvestigation: Memory
   if (/sản phẩm khác|mẫu khác|cái khác|khác|nhiều sản phẩm hơn|thêm lựa chọn|thêm gợi ý|gợi ý thêm|xem thêm/.test(normalizedMessage)) references.anotherOption = true;
   if (/thêm hết|tất cả|cả \d|mấy cái đó|các cái đó/.test(normalizedMessage)) references.allLastRecommendations = true;
   if (memoryInvestigation?.referenceProductIds.length) references.resolvedProductIds = memoryInvestigation.referenceProductIds;
+  const explicitProductIds = extractProductIds(normalizedMessage);
+  if (explicitProductIds.length) references.resolvedProductIds = uniqueStrings([...(references.resolvedProductIds ?? []), ...explicitProductIds]);
   const productNameMatch = normalizedMessage.match(/(?:sản phẩm|món|máy|nồi|robot|camera|đèn|quạt|lọc|bếp)\s+(.+?)(?:\s+(?:trong giỏ|lên|thành|vào giỏ|ra khỏi|đi|$))/);
   if (productNameMatch && !references.newProduct && !references.anotherOption) references.productName = productNameMatch[0].trim();
+  const explicitCartProductName = detectExplicitCartProductName(normalizedMessage);
+  if (explicitCartProductName && !references.productName && !references.anotherOption) references.productName = explicitCartProductName;
   return references;
 }
 
-function detectRetrievalMode(intent: UserAnalysis['intent'], references: UserAnalysis['references'], memoryInvestigation: MemoryInvestigationResult | undefined): RetrievalMode {
+function detectExplicitCartProductName(normalizedMessage: string): string | undefined {
+  const match = normalizedMessage.match(/(?:thêm|add|mua|bỏ)\s+(.+?)(?:\s+(?:vào|vô|cho vào|bỏ vào)?\s*(?:giỏ|cart)\b|$)/);
+  const rawName = match?.[1]
+    ?.replace(/\s+(?:vào|vô|cho vào|bỏ vào)?\s*(?:giỏ|cart).*$/i, ' ')
+    .replace(/\b(?:sản phẩm|món|cái|này|đó|nha|nhé|giúp mình|giúp tôi|đi)\b/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return rawName && rawName.length > 1 ? rawName : undefined;
+}
+
+function detectRetrievalMode(intent: UserAnalysis['intent'], references: UserAnalysis['references'], memoryInvestigation: MemoryInvestigationResult | undefined, cartOperation?: UserAnalysis['cartOperation']): RetrievalMode {
   if (references.anotherOption) return 'alternatives';
+  if (intent === 'cart_action' && cartOperation === 'add' && references.resolvedProductIds?.length) return 'recent';
+  if (references.resolvedProductIds?.some((productId) => /^prod_/i.test(productId)) && (intent === 'recommend' || intent === 'compare' || intent === 'product_detail')) return 'fresh';
   if (references.resolvedProductIds?.length && (references.newProduct || references.previousProduct || references.allLastRecommendations || references.useLastRecommendation)) return 'recent';
+  if (intent === 'cart_action' && cartOperation === 'add' && references.productName) return 'fresh';
   if (intent === 'recommend' || intent === 'compare' || intent === 'product_detail') return 'fresh';
   if (memoryInvestigation?.resolvedReference && memoryInvestigation.referenceProductIds.length > 0) return 'recent';
   return 'none';
@@ -201,11 +258,19 @@ function detectRetrievalMode(intent: UserAnalysis['intent'], references: UserAna
 
 function shouldShowProducts(intent: UserAnalysis['intent'], retrievalMode: RetrievalMode, cartOperation: UserAnalysis['cartOperation']): boolean {
   if (intent === 'recommend' || intent === 'compare' || intent === 'product_detail') return retrievalMode !== 'none';
-  return cartOperation === 'add' && retrievalMode === 'recent';
+  return cartOperation === 'add' && (retrievalMode === 'recent' || retrievalMode === 'fresh');
 }
 
 function detectConstraints(normalizedMessage: string): UserAnalysis['constraints'] {
   const constraints: UserAnalysis['constraints'] = {};
+  const asciiMessage = stripVietnameseTone(normalizedMessage);
+  const asciiUnder = asciiMessage.match(/(?:duoi|khong qua|toi da)\s*(\d+(?:[,.]\d+)?)\s*(trieu|tr|k|nghin|ngan)?/);
+  const asciiOver = asciiMessage.match(/(?:tren|hon|tu)\s*(\d+(?:[,.]\d+)?)\s*(trieu|tr|k|nghin|ngan)?/);
+  if (asciiUnder) constraints.budgetMax = parseMoney(asciiUnder[1], asciiUnder[2]);
+  if (asciiOver) constraints.budgetMin = parseMoney(asciiOver[1], asciiOver[2]);
+  for (const category of ['may loc', 'robot', 'camera', 'den', 'quat', 'noi', 'bep', 'hut bui', 'lam mat', 'cham soc ca nhan', 'cam bien', 'ban chai']) {
+    if (asciiMessage.includes(category)) constraints.category = category;
+  }
   const under = normalizedMessage.match(/(?:dưới|duoi|không quá|toi da|tối đa)\s*(\d+(?:[,.]\d+)?)\s*(triệu|tr|k|nghìn|ngàn)?/);
   const over = normalizedMessage.match(/(?:trên|tren|hơn|hon|từ)\s*(\d+(?:[,.]\d+)?)\s*(triệu|tr|k|nghìn|ngàn)?/);
   if (under) constraints.budgetMax = parseMoney(under[1], under[2]);
@@ -247,4 +312,22 @@ function parseVietnameseNumber(normalizedMessage: string): number | undefined {
 
 function normalize(value: string): string {
   return value.toLocaleLowerCase('vi-VN');
+}
+
+function stripVietnameseTone(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'd')
+    .replace(/Ä‘/g, 'd')
+    .replace(/Ä/g, 'd');
+}
+
+function extractProductIds(value: string): string[] {
+  return value.match(/prod_[a-z0-9_]+/gi)?.map((productId) => productId.toLocaleLowerCase('vi-VN')) ?? [];
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values)];
 }

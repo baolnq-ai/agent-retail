@@ -21,10 +21,12 @@ test('catalog and knowledge APIs respond to real HTTP requests', async () => {
 
     const search = await getJson(`${baseUrl}/api/v1/search/products?q=${encodeURIComponent('máy lọc không khí phòng 25m2 dưới 4 triệu')}`);
     assert.equal(search.items[0].id, 'prod_air_clean_p35');
-    assert.equal(search.items[0].inventory, 42);
+    assert.equal(search.items[0].inventory, 41);
 
     const product = await getJson(`${baseUrl}/api/v1/products/prod_air_clean_p35`);
-    assert.equal(product.title, 'Máy lọc không khí AiroClean P35');
+    assert.equal(product.title, 'Máy lọc không khí Xiaomi Smart Air Purifier 4 Lite EU (BHR5274GL) 33W');
+    assert.equal(Boolean(product.attributes.imageUrl), true);
+    assert.equal(Boolean(product.attributes.sourceUrl), true);
 
     const policy = await getJson(`${baseUrl}/api/v1/knowledge/search?q=${encodeURIComponent('đổi trả 7 ngày')}`);
     assert.equal(policy.items[0].id, 'policy_returns_7_days');

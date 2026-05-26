@@ -165,13 +165,16 @@ export class CommerceService {
 }
 
 function toCart(cart: { id: string; version: number; status: string; subtotal: number; grandTotal: number; items: CartItem[] }): Cart {
+  const items = cart.items.map((item) => ({ productId: item.productId, quantity: item.quantity, unitPrice: item.unitPrice, lineTotal: item.lineTotal }));
+  const subtotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
+
   return {
     id: cart.id,
     version: cart.version,
     status: cart.status === 'ordered' ? 'ordered' : 'active',
-    items: cart.items.map((item) => ({ productId: item.productId, quantity: item.quantity, unitPrice: item.unitPrice, lineTotal: item.lineTotal })),
-    subtotal: cart.subtotal,
-    grandTotal: cart.grandTotal,
+    items,
+    subtotal,
+    grandTotal: subtotal,
   };
 }
 

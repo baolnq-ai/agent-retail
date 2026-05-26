@@ -1,20 +1,32 @@
-# Project logs
+# Index Log
 
-- Updated: 2026-05-18
-- Scope: log organization for this project.
+- Cập nhật: 2026-05-26
+- Phạm vi: log human-written và log runtime của dự án RetailHome AI Agent.
 
-## Log categories
+## Nên Đọc Trước
 
-| Path | Purpose | Edit policy |
+| Tài liệu | Nội dung |
+| --- | --- |
+| [CURRENT.md](CURRENT.md) | Log mới nhất và liên kết plan/evidence |
+| [../plans/CURRENT.md](../plans/CURRENT.md) | Trạng thái plan |
+| [../README.md](../README.md) | Cách chạy, port, nginx tunnel, test |
+
+## Nhóm Log
+
+| Path | Nội dung | Quy tắc |
 | --- | --- | --- |
-| `logs/implementation/*.md` | Human-written task summaries with timestamps | Keep concise and update intentionally |
-| `logs/setup/*.log` | Generated `setup.sh` / `stop.sh` command logs | Runtime artifact; do not rewrite by hand |
-| `logs/runtime/backend/*.log` | Generated API process logs | Runtime artifact; ignored by git |
-| `logs/runtime/frontend/*.log` | Generated web process logs | Runtime artifact; ignored by git |
+| `logs/implementation/*.md` | Log triển khai code/UI/runtime | Ghi file đổi, quyết định, verify |
+| `logs/documentation/*.md` | Log tài liệu, format, README | Link về doc/plan liên quan |
+| `logs/planning/agent-pipeline/` | Log planning agent pipeline | Giữ theo từng agent/phase |
+| `logs/planning/archive/` | Log lịch sử | Không dùng cho task active mới |
+| `logs/setup/*.log` | Log generated từ setup/stop/clean | Không sửa tay, không coi là source of truth |
+| `logs/runtime/backend/*.log` | Log process API | Runtime artifact, không commit nếu có dữ liệu nhạy cảm |
+| `logs/runtime/frontend/*.log` | Log process web | Runtime artifact, không commit nếu có dữ liệu nhạy cảm |
 
-## Rules
+## Quy Tắc Ghi Log
 
-- Keep human-written logs short and focused on decisions, changes, and verification.
-- Do not paste full command output unless the failure itself is the important result.
-- Do not log passwords, cookies, raw session tokens, private API keys, or `.env` contents.
-- Use a clear date in each markdown log.
+- Viết tiếng Việt có dấu.
+- Ghi thời gian, mục tiêu, file đã sửa, command verify, kết quả và rủi ro còn lại.
+- Không paste output dài nếu không cần thiết.
+- Không ghi password, cookie, token, private API key hoặc nội dung `.env`.
+- Task lớn phải có log riêng trong đúng thư mục.

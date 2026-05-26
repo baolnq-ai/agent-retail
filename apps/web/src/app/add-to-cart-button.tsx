@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { resolveBrowserApiBaseUrl } from './browser-api-base-url.js';
 import type { AuthUser, Cart } from './retail-client.js';
 
 interface AddToCartButtonProps {
@@ -10,6 +11,7 @@ interface AddToCartButtonProps {
 }
 
 export function AddToCartButton({ apiBaseUrl, productId, label = 'Thêm vào giỏ' }: AddToCartButtonProps) {
+  const resolvedApiBaseUrl = resolveBrowserApiBaseUrl(apiBaseUrl);
   const [authUser, setAuthUser] = useState<AuthUser | undefined>();
   const [isChecking, setIsChecking] = useState(true);
   const [isBusy, setIsBusy] = useState(false);
@@ -17,7 +19,7 @@ export function AddToCartButton({ apiBaseUrl, productId, label = 'Thêm vào gi�
 
   useEffect(() => {
     let isMounted = true;
-    getJson<{ user: AuthUser }>(`${apiBaseUrl}/api/v1/auth/me`)
+    getJson<{ user: AuthUser }>(`${resolvedApiBaseUrl}/api/v1/auth/me`)
       .then((response) => {
         if (isMounted) setAuthUser(response.user);
       })
@@ -30,7 +32,7 @@ export function AddToCartButton({ apiBaseUrl, productId, label = 'Thêm vào gi�
     return () => {
       isMounted = false;
     };
-  }, [apiBaseUrl]);
+  }, [resolvedApiBaseUrl]);
 
   async function handleAddToCart() {
     if (!authUser) {
@@ -40,9 +42,9 @@ export function AddToCartButton({ apiBaseUrl, productId, label = 'Thêm vào gi�
     setIsBusy(true);
     setStatusText('Đang thêm...');
     try {
-      const cart = await postJson<Cart>(`${apiBaseUrl}/api/v1/cart/current/items`, { productId, quantity: 1 });
+      const cart = await postJson<Cart>(`${resolvedApiBaseUrl}/api/v1/cart/current/items`, { productId, quantity: 1 });
       window.dispatchEvent(new CustomEvent('retail-cart-changed', { detail: cart }));
-      setStatusText('Đã thêm vào giỏ thật');
+      setStatusText('Đã thêm vào giỏ hàng');
     } catch (error) {
       setStatusText(error instanceof Error ? error.message : 'Không thêm được sản phẩm');
     } finally {

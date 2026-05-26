@@ -18,6 +18,15 @@ model User {
   chatThreads  ChatThread[]
   preferences  UserPreference[]
   interactions UserInteractionEvent[]
+  memoryTurns  MemoryTurn[]
+  memoryEvents MemoryEvent[]
+  memoryItems  MemoryItem[]
+  memorySummaries MemorySummary[]
+  memoryPreferences MemoryPreference[]
+  memoryBehaviorSignals MemoryBehaviorSignal[]
+  memoryAgentIndexes MemoryAgentIndex[]
+  searchAgentInteractions SearchAgentInteraction[]
+  searchAgentMemory SearchAgentMemory[]
 }
 
 model UserSession {
@@ -49,6 +58,9 @@ model Product {
 
   cartItems    CartItem[]
   interactions UserInteractionEvent[]
+  memoryBehaviorSignals MemoryBehaviorSignal[]
+  searchDocument ProductSearchDocument?
+  embeddings ProductEmbedding[]
 }
 
 model KnowledgeDocument {
@@ -76,6 +88,165 @@ model Cart {
   orders Order[]
 
   @@index([userId])
+}
+
+model CartEvent {
+  id                String   @id @default(cuid())
+  cartId            String
+  userId            String?
+  requestId         String
+  idempotencyKey    String?
+  type              String
+  productId         String?
+  quantityBefore    Int?
+  quantityAfter     Int?
+  cartVersionBefore Int?
+  cartVersionAfter  Int?
+  subtotalBefore    Int?
+  subtotalAfter     Int?
+  actorType         String
+  actorAgent        String?
+  toolName          String
+  sourceMessage     String?
+  metadata          Json?
+  createdAt         DateTime @default(now())
+
+  @@index([cartId, createdAt])
+  @@index([userId, createdAt])
+  @@index([requestId])
+  @@index([idempotencyKey])
+  @@index([productId])
+}
+
+model CartAgentMemory {
+  id            String   @id @default(cuid())
+  userId        String
+  cartId        String?
+  tier          String
+  key           String
+  value         Json
+  summary       String?
+  tokenEstimate Int      @default(0)
+  eventCount    Int      @default(0)
+  lastEventAt   DateTime?
+  expiresAt     DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId, tier, updatedAt])
+  @@index([cartId, tier, updatedAt])
+  @@unique([userId, tier, key])
+}
+
+model CartAgentInteraction {
+  id                 String    @id @default(cuid())
+  userId             String
+  cartId             String?
+  requestId          String
+  leadGoal           String
+  normalizedGoal     String
+  privatePlan        Json
+  toolResultsSummary Json
+  facts              Json
+  issues             Json
+  agentMessage       String
+  leadInstruction    String
+  status             String
+  createdAt          DateTime  @default(now())
+  summarizedAt       DateTime?
+
+  @@index([userId, createdAt])
+  @@index([cartId, createdAt])
+  @@index([requestId])
+}
+
+model PendingCartAction {
+  id               String   @id @default(cuid())
+  userId           String
+  cartId           String
+  requestId        String
+  status           String
+  operations       Json
+  reason           String
+  confirmationText String
+  expiresAt        DateTime
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([userId, status, expiresAt])
+  @@index([cartId, status])
+  @@index([requestId])
+}
+
+model ProductSearchDocument {
+  id                 String   @id @default(cuid())
+  productId          String   @unique
+  locale             String   @default("vi-VN")
+  searchText         String
+  normalizedTitle    String
+  normalizedBrand    String
+  normalizedCategory String
+  attributeText      String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([normalizedTitle])
+  @@index([normalizedBrand])
+  @@index([normalizedCategory])
+}
+
+model ProductEmbedding {
+  id          String   @id @default(cuid())
+  productId   String
+  model       String
+  vector      Json
+  contentHash String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, model])
+}
+
+model SearchAgentInteraction {
+  id                  String   @id @default(cuid())
+  userId              String?
+  requestId           String
+  query               String
+  normalizedQuery     String
+  filters             Json
+  usedLanes           Json
+  candidateProductIds Json
+  selectedProductIds  Json
+  facts               Json
+  issues              Json
+  status              String
+  createdAt           DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([requestId])
+}
+
+model SearchAgentMemory {
+  id            String   @id @default(cuid())
+  userId        String
+  tier          String
+  key           String
+  value         Json
+  summary       String?
+  tokenEstimate Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, tier, updatedAt])
+  @@unique([userId, tier, key])
 }
 
 model CartItem {
@@ -184,4 +355,140 @@ model UserInteractionEvent {
   @@index([userId])
   @@index([productId])
   @@index([type])
+}
+
+model MemoryTurn {
+  id        String   @id @default(cuid())
+  userId    String?
+  threadId  String?
+  requestId String
+  role      String
+  content   String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([threadId, createdAt])
+  @@index([requestId])
+  @@index([role])
+}
+
+model MemoryEvent {
+  id          String   @id @default(cuid())
+  userId      String?
+  requestId   String?
+  sourceAgent String?
+  type        String
+  subjectType String?
+  subjectId   String?
+  payload     Json
+  confidence  Float    @default(0.7)
+  createdAt   DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, type, createdAt])
+  @@index([requestId])
+  @@index([sourceAgent, createdAt])
+  @@index([subjectType, subjectId])
+}
+
+model MemoryItem {
+  id            String    @id @default(cuid())
+  userId        String
+  tier          String
+  key           String
+  value         Json
+  summary       String?
+  sourceRefs    Json
+  confidence    Float     @default(0.7)
+  tokenEstimate Int       @default(0)
+  expiresAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, tier, updatedAt])
+  @@index([userId, expiresAt])
+  @@unique([userId, tier, key])
+}
+
+model MemorySummary {
+  id            String   @id @default(cuid())
+  userId        String
+  scope         String
+  sourceAgent   String?
+  sourceRefIds  Json
+  summary       String
+  facts         Json
+  confidence    Float    @default(0.7)
+  tokenEstimate Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, scope, updatedAt])
+  @@index([sourceAgent, updatedAt])
+}
+
+model MemoryPreference {
+  id          String   @id @default(cuid())
+  userId      String
+  key         String
+  value       Json
+  confidence  Float    @default(0.7)
+  sourceRefs  Json
+  decayPolicy Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, updatedAt])
+  @@unique([userId, key])
+}
+
+model MemoryBehaviorSignal {
+  id          String   @id @default(cuid())
+  userId      String?
+  productId   String?
+  category    String?
+  brand       String?
+  type        String
+  weight      Float    @default(1)
+  sourceAgent String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([userId, type, createdAt])
+  @@index([productId, type, createdAt])
+  @@index([category, type, createdAt])
+  @@index([brand, type, createdAt])
+}
+
+model MemoryAgentIndex {
+  id          String   @id @default(cuid())
+  userId      String?
+  sourceAgent String
+  sourceTable String
+  sourceId    String
+  summary     String
+  tags        Json
+  productIds  Json?
+  cartId      String?
+  confidence  Float    @default(0.7)
+  createdAt   DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, sourceAgent, createdAt])
+  @@index([sourceTable, sourceId])
+  @@index([cartId, createdAt])
 }

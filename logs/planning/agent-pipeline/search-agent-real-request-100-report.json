@@ -1,0 +1,509 @@
+{
+  "generatedAt": "2026-05-22T06:09:58.814Z",
+  "suite": "search-agent-real-request-100",
+  "total": 100,
+  "passed": 100,
+  "failed": 0,
+  "results": [
+    {
+      "id": "SA-RR-001",
+      "status": "passed",
+      "durationMs": 548
+    },
+    {
+      "id": "SA-RR-002",
+      "status": "passed",
+      "durationMs": 98
+    },
+    {
+      "id": "SA-RR-003",
+      "status": "passed",
+      "durationMs": 56
+    },
+    {
+      "id": "SA-RR-004",
+      "status": "passed",
+      "durationMs": 96
+    },
+    {
+      "id": "SA-RR-005",
+      "status": "passed",
+      "durationMs": 79
+    },
+    {
+      "id": "SA-RR-006",
+      "status": "passed",
+      "durationMs": 60
+    },
+    {
+      "id": "SA-RR-007",
+      "status": "passed",
+      "durationMs": 35
+    },
+    {
+      "id": "SA-RR-008",
+      "status": "passed",
+      "durationMs": 28
+    },
+    {
+      "id": "SA-RR-009",
+      "status": "passed",
+      "durationMs": 36
+    },
+    {
+      "id": "SA-RR-010",
+      "status": "passed",
+      "durationMs": 39
+    },
+    {
+      "id": "SA-RR-011",
+      "status": "passed",
+      "durationMs": 40
+    },
+    {
+      "id": "SA-RR-012",
+      "status": "passed",
+      "durationMs": 19
+    },
+    {
+      "id": "SA-RR-013",
+      "status": "passed",
+      "durationMs": 21
+    },
+    {
+      "id": "SA-RR-014",
+      "status": "passed",
+      "durationMs": 25
+    },
+    {
+      "id": "SA-RR-015",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-016",
+      "status": "passed",
+      "durationMs": 19
+    },
+    {
+      "id": "SA-RR-017",
+      "status": "passed",
+      "durationMs": 18
+    },
+    {
+      "id": "SA-RR-018",
+      "status": "passed",
+      "durationMs": 18
+    },
+    {
+      "id": "SA-RR-019",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-020",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-021",
+      "status": "passed",
+      "durationMs": 19
+    },
+    {
+      "id": "SA-RR-022",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-023",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-024",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-025",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-026",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-027",
+      "status": "passed",
+      "durationMs": 14
+    },
+    {
+      "id": "SA-RR-028",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-029",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-030",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-031",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-032",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-033",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-034",
+      "status": "passed",
+      "durationMs": 14
+    },
+    {
+      "id": "SA-RR-035",
+      "status": "passed",
+      "durationMs": 14
+    },
+    {
+      "id": "SA-RR-036",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-037",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-038",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-039",
+      "status": "passed",
+      "durationMs": 19
+    },
+    {
+      "id": "SA-RR-040",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-041",
+      "status": "passed",
+      "durationMs": 17
+    },
+    {
+      "id": "SA-RR-042",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-043",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-044",
+      "status": "passed",
+      "durationMs": 17
+    },
+    {
+      "id": "SA-RR-045",
+      "status": "passed",
+      "durationMs": 17
+    },
+    {
+      "id": "SA-RR-046",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-047",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-048",
+      "status": "passed",
+      "durationMs": 17
+    },
+    {
+      "id": "SA-RR-049",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-050",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-051",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-052",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-053",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-054",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-055",
+      "status": "passed",
+      "durationMs": 17
+    },
+    {
+      "id": "SA-RR-056",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-057",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-058",
+      "status": "passed",
+      "durationMs": 14
+    },
+    {
+      "id": "SA-RR-059",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-060",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-061",
+      "status": "passed",
+      "durationMs": 18
+    },
+    {
+      "id": "SA-RR-062",
+      "status": "passed",
+      "durationMs": 17
+    },
+    {
+      "id": "SA-RR-063",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-064",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-065",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-066",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-067",
+      "status": "passed",
+      "durationMs": 14
+    },
+    {
+      "id": "SA-RR-068",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-069",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-070",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-071",
+      "status": "passed",
+      "durationMs": 22
+    },
+    {
+      "id": "SA-RR-072",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-073",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-074",
+      "status": "passed",
+      "durationMs": 19
+    },
+    {
+      "id": "SA-RR-075",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-076",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-077",
+      "status": "passed",
+      "durationMs": 17
+    },
+    {
+      "id": "SA-RR-078",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-079",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-080",
+      "status": "passed",
+      "durationMs": 18
+    },
+    {
+      "id": "SA-RR-081",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-082",
+      "status": "passed",
+      "durationMs": 17
+    },
+    {
+      "id": "SA-RR-083",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-084",
+      "status": "passed",
+      "durationMs": 16
+    },
+    {
+      "id": "SA-RR-085",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-086",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-087",
+      "status": "passed",
+      "durationMs": 13
+    },
+    {
+      "id": "SA-RR-088",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-089",
+      "status": "passed",
+      "durationMs": 15
+    },
+    {
+      "id": "SA-RR-090",
+      "status": "passed",
+      "durationMs": 14
+    },
+    {
+      "id": "SA-RR-091",
+      "status": "passed",
+      "durationMs": 38
+    },
+    {
+      "id": "SA-RR-092",
+      "status": "passed",
+      "durationMs": 29
+    },
+    {
+      "id": "SA-RR-093",
+      "status": "passed",
+      "durationMs": 23
+    },
+    {
+      "id": "SA-RR-094",
+      "status": "passed",
+      "durationMs": 26
+    },
+    {
+      "id": "SA-RR-095",
+      "status": "passed",
+      "durationMs": 23
+    },
+    {
+      "id": "SA-RR-096",
+      "status": "passed",
+      "durationMs": 40
+    },
+    {
+      "id": "SA-RR-097",
+      "status": "passed",
+      "durationMs": 33
+    },
+    {
+      "id": "SA-RR-098",
+      "status": "passed",
+      "durationMs": 25
+    },
+    {
+      "id": "SA-RR-099",
+      "status": "passed",
+      "durationMs": 22
+    },
+    {
+      "id": "SA-RR-100",
+      "status": "passed",
+      "durationMs": 28
+    }
+  ]
+}

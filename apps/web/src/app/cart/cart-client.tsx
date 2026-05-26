@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { resolveBrowserApiBaseUrl } from '../browser-api-base-url.js';
+import { productImageUrl } from '../product-media.js';
 
 interface Product {
   id: string;
@@ -41,6 +43,7 @@ interface CartClientProps {
 }
 
 export function CartClient({ apiBaseUrl, initialProducts }: CartClientProps) {
+  const resolvedApiBaseUrl = resolveBrowserApiBaseUrl(apiBaseUrl);
   const [authUser, setAuthUser] = useState<AuthUser | undefined>();
   const [cart, setCart] = useState<Cart | undefined>();
   const [statusText, setStatusText] = useState('Đang kiểm tra đăng nhập...');
@@ -66,22 +69,28 @@ export function CartClient({ apiBaseUrl, initialProducts }: CartClientProps) {
       isMounted = false;
       window.removeEventListener('retail-cart-changed', handleCartChanged);
     };
-  }, [apiBaseUrl]);
+  }, [resolvedApiBaseUrl]);
 
   async function loadCart(isMounted = true) {
     try {
-      const auth = await getJson<{ user: AuthUser }>(`${apiBaseUrl}/api/v1/auth/me`);
+      const auth = await getJson<{ user: AuthUser }>(`${resolvedApiBaseUrl}/api/v1/auth/me`);
       if (!isMounted) return;
       setAuthUser(auth.user);
-      const nextCart = await getJson<Cart>(`${apiBaseUrl}/api/v1/cart/current`);
-      if (!isMounted) return;
-      setCart(nextCart);
-      setStatusText('Đã tải giỏ hàng theo tài khoản.');
-    } catch {
+      try {
+        const nextCart = await getJson<Cart>(`${resolvedApiBaseUrl}/api/v1/cart/current`);
+        if (!isMounted) return;
+        setCart(nextCart);
+        setStatusText('Đã tải giỏ hàng của bạn.');
+      } catch (error) {
+        if (!isMounted) return;
+        setCart(undefined);
+        setStatusText(error instanceof Error ? readCartError(error.message) : 'Không tải được giỏ hàng.');
+      }
+    } catch (error) {
       if (!isMounted) return;
       setAuthUser(undefined);
       setCart(undefined);
-      setStatusText('Bạn cần đăng nhập để xem giỏ hàng.');
+      setStatusText(error instanceof Error ? readCartError(error.message) : 'Bạn cần đăng nhập để xem giỏ hàng.');
     } finally {
       if (isMounted) setIsChecking(false);
     }
@@ -97,9 +106,9 @@ export function CartClient({ apiBaseUrl, initialProducts }: CartClientProps) {
     setIsBusy(true);
     setStatusText('Đang xoá sản phẩm...');
     try {
-      const nextCart = await deleteJson<Cart>(`${apiBaseUrl}/api/v1/cart/current/items/${encodeURIComponent(productId)}`);
+      const nextCart = await deleteJson<Cart>(`${resolvedApiBaseUrl}/api/v1/cart/current/items/${encodeURIComponent(productId)}`);
       setCart(nextCart);
-      setStatusText('Đã xoá sản phẩm khỏi giỏ hàng thật.');
+      setStatusText('Đã xoá sản phẩm khỏi giỏ hàng.');
       window.dispatchEvent(new CustomEvent('retail-cart-changed', { detail: nextCart }));
     } catch (error) {
       setStatusText(error instanceof Error ? error.message : 'Không xoá được sản phẩm.');
@@ -113,9 +122,9 @@ export function CartClient({ apiBaseUrl, initialProducts }: CartClientProps) {
     setIsBusy(true);
     setStatusText('Đang xoá toàn bộ giỏ hàng...');
     try {
-      const nextCart = await deleteJson<Cart>(`${apiBaseUrl}/api/v1/cart/current/items`);
+      const nextCart = await deleteJson<Cart>(`${resolvedApiBaseUrl}/api/v1/cart/current/items`);
       setCart(nextCart);
-      setStatusText('Đã xoá toàn bộ giỏ hàng thật.');
+      setStatusText('Đã xoá toàn bộ giỏ hàng.');
       window.dispatchEvent(new CustomEvent('retail-cart-changed', { detail: nextCart }));
     } catch (error) {
       setStatusText(error instanceof Error ? error.message : 'Không xoá được giỏ hàng.');
@@ -160,7 +169,7 @@ export function CartClient({ apiBaseUrl, initialProducts }: CartClientProps) {
         <div className="cart-list account-cart-list">
           {cartRows.length > 0 ? cartRows.map(({ item, product }) => (
             <article className="cart-row" key={item.productId}>
-              <div className="product-visual compact">{product?.brand.slice(0, 2).toUpperCase() ?? 'SP'}</div>
+              <div className="cart-row-media">{product ? <img src={productImageUrl(product)} alt={product.title} loading="lazy" /> : 'SP'}</div>
               <div className="cart-row-copy">
                 <strong>{product?.title ?? item.productId}</strong>
                 <p>{product?.category ?? 'Sản phẩm'} · {item.quantity} × {formatPrice(item.unitPrice)}</p>
@@ -201,4 +210,9 @@ async function deleteJson<T>(url: string): Promise<T> {
 
 function formatPrice(value: number): string {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+}
+
+function readCartError(message: string): string {
+  if (message.includes('not authenticated') || message.includes('401')) return 'Bạn cần đăng nhập để xem giỏ hàng.';
+  return `Không tải được giỏ hàng: ${message}`;
 }

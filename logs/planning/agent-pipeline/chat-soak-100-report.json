@@ -1,0 +1,573 @@
+{
+  "generatedAt": "2026-05-22T10:33:13.652Z",
+  "suite": "agent-chat-soak-100",
+  "total": 100,
+  "completed": 16,
+  "passed": 15,
+  "failed": 1,
+  "inProgress": true,
+  "results": [
+    {
+      "name": "recommend-01",
+      "message": "Phong ngu 25m2 hoi bui, goi y 2 may loc khong khi duoi 4 trieu nhe",
+      "kind": "product",
+      "status": "passed",
+      "durationMs": 15417,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 385,
+      "textPreview": "Chào bạn, với phòng ngủ 25m2 và nhu cầu lọc bụi, tôi gợi ý một vài mẫu máy lọc không khí phù hợp dưới 4 triệu đồng. Bạn có thể tham khảo Máy lọc không khí AiroClean P35 với giá 3.490.000₫ hoặc LumiAir Family 4 giá 3.030.000₫. Ngoài ra, nếu ",
+      "productIds": [
+        "prod_air_clean_p35",
+        "prod_air_04",
+        "prod_fresh_home_mini_20"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "cartGrandTotal": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 1,
+      "traceErrors": [
+        {
+          "source": "recommendation-agent-quality-gate",
+          "message": "productIds chứa các ID không nằm trong allowedData.selectedProductIds (prod_air_clean_p35) và không được liệt kê trong allowedData.candidateIds (prod_air_04, prod_fresh_home_mini_20). Cụ thể: prod_air_04 và prod_fresh_home_mini_20 không có trong allowedData.candidateIds."
+        }
+      ]
+    },
+    {
+      "name": "recommend-02",
+      "message": "Nha co em be, minh can san pham nao chay em va de ve sinh?",
+      "kind": "product",
+      "status": "passed",
+      "durationMs": 15243,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 271,
+      "textPreview": "Chào bạn, với nhu cầu tìm sản phẩm chạy em bé và dễ vệ sinh, tôi thấy sản phẩm Hút bụi DustAway Vacuum One 1 có thể phù hợp. Sản phẩm này giúp vệ sinh nhà cửa nhanh chóng và dễ sử dụng cho gia đình. Bạn có muốn tôi cung cấp thêm thông tin c",
+      "productIds": [
+        "prod_clean_01"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "cartGrandTotal": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 1,
+      "traceErrors": [
+        {
+          "source": "cart-manager-agent-quality-gate",
+          "message": "Agent đã không thực hiện hành động đề xuất sản phẩm theo yêu cầu của người dùng ('minh can san pham nao chay em va de ve sinh?'). Thay vào đó, agent chỉ trả về trạng thái giỏ hàng trống (Cart is empty. Cart total is 0 VND.) vì không có sản phẩm nào trong giỏ hàng."
+        }
+      ]
+    },
+    {
+      "name": "detail-01",
+      "message": "Cho minh xem nhanh thong tin prod_air_clean_p35, co hop phong ngu khong?",
+      "kind": "product",
+      "status": "passed",
+      "durationMs": 18435,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 232,
+      "textPreview": "Chào bạn, Máy lọc không khí AiroClean P35 rất phù hợp cho phòng ngủ 25m2 của bạn. Sản phẩm này có khả năng lọc bụi PM2.5 và được thiết kế cho diện tích từ 25-35m2. Bạn có muốn tôi cung cấp thêm thông tin chi tiết về máy này không ạ?",
+      "productIds": [
+        "prod_air_clean_p35"
+      ],
+      "policyIds": [],
+      "cartItemCount": 0,
+      "cartGrandTotal": 0,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 1,
+      "traceErrors": [
+        {
+          "source": "memory-agent-quality-gate",
+          "message": "Agent đã không trả lời câu hỏi của người dùng trong input mới (\"Nha co em be, minh can san pham nao chay em va de ve sinh?\"). Thay vào đó, nó đang trả về kết quả của một cuộc hội thoại trước đó (về máy lọc không khí)."
+        }
+      ]
+    },
+    {
+      "name": "cart-01",
+      "message": "Them prod_air_clean_p35 vao gio giup minh",
+      "kind": "cart",
+      "status": "passed",
+      "durationMs": 16751,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 311,
+      "textPreview": "Mình đã thêm sản phẩm vào giỏ hàng.\nChào bạn, tôi đã thêm Máy lọc không khí AiroClean P35 vào giỏ hàng của bạn thành công rồi nhé. Sản phẩm này rất phù hợp cho phòng ngủ 25m2 vì nó có khả năng lọc bụi PM2.5 và được thiết kế cho diện tích từ",
+      "productIds": [
+        "prod_air_clean_p35"
+      ],
+      "policyIds": [],
+      "cartItemCount": 1,
+      "cartGrandTotal": 3490000,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "cart-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 37,
+      "errorCount": 1,
+      "traceErrors": [
+        {
+          "source": "memory-agent-quality-gate",
+          "message": "Agent đã không trả lời câu hỏi của người dùng trong input mới (\"Them prod_air_clean_p35 vao gio giup minh\"). Thay vào đó, nó đang trả về kết quả của một cuộc hội thoại trước đó (về máy lọc không khí)."
+        }
+      ]
+    },
+    {
+      "name": "cart-02",
+      "message": "Gio hang luc nay co dung may loc khong khi vua them khong, tong bao nhieu?",
+      "kind": "cart",
+      "status": "passed",
+      "durationMs": 16704,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 197,
+      "textPreview": "Chào bạn, giỏ hàng của bạn hiện đang có 1 sản phẩm là Máy lọc không khí AiroClean P35. Tổng giá trị đơn hàng của bạn là 3.490.000 đồng. Bạn cần tôi hỗ trợ thêm thông tin gì về sản phẩm này không ạ?",
+      "productIds": [],
+      "policyIds": [],
+      "cartItemCount": 1,
+      "cartGrandTotal": 3490000,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "rag-agent",
+        "cart-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 31,
+      "errorCount": 1,
+      "traceErrors": [
+        {
+          "source": "memory-agent-quality-gate",
+          "message": "Agent đã không trả lời câu hỏi của người dùng trong input mới (\"Gio hang luc nay co dung may loc khong khi khi vua them khong, tong bao nhieu?\"). Thay vào đó, nó đang trả lời dựa trên ngữ cảnh cũ (thêm sản phẩm vào giỏ hàng)."
+        }
+      ]
+    },
+    {
+      "name": "compare-01",
+      "message": "So sanh prod_air_clean_p35 voi prod_fresh_home_mini_20, noi ngan gon de minh chon",
+      "kind": "product",
+      "status": "passed",
+      "durationMs": 14861,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 317,
+      "textPreview": "Chào bạn, tôi xin so sánh nhanh hai mẫu máy lọc không khí này cho bạn dễ lựa chọn nhé. Máy AiroClean P35 phù hợp với phòng 25-35m2 và có tính năng lọc bụi PM2.5, trong khi FreshHome Mini 20 nhỏ gọn hơn, lý tưởng cho phòng 15-22m2. Nếu bạn c",
+      "productIds": [
+        "prod_air_clean_p35",
+        "prod_fresh_home_mini_20"
+      ],
+      "policyIds": [],
+      "cartItemCount": 1,
+      "cartGrandTotal": 3490000,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 0,
+      "traceErrors": []
+    },
+    {
+      "index": 7,
+      "name": "followup-product-01",
+      "message": "Cai re hon trong 2 cai do co du yeu cho phong nho khong?",
+      "kind": "product",
+      "status": "failed",
+      "error": "case 7 expected product rail\n\nfalse !== true\n",
+      "snapshot": {
+        "model": "google/gemma-4-E4B-it",
+        "textPreview": "Chào bạn, hai chiếc máy này đều có đủ yêu cầu cơ bản cho phòng ngủ. Máy AiroClean P35 phù hợp với phòng 25-35m2 và có khả năng lọc bụi PM2.5. Trong khi đó, FreshHome Mini 20 nhỏ gọn hơn, lý tưởng cho phòng 15-22m2. Bạn muốn tôi tư vấn thêm về tính năng cụ thể nào của hai mẫu này không ạ?",
+        "productIds": [],
+        "policyIds": [],
+        "cartItemCount": 1,
+        "cartGrandTotal": 3490000,
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "traceErrors": [
+          {
+            "source": "memory-agent-quality-gate",
+            "message": "Agent đã không tập trung xử lý `userMessage` mới nhất là \"Cai re hon trong 2 cai do co du yeu cho phong nho khong?\" (dựa trên ngữ cảnh cuối cùng của trace). Thay vào đó, output được tạo ra là kết quả của một chuỗi hội thoại trước đó (so sánh sản phẩm).; Agent cần phải phân tích `userMessage` hiện tại và cung cấp câu trả lời trực tiếp cho câu hỏi so sánh giữa hai sản phẩm đã được đề cập trong ngữ cảnh gần nhất (prod_air_clean_p35 và prod_fresh_home_mini_20) theo yêu cầu của người dùng."
+          },
+          {
+            "source": "cart-manager-agent-quality-gate",
+            "message": "Agent đã không trả lời trực tiếp câu hỏi của người dùng ('Cai re hon trong 2 cai do co du yeu cho phong nho khong?') mà chỉ trả về thông tin về giỏ hàng hiện tại (chỉ có 1 sản phẩm là Máy lọc không khí AiroClean P35).; Agent không thực hiện so sánh hai sản phẩm như người dùng yêu cầu, mà chỉ cung cấp thông tin về sản phẩm đã có trong giỏ hàng."
+          },
+          {
+            "source": "recommendation-agent-quality-gate",
+            "message": "Vi phạm contract: Nếu shouldShowProducts=false thì products phải rỗng. (Trong output, productIds là [] nên điều này được thỏa mãn, nhưng lý do bị block là do logic nghiệp vụ không được phản ánh đúng trong cấu trúc output theo contract/logic chung).; Vi phạm logic nghiệp vụ: Dựa trên agentHistory, có 2 sản phẩm đã được chọn (AiroClean P35, FreshHome Mini 20), do đó shouldShowProducts không nên là false và productIds không nên rỗng."
+          }
+        ]
+      }
+    },
+    {
+      "name": "policy-01",
+      "message": "Neu mua ve ma loi do nha san xuat thi doi tra the nao?",
+      "kind": "policy",
+      "status": "passed",
+      "durationMs": 23778,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 259,
+      "textPreview": "Chào bạn, nếu sản phẩm bạn mua bị lỗi từ nhà sản xuất, bạn có thể đổi trả trong vòng 7 ngày. Tuy nhiên, xin lưu ý rằng đơn hàng đã được bàn giao vận chuyển thì sẽ không thể sửa sản phẩm được nữa. Bạn cần kiểm tra kỹ tình trạng sản phẩm ngay",
+      "productIds": [],
+      "policyIds": [
+        "policy_returns_7_days",
+        "faq_air_purifier_room_size"
+      ],
+      "cartItemCount": 1,
+      "cartGrandTotal": 3490000,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "rag-agent",
+        "security-agent",
+        "customer-support-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 29,
+      "errorCount": 2,
+      "traceErrors": [
+        {
+          "source": "memory-agent-quality-gate",
+          "message": "Agent đã không tập trung xử lý `userMessage` mới nhất là \"Cai re hon trong 2 cai do co du yeu cho phong nho khong?\" (dựa trên ngữ cảnh cuối cùng của trace). Thay vào đó, output được tạo ra là kết quả của một chuỗi hội thoại trước đó (so sánh sản phẩm). Agent cần phải phân tích `userMessage` hiện tại và cung cấp câu trả lời trực tiếp cho câu hỏi so sánh giữa hai sản phẩm đã được đề cập trong ngữ cảnh gần nhất (prod_air_clean_p35 và prod_fresh_home_mini_20) theo yêu cầu của người dùng."
+        },
+        {
+          "source": "cart-manager-agent-quality-gate",
+          "message": "Agent đã không trả lời trực tiếp câu hỏi của người dùng ('Neu mua ve ma loi do nha san xuat thi doi tra the nao?') mà chỉ trả về thông tin về giỏ hàng hiện tại (chỉ có 1 sản phẩm là Máy lọc không khí AiroClean P35).; Câu hỏi của người dùng liên quan đến chính sách đổi trả sản phẩm bị lỗi của nhà sản xuất, đây là một câu hỏi về chính sách (policy) và không thể được trả lời chỉ bằng thông tin giỏ hàng (cart facts)."
+        }
+      ]
+    },
+    {
+      "name": "cart-03",
+      "message": "Tang prod_air_clean_p35 len 2 cai trong gio hang",
+      "kind": "cart",
+      "status": "passed",
+      "durationMs": 18232,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 314,
+      "textPreview": "Mình đã cập nhật số lượng sản phẩm trong giỏ hàng.\nChào bạn, tôi đã cập nhật số lượng Máy lọc không khí AiroClean P35 trong giỏ hàng thành 2 sản phẩm theo yêu cầu của bạn. Hiện tại, giỏ hàng của bạn có 2 sản phẩm này với tổng giá trị là 6.9",
+      "productIds": [
+        "prod_air_clean_p35"
+      ],
+      "policyIds": [],
+      "cartItemCount": 1,
+      "cartGrandTotal": 10470000,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "cart-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 37,
+      "errorCount": 2,
+      "traceErrors": [
+        {
+          "source": "memory-agent-quality-gate",
+          "message": "Agent không tập trung xử lý `userMessage` mới nhất là \"Tang prod_air_clean_p35 len 2 cai trong gio hang\" (dựa trên ngữ cảnh đầu vào). Thay vào đó, output được tạo ra là một đoạn hội thoại dài, không phản hồi trực tiếp yêu cầu thêm sản phẩm vào giỏ hàng."
+        },
+        {
+          "source": "recommendation-agent-quality-gate",
+          "message": "productIds hiển thị phải nằm trong candidates/selectedProducts/tool result được phép. (Trong output, productIds là [\"prod_air_clean_p35\"], nhưng dựa trên agentHistory, có 2 sản phẩm đã được chọn (AiroClean P35, FreshHome Mini 20), và output chỉ liệt kê 1 sản phẩm, có thể không phản ánh đầy đủ các sản phẩm được chọn hoặc có sự không nhất quán với logic nghiệp vụ được suy luận từ history.)"
+        }
+      ]
+    },
+    {
+      "name": "cart-04",
+      "message": "Tinh lai tong tien gio hang hien tai cho minh",
+      "kind": "cart",
+      "status": "passed",
+      "durationMs": 15212,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 184,
+      "textPreview": "Chào bạn, giỏ hàng của bạn hiện đang có 3 sản phẩm Máy lọc không khí AiroClean P35. Tổng giá trị đơn hàng của bạn là 10.470.000 đồng. Bạn cần tôi hỗ trợ thêm thông tin gì khác không ạ?",
+      "productIds": [],
+      "policyIds": [],
+      "cartItemCount": 1,
+      "cartGrandTotal": 10470000,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "rag-agent",
+        "cart-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 31,
+      "errorCount": 1,
+      "traceErrors": [
+        {
+          "source": "memory-agent-quality-gate",
+          "message": "Agent không trả lời trực tiếp câu hỏi của người dùng trong `userMessage` hiện tại (\"Tinh lai tong tien gio hang hien tai cho minh\"). Thay vào đó, nó đang trả lời dựa trên một đoạn hội thoại cũ (sau khi người dùng yêu cầu tăng số lượng sản phẩm).; Agent cần phải tập trung vào yêu cầu tính tổng tiền giỏ hàng hiện tại dựa trên trạng thái giỏ hàng cuối cùng (2 x prod_air_clean_p35)."
+        }
+      ]
+    },
+    {
+      "name": "search-01",
+      "message": "Tim noi chien khong dau dung tich lon cho gia dinh 4 nguoi",
+      "kind": "product",
+      "status": "passed",
+      "durationMs": 18340,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 301,
+      "textPreview": "Chào bạn, tôi hiểu bạn đang tìm nồi chiên không dầu dung tích lớn cho gia đình 4 người. Với nhu cầu này, tôi xin giới thiệu Nồi chiên không dầu ChefMax AF55. Sản phẩm này có dung tích 5.5L và được trang bị 8 chế độ nấu tiện lợi. Bạn có muốn",
+      "productIds": [
+        "prod_chefmax_af55"
+      ],
+      "policyIds": [],
+      "cartItemCount": 1,
+      "cartGrandTotal": 10470000,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 1,
+      "traceErrors": [
+        {
+          "source": "memory-agent-quality-gate",
+          "message": "Agent không tập trung xử lý `userMessage` hiện tại (\"Tinh lai tong tien gio hang hien tai cho minh\"). Thay vào đó, nó đang trả lời dựa trên một đoạn hội thoại cũ (sau khi người dùng yêu cầu tăng số lượng sản phẩm). Agent cần phải tập trung vào yêu cầu tính tổng tiền giỏ hàng hiện tại dựa trên trạng thái giỏ hàng cuối cùng (2 x prod_air_clean_p35)."
+        }
+      ]
+    },
+    {
+      "name": "search-02",
+      "message": "May hut bui nao hop nha co thu cung va long toc nhieu?",
+      "kind": "product",
+      "status": "passed",
+      "durationMs": 17108,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 295,
+      "textPreview": "Chào bạn, với nhu cầu tìm máy hút bụi phù hợp cho nhà có em bé và dễ vệ sinh, tôi gợi ý sản phẩm DustAway Vacuum One 1. Sản phẩm này được thiết kế để giúp vệ sinh nhà cửa nhanh chóng và dễ sử dụng cho gia đình có thú cưng. Bạn có muốn tôi c",
+      "productIds": [
+        "prod_clean_01"
+      ],
+      "policyIds": [],
+      "cartItemCount": 1,
+      "cartGrandTotal": 10470000,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 2,
+      "traceErrors": [
+        {
+          "source": "memory-agent-quality-gate",
+          "message": "Agent đã không tập trung xử lý `userMessage` mới nhất là \"Tim noi chien khong dau dung tich lon cho gia dinh 4 nguoi\" (dựa trên ngữ cảnh đầu vào). Thay vào đó, output được tạo ra là kết quả của một chuỗi hội thoại trước đó (so sánh sản phẩm). Agent cần phải phân tích `userMessage` hiện tại và cung cấp câu trả lời trực tiếp cho câu hỏi so sánh giữa hai sản phẩm đã được đề cập trong ngữ cảnh gần nhất (prod_air_clean_p35 và prod_fresh_home_mini_20) theo yêu cầu của người dùng."
+        },
+        {
+          "source": "user-analysis-agent-quality-gate",
+          "message": "The final output (intent: recommend, shouldShowProducts:true, constraints: {category: \"hut bui\"}) does not reflect the user's last query, which is about a large capacity air fryer for a family of 4. The intent should be 'recommend' but the constraints should reflect the product category (air fryer) or the intent should be re-evaluated based on the context shift. The current constraints are for 'hut bui' (vacuum cleaner) which is incorrect for the last turn."
+        }
+      ]
+    },
+    {
+      "name": "search-03",
+      "message": "Co camera thong minh nao lap nhanh ma gia khong qua cao khong?",
+      "kind": "product",
+      "status": "passed",
+      "durationMs": 18875,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 308,
+      "textPreview": "Chào bạn, tôi có một gợi ý là camera thông minh AqraLife Camera View 2. Sản phẩm này rất dễ lắp đặt và giúp bạn tự động hóa nhà thông minh qua điện thoại. Với mức giá 910.000 đồng, đây là một lựa chọn khá hợp lý cho nhu cầu của bạn. Bạn có ",
+      "productIds": [
+        "prod_smart_02"
+      ],
+      "policyIds": [],
+      "cartItemCount": 1,
+      "cartGrandTotal": 10470000,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 1,
+      "traceErrors": [
+        {
+          "source": "memory-agent-quality-gate",
+          "message": "Agent đã không tập trung xử lý `userMessage` mới nhất là \"May hut bui nao hop nha co thu cung va long toc nhieu?\" (dựa trên ngữ cảnh đầu vào). Thay vào đó, output được tạo ra là kết quả của một chuỗi hội thoại trước đó (so sánh sản phẩm). Agent cần phải phân tích `userMessage` hiện tại và cung cấp câu trả lời trực tiếp cho câu hỏi so sánh giữa hai sản phẩm đã được đề cập trong ngữ cảnh gần nhất (prod_air_clean_p35 và prod_fresh_home_mini_20) theo yêu cầu của người dùng."
+        }
+      ]
+    },
+    {
+      "name": "search-04",
+      "message": "Tu van thiet bi nha thong minh gia mem cho can ho moi thue",
+      "kind": "product",
+      "status": "passed",
+      "durationMs": 18053,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 303,
+      "textPreview": "Chào bạn, tôi hiểu bạn đang tìm thiết bị nhà thông minh giá mềm cho căn hộ mới thuê. Với nhu cầu này, tôi xin gợi ý LumiHome Sensor Kit 1. Sản phẩm này giúp tự động hóa nhà thông minh, rất dễ lắp đặt và quản lý qua điện thoại. Bạn có muốn t",
+      "productIds": [
+        "prod_smart_01"
+      ],
+      "policyIds": [],
+      "cartItemCount": 1,
+      "cartGrandTotal": 10470000,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 1,
+      "traceErrors": [
+        {
+          "source": "memory-agent-quality-gate",
+          "message": "Agent không tập trung xử lý `userMessage` mới nhất là \"Co camera thong minh nao lap nhanh ma gia khong qua cao khong?\" (dựa trên ngữ cảnh đầu vào). Thay vào đó, output được tạo ra là một đoạn hội thoại dài, không phản hồi trực tiếp yêu cầu của người dùng. Agent cần phải phân tích `userMessage` hiện tại và cung cấp câu trả lời trực tiếp cho câu hỏi về camera thông minh theo yêu cầu của người dùng."
+        }
+      ]
+    },
+    {
+      "name": "search-05",
+      "message": "Minh can quat hoac may lam mat cho phong 20m2, uu tien tiet kiem dien",
+      "kind": "product",
+      "status": "passed",
+      "durationMs": 18729,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 342,
+      "textPreview": "Chào bạn, tôi thấy bạn đang tìm quạt hoặc máy làm mát cho phòng 20m2 và ưu tiên tiết kiệm điện. Dựa trên nhu cầu này, tôi xin gợi ý sản phẩm Windy Desk Fan 1. Sản phẩm này hỗ trợ làm mát nhanh và phù hợp với phòng ngủ nhỏ, đồng thời có mức ",
+      "productIds": [
+        "prod_climate_01"
+      ],
+      "policyIds": [],
+      "cartItemCount": 1,
+      "cartGrandTotal": 10470000,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 2,
+      "traceErrors": [
+        {
+          "source": "memory-agent-quality-gate",
+          "message": "Agent không tập trung xử lý `userMessage` hiện tại (\"Tinh lai tong tien gio hang hien tai cho minh\"). Thay vào đó, nó đang trả lời dựa trên một đoạn hội thoại cũ (sau khi người dùng yêu cầu tăng số lượng sản phẩm). Agent cần phải tập trung vào yêu cầu tính tổng tiền giỏ hàng hiện tại dựa trên trạng thái giỏ hàng cuối cùng (2 x prod_air_clean_p35)."
+        },
+        {
+          "source": "product-manager-agent-quality-gate",
+          "message": "selectedProducts phải nằm trong candidates. (Trong output, 'prod_climate_01' được chọn, và nó có nằm trong 'candidateIds' ['prod_climate_01', 'prod_climate_02', 'prod_climate_03', 'prod_climate_04', 'prod_climate_05', 'prod_climate_06', 'prod_climate_07', 'prod_climate_08'], nên điều kiện này được đáp ứng. Tuy nhiên, cần xem xét lại logic tổng thể vì agentHistory có nhiều cảnh báo không liên quan đến output hiện tại và có sự mâu thuẫn trong việc đánh giá các vi phạm trước đó.)"
+        }
+      ]
+    },
+    {
+      "name": "search-06",
+      "message": "San pham cham soc ca nhan nao gon nhe mang di du lich?",
+      "kind": "product",
+      "status": "passed",
+      "durationMs": 15484,
+      "model": "google/gemma-4-E4B-it",
+      "textLength": 358,
+      "textPreview": "Chào bạn, tôi hiểu bạn đang tìm sản phẩm chăm sóc cá nhân nhỏ gọn để mang đi du lịch. Tôi xin gợi ý BeautyZen Brush Sonic 1, đây là một chiếc bàn chải nhỏ gọn, dễ sử dụng và rất phù hợp cho việc chăm sóc cá nhân khi đi du lịch. Sản phẩm này",
+      "productIds": [
+        "prod_care_01"
+      ],
+      "policyIds": [],
+      "cartItemCount": 1,
+      "cartGrandTotal": 10470000,
+      "agents": [
+        "lead-agent",
+        "storage-memory-agent",
+        "history-agent",
+        "search-agent",
+        "recommendation-agent",
+        "rag-agent",
+        "security-agent",
+        "sales-agent"
+      ],
+      "playbackEventCount": 33,
+      "errorCount": 1,
+      "traceErrors": [
+        {
+          "source": "cart-manager-agent-quality-gate",
+          "message": "Agent đã không trả lời câu hỏi của người dùng (\"San pham cham soc ca nhan nao gon nhe mang di du lich?\") mà chỉ trả về thông tin về giỏ hàng hiện tại (chứa máy lọc không khí).; Agent đã bỏ qua ý định chính là *recommend* sản phẩm phù hợp với tiêu chí 'chăm sóc cá nhân', 'gọn nhẹ', 'mang đi du lịch'."
+        }
+      ]
+    }
+  ]
+}

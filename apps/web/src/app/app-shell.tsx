@@ -1,23 +1,31 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
+import { resolveBrowserApiBaseUrl } from './browser-api-base-url.js';
 import { RetailChatWidget, type AuthUser, type Cart, type Product } from './retail-client.js';
 
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:7010';
+const configuredApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:7010';
 const emptyCart: Cart = { id: 'account-required', version: 0, items: [], subtotal: 0, grandTotal: 0, status: 'active' };
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const apiBaseUrl = resolveBrowserApiBaseUrl(configuredApiBaseUrl);
+  const [isAgentDashboard, setAgentDashboard] = useState(false);
   const [authUser, setAuthUser] = useState<AuthUser | undefined>();
   const [cart, setCart] = useState<Cart>(emptyCart);
   const [products, setProducts] = useState<Product[]>([]);
   const [statusText, setStatusText] = useState('Đang kiểm tra tài khoản...');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   async function refreshSession() {
     try {
       const auth = await getJson<{ user: AuthUser }>(`${apiBaseUrl}/api/v1/auth/me`);
       setAuthUser(auth.user);
-      const currentCart = await getJson<Cart>(`${apiBaseUrl}/api/v1/cart/current`);
-      setCart(currentCart);
+      try {
+        const currentCart = await getJson<Cart>(`${apiBaseUrl}/api/v1/cart/current`);
+        setCart(currentCart);
+      } catch {
+        setCart(emptyCart);
+      }
       setStatusText(`Đang đăng nhập: ${auth.user.name}`);
     } catch {
       setAuthUser(undefined);
@@ -36,6 +44,16 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
+    setAgentDashboard(window.location.pathname === '/agent-dashboard');
+    const requestedTheme = new URL(window.location.href).searchParams.get('theme');
+    const storedTheme = window.localStorage.getItem('retail-theme');
+    const initialTheme = requestedTheme === 'light' || requestedTheme === 'dark'
+      ? requestedTheme
+      : storedTheme === 'light' || storedTheme === 'dark'
+        ? storedTheme
+      : window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    setTheme(initialTheme);
+    document.documentElement.dataset.theme = initialTheme;
     void refreshSession();
     void refreshProducts();
 
@@ -57,6 +75,13 @@ export function AppShell({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  function toggleTheme() {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    document.documentElement.dataset.theme = nextTheme;
+    window.localStorage.setItem('retail-theme', nextTheme);
+  }
+
   async function handleLogout() {
     try {
       await postJson(`${apiBaseUrl}/api/v1/auth/logout`, {});
@@ -72,24 +97,23 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="app-shell">
       <header className="commerce-header">
-        <a className="commerce-brand" href="/"><span>R</span><strong>RetailHome</strong></a>
+        <a className="commerce-brand" href="/" aria-label="RetailHome"><span>RH</span><strong>RetailHome</strong></a>
         <nav className="commerce-nav" aria-label="Điều hướng chính">
           <a href="/products">Sản phẩm</a>
-          <a href="/agent-dashboard">Bảng điều khiển</a>
-          <a href="/agent-settings">Cấu hình API</a>
-          <a href="/cart">Giỏ hàng {authUser ? <span>{cart.items.length}</span> : null}</a>
+          <a href="/cart">Giỏ hàng{authUser ? <em>{cart.items.length}</em> : null}</a>
         </nav>
         <div className="commerce-account-actions">
+          <button className="theme-toggle" type="button" onClick={toggleTheme}>{theme === 'dark' ? 'Sáng' : 'Tối'}</button>
           {authUser ? (
             <>
               <span className="user-chip">{authUser.name}</span>
               <button type="button" onClick={() => void handleLogout()}>Đăng xuất</button>
             </>
-          ) : <a className="login-link" href="/account">Đăng nhập / Đăng ký</a>}
+          ) : <a className="login-link" href="/account">Tài khoản</a>}
         </div>
       </header>
       <main className="commerce-main">{children}</main>
-      <RetailChatWidget
+      {isAgentDashboard ? null : <RetailChatWidget
         apiBaseUrl={apiBaseUrl}
         initialProducts={products}
         authUser={authUser}
@@ -99,8 +123,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           window.dispatchEvent(new CustomEvent('retail-cart-changed', { detail: nextCart }));
         }}
         onRequireLogin={(message) => setStatusText(message ?? 'Bạn cần đăng nhập để dùng giỏ hàng')}
-      />
-      <div className="global-status" aria-live="polite">{statusText}</div>
+      />}
+      {isAgentDashboard ? null : <div className="global-status" aria-live="polite">{statusText}</div>}
     </div>
   );
 }

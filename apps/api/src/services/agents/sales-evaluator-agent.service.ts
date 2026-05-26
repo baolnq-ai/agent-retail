@@ -13,6 +13,18 @@ export class SalesEvaluatorAgentService {
 
   async evaluate(params: { userId?: string; message: string; draft: string; recommendationResult: RecommendationAgentResult; completedCartAction: boolean; actionResult?: string }): Promise<SalesEvaluationResult> {
     const history = await this.agentHistoryService.getHistory(params.userId, 'sales-evaluator-agent');
+    const guardrailResult = evaluateWithGuardrails(params.draft, params.recommendationResult.products);
+    if (process.env.AGENT_LLM_SALES_EVALUATOR !== '1' || !guardrailResult.pass) {
+      await this.agentHistoryService.appendHistory(params.userId, 'sales-evaluator-agent', {
+        status: guardrailResult.pass ? 'completed' : 'error',
+        inputSummary: params.message.slice(0, 180),
+        outputSummary: guardrailResult.pass ? 'guardrail passed' : 'guardrail found mismatch',
+        complaints: guardrailResult.complaints,
+        source: 'fallback',
+      });
+      return guardrailResult;
+    }
+
     try {
       const response = await this.modelGatewayService.chat({
         maxTokens: 260,
@@ -89,5 +101,28 @@ function evaluateWithGuardrails(draft: string, products: Product[]): SalesEvalua
     && productTitles.every((title) => !draft.toLocaleLowerCase('vi-VN').includes(title));
   if (mentionedOutside) complaints.push('Draft có vẻ nhắc sản phẩm không nằm trong product rail.');
   const pass = complaints.length === 0;
-  return { pass, outcome: pass ? 'pass' : 'revise', severity: pass ? 'info' : 'block', complaints, revisedInstruction: complaints.length ? complaints.join(' ') : undefined, safeResponse: pass ? undefined : 'Mình chưa thể trả lời chắc chắn theo dữ liệu hiện có. Bạn cho mình thêm nhu cầu hoặc chọn lại sản phẩm trong khung gợi ý nhé.', source: 'fallback' };
+  return {
+    pass,
+    outcome: pass ? 'pass' : 'revise',
+    severity: pass ? 'info' : 'block',
+    complaints,
+    revisedInstruction: complaints.length ? complaints.join(' ') : undefined,
+    safeResponse: pass ? undefined : buildFallbackSafeResponse(products),
+    source: 'fallback',
+  };
+}
+
+function buildFallbackSafeResponse(products: Product[]): string {
+  if (products.length === 0) {
+    return 'Mình chưa đủ dữ liệu để trả lời chắc chắn. Bạn nói rõ hơn nhu cầu, ngân sách hoặc loại sản phẩm để mình lọc lại nhé.';
+  }
+
+  const names = products.slice(0, 4).map((product) => product.title);
+  return `Mình đang giữ đúng ${products.length} sản phẩm trong khung gợi ý: ${joinVietnameseList(names)}. Bạn có thể xem từng thẻ, hoặc nói thêm tiêu chí để mình lọc lại sát hơn.`;
+}
+
+function joinVietnameseList(values: string[]): string {
+  if (values.length <= 1) return values[0] ?? '';
+  if (values.length === 2) return `${values[0]} và ${values[1]}`;
+  return `${values.slice(0, -1).join(', ')} và ${values[values.length - 1]}`;
 }

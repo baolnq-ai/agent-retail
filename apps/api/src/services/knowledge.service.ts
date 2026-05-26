@@ -39,5 +39,13 @@ function scoreDocument(document: KnowledgeDocument, normalizedQuery: string): nu
 }
 
 function normalize(value: string): string {
-  return value.toLocaleLowerCase('vi-VN');
+  return value
+    .toLocaleLowerCase('vi-VN')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'd')
+    .replace(/Ä‘/g, 'd')
+    .replace(/\s+/g, ' ')
+    .trim();
 }

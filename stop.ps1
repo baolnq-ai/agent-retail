@@ -128,3 +128,6 @@ Remove-WebLocks
 Write-Host ''
 Write-Host 'Stopped'
 Write-Host "Log: $StopLog"
+Write-Host 'Runtime windows/processes: repo-scoped PowerShell/Corepack/Next processes stopped when present'
+Write-Host "API pid file: $(Join-Path $ApiLogDir 'api.pid')"
+Write-Host "Web pid file: $(Join-Path $WebLogDir 'web.pid')"

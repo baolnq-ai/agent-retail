@@ -30,6 +30,7 @@ test('agent chat uses real LLM, embedding, rerank, DB catalog, and cart context'
 
     assert.equal(typeof response.messageId, 'string');
     assert.equal(typeof response.model, 'string');
+    assert.notEqual(response.model, 'safe-fallback');
     assert.equal(response.diagnostics.embeddingDimensions > 0, true);
     assert.equal(response.diagnostics.contextDocuments > 0, true);
 

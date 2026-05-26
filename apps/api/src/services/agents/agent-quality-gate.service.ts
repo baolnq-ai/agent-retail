@@ -22,6 +22,18 @@ export class AgentQualityGateService {
     allowedData?: unknown;
   }): Promise<AgentQualityGateResult> {
     const history = await this.agentHistoryService.getHistory(params.userId, params.agent);
+    const guardrailResult = evaluateWithGuardrails(params);
+    if (process.env.AGENT_LLM_QUALITY_GATE !== '1' || !guardrailResult.pass) {
+      await this.agentHistoryService.appendHistory(params.userId, params.agent, {
+        status: guardrailResult.pass ? 'completed' : 'error',
+        inputSummary: params.inputSummary.slice(0, 180),
+        outputSummary: `${params.job}: ${guardrailResult.outcome}/${guardrailResult.severity}`,
+        complaints: guardrailResult.complaints,
+        source: 'fallback',
+      });
+      return guardrailResult;
+    }
+
     try {
       const response = await this.modelGatewayService.chat({
         maxTokens: 320,

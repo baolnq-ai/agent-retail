@@ -12,6 +12,14 @@
     "db:seed": "tsx prisma/seed.ts",
     "test": "corepack pnpm build && node --test tests/*.test.mjs",
     "test:runtime": "corepack pnpm build && node tests/runtime-health.mjs && node tests/runtime-auth.mjs && node tests/runtime-user-memory.mjs && node tests/runtime-model-gateway.mjs && node tests/runtime-catalog-knowledge.mjs && node tests/runtime-commerce.mjs && node tests/runtime-agent-chat.mjs && node tests/runtime-agent-chat-stream.mjs && node tests/runtime-cors.mjs",
+    "test:runtime:cart-agent": "corepack pnpm build && node tests/runtime-cart-agent-mutation-writer.mjs && node tests/runtime-cart-agent-state.mjs && node tests/runtime-cart-agent-pending-flow.mjs",
+    "test:runtime:cart-agent:100": "corepack pnpm build && node tests/runtime-cart-agent-real-request-100.mjs",
+    "test:runtime:storage-memory-agent": "corepack pnpm build && node tests/runtime-storage-memory-agent.mjs",
+    "test:runtime:storage-memory-agent:100": "corepack pnpm build && node tests/runtime-storage-memory-agent-real-request-100.mjs",
+    "test:runtime:history-agent:100": "corepack pnpm build && node tests/runtime-history-agent-real-request-100.mjs",
+    "test:runtime:search-agent:100": "corepack pnpm build && node tests/runtime-search-agent-real-request-100.mjs",
+    "test:runtime:chat-soak:50": "corepack pnpm build && node tests/runtime-agent-chat-soak-50.mjs",
+    "test:runtime:chat-soak:100": "corepack pnpm build && node tests/runtime-agent-chat-soak-100.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

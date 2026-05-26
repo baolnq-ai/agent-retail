@@ -1,0 +1,138 @@
+{
+  "generatedAt": "2026-05-25T04:56:18.846Z",
+  "apiTraceId": "c44bbf4e-82ae-49da-97c4-eb62fc5986e9",
+  "apiGraphEdgeCount": 29,
+  "apiPlaybackEventCount": 29,
+  "domEdgeCount": 12,
+  "domCanvasCount": 1,
+  "domMarkerCount": 0,
+  "legend": [
+    {
+      "text": "Gửi đi",
+      "className": "call",
+      "beforeColor": "rgb(34, 197, 94)"
+    },
+    {
+      "text": "Trả về",
+      "className": "return",
+      "beforeColor": "rgb(56, 189, 248)"
+    }
+  ],
+  "checks": {
+    "allDomEdgesExistInApiGraphEdges": true,
+    "noSvgArrowMarkers": true,
+    "onlyTwoVisualEdgeTones": true,
+    "legendUsesGreenForOutboundAndBlueForReturn": true,
+    "canvasPresent": true
+  },
+  "domEdges": [
+    {
+      "from": "lead-agent",
+      "to": "pipeline-executor",
+      "order": "-29",
+      "direction": "call",
+      "className": "agent-node-edge call ",
+      "markerEnd": null,
+      "stroke": "rgba(34, 197, 94, 0.5)"
+    },
+    {
+      "from": "lead-agent",
+      "to": "storage-memory-agent",
+      "order": "-28",
+      "direction": "call",
+      "className": "agent-node-edge call ",
+      "markerEnd": null,
+      "stroke": "rgba(34, 197, 94, 0.5)"
+    },
+    {
+      "from": "storage-memory-agent",
+      "to": "postgres-db",
+      "order": "-27",
+      "direction": "call",
+      "className": "agent-node-edge call paired",
+      "markerEnd": null,
+      "stroke": "rgba(34, 197, 94, 0.5)"
+    },
+    {
+      "from": "postgres-db",
+      "to": "storage-memory-agent",
+      "order": "-26",
+      "direction": "return",
+      "className": "agent-node-edge return paired",
+      "markerEnd": null,
+      "stroke": "rgba(56, 189, 248, 0.64)"
+    },
+    {
+      "from": "storage-memory-agent",
+      "to": "history-agent",
+      "order": "-25",
+      "direction": "data",
+      "className": "agent-node-edge call ",
+      "markerEnd": null,
+      "stroke": "rgba(34, 197, 94, 0.5)"
+    },
+    {
+      "from": "rag-agent",
+      "to": "qdrant-db",
+      "order": "-20",
+      "direction": "call",
+      "className": "agent-node-edge call paired",
+      "markerEnd": null,
+      "stroke": "rgba(34, 197, 94, 0.5)"
+    },
+    {
+      "from": "qdrant-db",
+      "to": "rag-agent",
+      "order": "-19",
+      "direction": "return",
+      "className": "agent-node-edge return paired",
+      "markerEnd": null,
+      "stroke": "rgba(56, 189, 248, 0.64)"
+    },
+    {
+      "from": "lead-agent",
+      "to": "security-agent",
+      "order": "-16",
+      "direction": "guard",
+      "className": "agent-node-edge call ",
+      "markerEnd": null,
+      "stroke": "rgba(34, 197, 94, 0.5)"
+    },
+    {
+      "from": "lead-agent",
+      "to": "customer-support-agent",
+      "order": "-14",
+      "direction": "call",
+      "className": "agent-node-edge call ",
+      "markerEnd": null,
+      "stroke": "rgba(34, 197, 94, 0.5)"
+    },
+    {
+      "from": "lead-agent",
+      "to": "sales-agent",
+      "order": "-12",
+      "direction": "data",
+      "className": "agent-node-edge call ",
+      "markerEnd": null,
+      "stroke": "rgba(34, 197, 94, 0.5)"
+    },
+    {
+      "from": "sales-agent",
+      "to": "llm-service",
+      "order": "-11",
+      "direction": "call",
+      "className": "agent-node-edge call paired",
+      "markerEnd": null,
+      "stroke": "rgba(34, 197, 94, 0.5)"
+    },
+    {
+      "from": "llm-service",
+      "to": "sales-agent",
+      "order": "-10",
+      "direction": "return",
+      "className": "agent-node-edge return paired",
+      "markerEnd": null,
+      "stroke": "rgba(56, 189, 248, 0.64)"
+    }
+  ]
+}

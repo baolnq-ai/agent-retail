@@ -23,12 +23,28 @@ export interface RerankResult {
   score: number;
 }
 
+export interface ModelGatewayPingCheck {
+  ok: boolean;
+  endpoint: string;
+  status?: number;
+  error?: string;
+}
+
+export interface ModelGatewayPingResult {
+  ok: boolean;
+  checks: {
+    chatModels: ModelGatewayPingCheck;
+    chatCompletions: ModelGatewayPingCheck;
+    embedding: ModelGatewayPingCheck;
+    rerank: ModelGatewayPingCheck;
+  };
+}
+
 @Injectable()
 export class ModelGatewayService {
   constructor(private readonly modelSettingsService: ModelSettingsService) {}
 
-  async health(): Promise<{ chat: 'ok'; embedding: 'ok' }> {
-    const settings = this.modelSettingsService.get();
+  async health(settings = this.modelSettingsService.get()): Promise<{ chat: 'ok'; embedding: 'ok' }> {
     const [chatResponse, embeddingResponse] = await Promise.all([
       this.fetchJson(`${settings.chatModelBaseUrl}/v1/models`, { method: 'GET', headers: this.buildHeaders(settings.apiKey) }),
       this.fetchJson(`${settings.embedRerankBaseUrl}/health`, { method: 'GET' }),
@@ -42,6 +58,43 @@ export class ModelGatewayService {
     }
 
     return { chat: 'ok', embedding: 'ok' };
+  }
+
+  async ping(settings = this.modelSettingsService.get()): Promise<ModelGatewayPingResult> {
+    const chatModels = await this.checkJson(`${settings.chatModelBaseUrl}/v1/models`, { method: 'GET', headers: this.buildHeaders(settings.apiKey) }, (payload) => {
+      if (!Array.isArray(payload.data)) throw new Error('response.data must be an array');
+    });
+    const chatCompletions = await this.checkJson(`${settings.chatModelBaseUrl}/v1/chat/completions`, {
+      method: 'POST',
+      headers: this.buildHeaders(settings.apiKey),
+      body: JSON.stringify({
+        model: settings.chatModelId,
+        messages: [{ role: 'user', content: 'ping' }],
+        max_tokens: 8,
+        temperature: 0,
+      }),
+    }, (payload) => {
+      const content = payload.choices?.[0]?.message?.content;
+      if (typeof content !== 'string' || content.length === 0) throw new Error('choices[0].message.content must be a non-empty string');
+    });
+    const embedding = await this.checkJson(`${settings.embedRerankBaseUrl}/api/v1/embed`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json; charset=utf-8' },
+      body: JSON.stringify({ texts: ['ping'] }),
+    }, (payload) => {
+      if (!Array.isArray(payload.result) || !Array.isArray(payload.result[0])) throw new Error('result[0] must be an embedding vector');
+    });
+    const rerank = await this.checkJson(`${settings.embedRerankBaseUrl}/api/v1/rerank`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json; charset=utf-8' },
+      body: JSON.stringify({ query: 'ping', documents: ['ping document', 'other document'] }),
+    }, (payload) => {
+      if (!Array.isArray(payload.result)) throw new Error('result must be an array');
+      if (payload.result.length > 0 && !isRerankResult(payload.result[0])) throw new Error('result item must include index, document, and score');
+    });
+
+    const checks = { chatModels, chatCompletions, embedding, rerank };
+    return { ok: Object.values(checks).every((check) => check.ok), checks };
   }
 
   async chat(request: ChatRequest): Promise<ChatResponse> {
@@ -155,6 +208,32 @@ export class ModelGatewayService {
   }
 
   private async fetchJson(url: string, init: RequestInit): Promise<any> {
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+      try {
+        const response = await fetch(url, { ...init, signal: controller.signal });
+        const text = await response.text();
+        if (!response.ok) {
+          const error = new Error(`request failed ${response.status}: ${text.slice(0, 200)}`);
+          if (response.status < 500 || attempt === 3) throw error;
+          lastError = error;
+        } else {
+          return JSON.parse(text);
+        }
+      } catch (error) {
+        if (attempt === 3) throw error;
+        lastError = error;
+      } finally {
+        clearTimeout(timeout);
+      }
+      await sleep(250 * attempt);
+    }
+    throw lastError instanceof Error ? lastError : new Error('request failed');
+  }
+
+  private async checkJson(url: string, init: RequestInit, validate: (payload: any) => void): Promise<ModelGatewayPingCheck> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30000);
 
@@ -162,13 +241,27 @@ export class ModelGatewayService {
       const response = await fetch(url, { ...init, signal: controller.signal });
       const text = await response.text();
       if (!response.ok) {
-        throw new Error(`request failed ${response.status}: ${text.slice(0, 200)}`);
+        return { ok: false, endpoint: `${init.method ?? 'GET'} ${url}`, status: response.status, error: text.slice(0, 200) || `request failed ${response.status}` };
       }
-      return JSON.parse(text);
+      let payload: any;
+      try {
+        payload = JSON.parse(text);
+      } catch {
+        return { ok: false, endpoint: `${init.method ?? 'GET'} ${url}`, status: response.status, error: 'response is not valid JSON' };
+      }
+      validate(payload);
+      return { ok: true, endpoint: `${init.method ?? 'GET'} ${url}`, status: response.status };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'request failed';
+      return { ok: false, endpoint: `${init.method ?? 'GET'} ${url}`, error: message };
     } finally {
       clearTimeout(timeout);
     }
   }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function isRerankResult(value: unknown): value is RerankResult {

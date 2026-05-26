@@ -12,6 +12,7 @@ ENV_FILE="$ROOT_DIR/.env"
 API_PORT="${API_PORT:-7010}"
 WEB_PORT="${WEB_PORT:-7000}"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-retail_agent_provider}"
+TMUX_SESSION="${TMUX_SESSION:-retail-agent}"
 
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -145,6 +146,20 @@ stop_compose_services() {
   ok "Stopped provider Docker Compose project: $COMPOSE_PROJECT_NAME"
 }
 
+stop_tmux_session() {
+  if ! command_exists tmux; then
+    warn "tmux not found; skipping tmux session cleanup"
+    return
+  fi
+
+  if tmux has-session -t "$TMUX_SESSION" >/dev/null 2>&1; then
+    tmux kill-session -t "$TMUX_SESSION" >> "$STOP_LOG" 2>&1 || true
+    ok "Stopped tmux session: $TMUX_SESSION"
+  else
+    warn "No tmux session found: $TMUX_SESSION"
+  fi
+}
+
 cleanup_next_locks() {
   rm -rf "$ROOT_DIR/apps/web/.next/dev/lock" "$ROOT_DIR/apps/web/.next/dev/server" >> "$STOP_LOG" 2>&1 || true
   ok "Cleared stale Next dev locks for apps/web when present"
@@ -162,6 +177,9 @@ main() {
   step "Stop repo-scoped runtime processes"
   stop_repo_runtime_processes
 
+  step "Stop tmux runtime session"
+  stop_tmux_session
+
   step "Stop provider Docker services"
   stop_compose_services
 
@@ -171,6 +189,7 @@ main() {
   printf "\n${GREEN}${BOLD}Stopped${RESET}\n"
   printf "  API pid file: %s\n" "$API_LOG_DIR/api.pid"
   printf "  Web pid file: %s\n" "$WEB_LOG_DIR/web.pid"
+  printf "  tmux session: %s\n" "$TMUX_SESSION"
   printf "  Compose project: %s\n" "$COMPOSE_PROJECT_NAME"
   printf "  Log: %s\n" "$STOP_LOG"
 }

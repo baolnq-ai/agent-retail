@@ -4,7 +4,7 @@ Thời gian: 2026-05-19
 
 ## Phase 1 — Plan và contract
 
-- Tạo plan tại `plans/plan-real-agent-pipeline.md`.
+- Tạo plan tại `plans/archive/initial-roadmap/real-agent-pipeline.md`.
 - Thêm contract trong `agent-execution.models.ts`:
   - `AgentHistoryEntry`
   - `AgentHistoryContext`

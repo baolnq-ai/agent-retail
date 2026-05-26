@@ -1,0 +1,14 @@
+{
+  "hasModal": true,
+  "text": "TaskTask lượt chatĐóngÝ địnhpolicyDữ liệu task0 sản phẩm, 0 thao tác giỏ, 5 phần promptAgent liên quanLead, Bộ nhớ, Lịch sử, RAG, Bảo mật, Hỗ trợ, Tư vấn bán hàngGhi vao taskContext phien -> Task lượt chat: khởi tạo taskĐọc/trả vềTask lượt chat -> Lead: context phiên; Task lượt chat -> Lead: bộ nhớ trả về; Task lượt chat -> Lead: tìm kiếm trả về; Task lượt chat -> Lead: gợi ý trả về; Task lượt chat -> Lead: RAG trả vềLỗikhông có dữ liệu",
+  "overflow": [],
+  "rect": {
+    "left": 539,
+    "top": 418,
+    "right": 1059,
+    "bottom": 827,
+    "width": 520,
+    "height": 409
+  },
+  "clipped": false
+}

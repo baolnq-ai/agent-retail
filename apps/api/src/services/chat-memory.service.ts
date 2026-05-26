@@ -18,6 +18,7 @@ export interface UserMemorySummary {
   messageCount: number;
   preferenceKeys: string[];
   interactionCount: number;
+  storageMemoryCount?: number;
   latestUpdatedAt?: string;
 }
 
@@ -101,11 +102,12 @@ export class ChatMemoryService {
   }
 
   async getUserMemorySummary(userId: string): Promise<UserMemorySummary> {
-    const [threads, messageCount, preferences, interactionCount] = await Promise.all([
+    const [threads, messageCount, preferences, interactionCount, storageMemoryCount] = await Promise.all([
       this.prisma.client.chatThread.findMany({ where: { userId }, select: { id: true, updatedAt: true } }),
       this.prisma.client.chatMessage.count({ where: { thread: { userId } } }),
       this.prisma.client.userPreference.findMany({ where: { userId }, select: { key: true, updatedAt: true }, orderBy: { updatedAt: 'desc' } }),
       this.prisma.client.userInteractionEvent.count({ where: { userId } }),
+      this.prisma.client.memoryItem.count({ where: { userId } }),
     ]);
     const latestUpdatedAt = [...threads.map((thread) => thread.updatedAt), ...preferences.map((preference) => preference.updatedAt)]
       .sort((left, right) => right.getTime() - left.getTime())[0];
@@ -114,6 +116,7 @@ export class ChatMemoryService {
       messageCount,
       preferenceKeys: preferences.map((preference) => preference.key),
       interactionCount,
+      storageMemoryCount,
       latestUpdatedAt: latestUpdatedAt?.toISOString(),
     };
   }
@@ -127,6 +130,13 @@ export class ChatMemoryService {
       this.prisma.client.chatThread.deleteMany({ where: { userId } }),
       this.prisma.client.userPreference.deleteMany({ where: { userId } }),
       this.prisma.client.userInteractionEvent.deleteMany({ where: { userId } }),
+      this.prisma.client.memoryTurn.deleteMany({ where: { userId } }),
+      this.prisma.client.memoryEvent.deleteMany({ where: { userId } }),
+      this.prisma.client.memoryItem.deleteMany({ where: { userId } }),
+      this.prisma.client.memorySummary.deleteMany({ where: { userId } }),
+      this.prisma.client.memoryPreference.deleteMany({ where: { userId } }),
+      this.prisma.client.memoryBehaviorSignal.deleteMany({ where: { userId } }),
+      this.prisma.client.memoryAgentIndex.deleteMany({ where: { userId } }),
     ]);
     return this.getUserMemorySummary(userId);
   }

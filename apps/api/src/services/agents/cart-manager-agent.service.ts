@@ -229,7 +229,6 @@ function productMatchesReference(product: Product, reference: string): boolean {
 }
 
 function shouldAskConfirmation(analysis: UserAnalysis, operations: CartToolOperation[]): boolean {
-  if (analysis.cartOperation === 'clear') return true;
   if (analysis.cartOperation === 'add' && analysis.references.resolvedProductIds?.length && analysis.references.allLastRecommendations) return false;
   if (operations.length > 1) return true;
   return false;

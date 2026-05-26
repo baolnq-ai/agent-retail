@@ -5,7 +5,7 @@
 
 ## Hoạt động chính
 
-- Tạo `plans/plan-full-functional-web-completion.md` với tiêu chí không fake pass.
+- Tạo `plans/archive/initial-roadmap/full-functional-web-completion.md` với tiêu chí không fake pass.
 - Thêm backend `AgentService`, `AgentController`, `AgentChatResponse` blocks.
 - Gắn `POST /api/v1/chat` vào Nest AppModule.
 - Thêm runtime test agent chat dùng LLM/embedding/rerank thật.

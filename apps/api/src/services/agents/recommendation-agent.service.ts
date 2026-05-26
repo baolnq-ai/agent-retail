@@ -22,7 +22,7 @@ export class RecommendationAgentService {
     cart: Cart;
   }): Promise<RecommendationAgentResult> {
     const fallback = buildRulePresentation(params);
-    if (!this.modelGatewayService) return { ...fallback, decisionSource: 'fallback' };
+    if (!this.modelGatewayService || process.env.AGENT_LLM_RECOMMENDATION !== '1') return { ...fallback, decisionSource: 'fallback' };
     const history = await this.agentHistoryService?.getHistory(params.userId, 'recommendation-agent');
     try {
       const response = await this.modelGatewayService.chat({
@@ -86,7 +86,7 @@ function buildRulePresentation(params: {
     }
 
     if (params.analysis.intent === 'recommend' || params.analysis.intent === 'product_detail') {
-      const limit = params.analysis.intent === 'product_detail' ? 1 : 3;
+      const limit = params.analysis.intent === 'product_detail' ? 1 : resolveRecommendationLimit(params.analysis, params.productManagerResult);
       const products = params.productManagerResult.selectedProducts.slice(0, limit);
       if (!params.analysis.shouldShowProducts || products.length === 0 || params.productManagerResult.confidence < 0.5) {
         return blocked('Product-manager chưa chọn được sản phẩm đủ tin cậy để hiển thị.', params.productManagerResult);
@@ -95,6 +95,11 @@ function buildRulePresentation(params: {
     }
 
     return approved([], 'none', 'Không có ngữ cảnh đề xuất sản phẩm.', params.productManagerResult);
+}
+
+function resolveRecommendationLimit(analysis: UserAnalysis, productManagerResult: ProductManagerResult): number {
+  if (productManagerResult.mode === 'alternatives' || analysis.references.anotherOption || analysis.references.allLastRecommendations) return 4;
+  return 3;
 }
 
 function buildRecommendationPrompt(params: {
@@ -145,21 +150,23 @@ function readRecommendationResult(content: string, params: { productManagerResul
   const parsed = JSON.parse(stripJsonFence(content)) as { shouldShowProducts?: unknown; productIds?: unknown; presentationIntent?: unknown; displayReason?: unknown; status?: unknown; complaints?: unknown };
   const allowedProducts = params.productManagerResult.candidates;
   const productIds = Array.isArray(parsed.productIds) ? parsed.productIds.filter((item): item is string => typeof item === 'string') : fallback.products.map((product) => product.id);
-  const products = productsFromIds(productIds, allowedProducts);
-  if (productIds.length !== products.length) throw new Error('recommendation-agent selected product outside allowed scope');
+  const parsedProducts = productsFromIds(productIds, allowedProducts);
+  if (productIds.length !== parsedProducts.length) throw new Error('recommendation-agent selected product outside allowed scope');
+  const products = parsedProducts.length > 0 ? parsedProducts : fallback.products;
   const presentationIntent = isPresentationIntent(parsed.presentationIntent) ? parsed.presentationIntent : fallback.presentationIntent;
   const status = isRecommendationStatus(parsed.status) ? parsed.status : fallback.status;
+  const effectiveStatus = fallback.shouldShowProducts && products.length > 0 ? 'approved' : status;
   const displayReason = typeof parsed.displayReason === 'string' ? parsed.displayReason : fallback.displayReason;
   const complaints = Array.isArray(parsed.complaints) ? parsed.complaints.filter((item): item is string => typeof item === 'string') : fallback.complaints;
   return {
-    shouldShowProducts: typeof parsed.shouldShowProducts === 'boolean' ? parsed.shouldShowProducts && products.length > 0 : fallback.shouldShowProducts,
+    shouldShowProducts: fallback.shouldShowProducts ? products.length > 0 : typeof parsed.shouldShowProducts === 'boolean' ? parsed.shouldShowProducts && products.length > 0 : false,
     products,
     presentationIntent,
     displayReason,
     mustMentionProductIds: products.map((product) => product.id),
     mustNotMentionProductIds: allowedProducts.filter((product) => !products.some((item) => item.id === product.id)).map((product) => product.id),
     evidence: [displayReason, ...params.productManagerResult.evidence],
-    status,
+    status: effectiveStatus,
     complaints,
   };
 }

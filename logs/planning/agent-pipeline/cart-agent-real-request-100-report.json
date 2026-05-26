@@ -1,0 +1,610 @@
+{
+  "runId": "1ae54fc3",
+  "runDate": "2026-05-22T04:20:57.111Z",
+  "command": "corepack pnpm --filter @retail-agent/api test:runtime:cart-agent:100",
+  "total": 100,
+  "passed": 100,
+  "failed": 0,
+  "results": [
+    {
+      "id": "CART-EVAL-001",
+      "group": "auth",
+      "status": "passed",
+      "durationMs": 101
+    },
+    {
+      "id": "CART-EVAL-002",
+      "group": "auth",
+      "status": "passed",
+      "durationMs": 11
+    },
+    {
+      "id": "CART-EVAL-003",
+      "group": "auth",
+      "status": "passed",
+      "durationMs": 11
+    },
+    {
+      "id": "CART-EVAL-004",
+      "group": "auth",
+      "status": "passed",
+      "durationMs": 10
+    },
+    {
+      "id": "CART-EVAL-005",
+      "group": "auth",
+      "status": "passed",
+      "durationMs": 9
+    },
+    {
+      "id": "CART-EVAL-006",
+      "group": "auth",
+      "status": "passed",
+      "durationMs": 10
+    },
+    {
+      "id": "CART-EVAL-007",
+      "group": "auth",
+      "status": "passed",
+      "durationMs": 10
+    },
+    {
+      "id": "CART-EVAL-008",
+      "group": "auth",
+      "status": "passed",
+      "durationMs": 9
+    },
+    {
+      "id": "CART-EVAL-009",
+      "group": "auth",
+      "status": "passed",
+      "durationMs": 9
+    },
+    {
+      "id": "CART-EVAL-010",
+      "group": "auth",
+      "status": "passed",
+      "durationMs": 11
+    },
+    {
+      "id": "CART-EVAL-011",
+      "group": "empty-read",
+      "status": "passed",
+      "durationMs": 39
+    },
+    {
+      "id": "CART-EVAL-012",
+      "group": "empty-read",
+      "status": "passed",
+      "durationMs": 19
+    },
+    {
+      "id": "CART-EVAL-013",
+      "group": "empty-read",
+      "status": "passed",
+      "durationMs": 26
+    },
+    {
+      "id": "CART-EVAL-014",
+      "group": "empty-read",
+      "status": "passed",
+      "durationMs": 19
+    },
+    {
+      "id": "CART-EVAL-015",
+      "group": "empty-read",
+      "status": "passed",
+      "durationMs": 24
+    },
+    {
+      "id": "CART-EVAL-016",
+      "group": "empty-read",
+      "status": "passed",
+      "durationMs": 23
+    },
+    {
+      "id": "CART-EVAL-017",
+      "group": "empty-read",
+      "status": "passed",
+      "durationMs": 22
+    },
+    {
+      "id": "CART-EVAL-018",
+      "group": "empty-read",
+      "status": "passed",
+      "durationMs": 23
+    },
+    {
+      "id": "CART-EVAL-019",
+      "group": "empty-read",
+      "status": "passed",
+      "durationMs": 20
+    },
+    {
+      "id": "CART-EVAL-020",
+      "group": "empty-read",
+      "status": "passed",
+      "durationMs": 21
+    },
+    {
+      "id": "CART-EVAL-021",
+      "group": "add",
+      "status": "passed",
+      "durationMs": 80
+    },
+    {
+      "id": "CART-EVAL-022",
+      "group": "add",
+      "status": "passed",
+      "durationMs": 49
+    },
+    {
+      "id": "CART-EVAL-023",
+      "group": "add",
+      "status": "passed",
+      "durationMs": 35
+    },
+    {
+      "id": "CART-EVAL-024",
+      "group": "add",
+      "status": "passed",
+      "durationMs": 39
+    },
+    {
+      "id": "CART-EVAL-025",
+      "group": "add",
+      "status": "passed",
+      "durationMs": 36
+    },
+    {
+      "id": "CART-EVAL-026",
+      "group": "add",
+      "status": "passed",
+      "durationMs": 34
+    },
+    {
+      "id": "CART-EVAL-027",
+      "group": "add",
+      "status": "passed",
+      "durationMs": 34
+    },
+    {
+      "id": "CART-EVAL-028",
+      "group": "add",
+      "status": "passed",
+      "durationMs": 32
+    },
+    {
+      "id": "CART-EVAL-029",
+      "group": "add",
+      "status": "passed",
+      "durationMs": 35
+    },
+    {
+      "id": "CART-EVAL-030",
+      "group": "add",
+      "status": "passed",
+      "durationMs": 34
+    },
+    {
+      "id": "CART-EVAL-031",
+      "group": "add",
+      "status": "passed",
+      "durationMs": 35
+    },
+    {
+      "id": "CART-EVAL-032",
+      "group": "add",
+      "status": "passed",
+      "durationMs": 32
+    },
+    {
+      "id": "CART-EVAL-033",
+      "group": "add",
+      "status": "passed",
+      "durationMs": 30
+    },
+    {
+      "id": "CART-EVAL-034",
+      "group": "add",
+      "status": "passed",
+      "durationMs": 29
+    },
+    {
+      "id": "CART-EVAL-035",
+      "group": "add",
+      "status": "passed",
+      "durationMs": 28
+    },
+    {
+      "id": "CART-EVAL-036",
+      "group": "add",
+      "status": "passed",
+      "durationMs": 31
+    },
+    {
+      "id": "CART-EVAL-037",
+      "group": "add",
+      "status": "passed",
+      "durationMs": 29
+    },
+    {
+      "id": "CART-EVAL-038",
+      "group": "add",
+      "status": "passed",
+      "durationMs": 29
+    },
+    {
+      "id": "CART-EVAL-039",
+      "group": "add",
+      "status": "passed",
+      "durationMs": 29
+    },
+    {
+      "id": "CART-EVAL-040",
+      "group": "add",
+      "status": "passed",
+      "durationMs": 34
+    },
+    {
+      "id": "CART-EVAL-041",
+      "group": "set",
+      "status": "passed",
+      "durationMs": 53
+    },
+    {
+      "id": "CART-EVAL-042",
+      "group": "set",
+      "status": "passed",
+      "durationMs": 35
+    },
+    {
+      "id": "CART-EVAL-043",
+      "group": "set",
+      "status": "passed",
+      "durationMs": 32
+    },
+    {
+      "id": "CART-EVAL-044",
+      "group": "set",
+      "status": "passed",
+      "durationMs": 26
+    },
+    {
+      "id": "CART-EVAL-045",
+      "group": "set",
+      "status": "passed",
+      "durationMs": 28
+    },
+    {
+      "id": "CART-EVAL-046",
+      "group": "set",
+      "status": "passed",
+      "durationMs": 27
+    },
+    {
+      "id": "CART-EVAL-047",
+      "group": "set",
+      "status": "passed",
+      "durationMs": 28
+    },
+    {
+      "id": "CART-EVAL-048",
+      "group": "set",
+      "status": "passed",
+      "durationMs": 29
+    },
+    {
+      "id": "CART-EVAL-049",
+      "group": "set",
+      "status": "passed",
+      "durationMs": 27
+    },
+    {
+      "id": "CART-EVAL-050",
+      "group": "set",
+      "status": "passed",
+      "durationMs": 30
+    },
+    {
+      "id": "CART-EVAL-051",
+      "group": "increment",
+      "status": "passed",
+      "durationMs": 30
+    },
+    {
+      "id": "CART-EVAL-052",
+      "group": "increment",
+      "status": "passed",
+      "durationMs": 29
+    },
+    {
+      "id": "CART-EVAL-053",
+      "group": "increment",
+      "status": "passed",
+      "durationMs": 26
+    },
+    {
+      "id": "CART-EVAL-054",
+      "group": "increment",
+      "status": "passed",
+      "durationMs": 29
+    },
+    {
+      "id": "CART-EVAL-055",
+      "group": "increment",
+      "status": "passed",
+      "durationMs": 26
+    },
+    {
+      "id": "CART-EVAL-056",
+      "group": "increment",
+      "status": "passed",
+      "durationMs": 29
+    },
+    {
+      "id": "CART-EVAL-057",
+      "group": "increment",
+      "status": "passed",
+      "durationMs": 31
+    },
+    {
+      "id": "CART-EVAL-058",
+      "group": "increment",
+      "status": "passed",
+      "durationMs": 31
+    },
+    {
+      "id": "CART-EVAL-059",
+      "group": "increment",
+      "status": "passed",
+      "durationMs": 29
+    },
+    {
+      "id": "CART-EVAL-060",
+      "group": "increment",
+      "status": "passed",
+      "durationMs": 30
+    },
+    {
+      "id": "CART-EVAL-061",
+      "group": "decrement",
+      "status": "passed",
+      "durationMs": 29
+    },
+    {
+      "id": "CART-EVAL-062",
+      "group": "decrement",
+      "status": "passed",
+      "durationMs": 29
+    },
+    {
+      "id": "CART-EVAL-063",
+      "group": "decrement",
+      "status": "passed",
+      "durationMs": 26
+    },
+    {
+      "id": "CART-EVAL-064",
+      "group": "decrement",
+      "status": "passed",
+      "durationMs": 26
+    },
+    {
+      "id": "CART-EVAL-065",
+      "group": "decrement",
+      "status": "passed",
+      "durationMs": 26
+    },
+    {
+      "id": "CART-EVAL-066",
+      "group": "decrement",
+      "status": "passed",
+      "durationMs": 26
+    },
+    {
+      "id": "CART-EVAL-067",
+      "group": "decrement",
+      "status": "passed",
+      "durationMs": 27
+    },
+    {
+      "id": "CART-EVAL-068",
+      "group": "decrement",
+      "status": "passed",
+      "durationMs": 26
+    },
+    {
+      "id": "CART-EVAL-069",
+      "group": "decrement",
+      "status": "passed",
+      "durationMs": 26
+    },
+    {
+      "id": "CART-EVAL-070",
+      "group": "decrement",
+      "status": "passed",
+      "durationMs": 24
+    },
+    {
+      "id": "CART-EVAL-071",
+      "group": "remove",
+      "status": "passed",
+      "durationMs": 29
+    },
+    {
+      "id": "CART-EVAL-072",
+      "group": "remove",
+      "status": "passed",
+      "durationMs": 26
+    },
+    {
+      "id": "CART-EVAL-073",
+      "group": "remove",
+      "status": "passed",
+      "durationMs": 28
+    },
+    {
+      "id": "CART-EVAL-074",
+      "group": "remove",
+      "status": "passed",
+      "durationMs": 34
+    },
+    {
+      "id": "CART-EVAL-075",
+      "group": "remove",
+      "status": "passed",
+      "durationMs": 30
+    },
+    {
+      "id": "CART-EVAL-076",
+      "group": "remove",
+      "status": "passed",
+      "durationMs": 30
+    },
+    {
+      "id": "CART-EVAL-077",
+      "group": "remove",
+      "status": "passed",
+      "durationMs": 29
+    },
+    {
+      "id": "CART-EVAL-078",
+      "group": "remove",
+      "status": "passed",
+      "durationMs": 27
+    },
+    {
+      "id": "CART-EVAL-079",
+      "group": "remove",
+      "status": "passed",
+      "durationMs": 27
+    },
+    {
+      "id": "CART-EVAL-080",
+      "group": "remove",
+      "status": "passed",
+      "durationMs": 28
+    },
+    {
+      "id": "CART-EVAL-081",
+      "group": "clear-pending",
+      "status": "passed",
+      "durationMs": 47
+    },
+    {
+      "id": "CART-EVAL-082",
+      "group": "clear-pending",
+      "status": "passed",
+      "durationMs": 36
+    },
+    {
+      "id": "CART-EVAL-083",
+      "group": "clear-pending",
+      "status": "passed",
+      "durationMs": 41
+    },
+    {
+      "id": "CART-EVAL-084",
+      "group": "clear-pending",
+      "status": "passed",
+      "durationMs": 43
+    },
+    {
+      "id": "CART-EVAL-085",
+      "group": "clear-pending",
+      "status": "passed",
+      "durationMs": 48
+    },
+    {
+      "id": "CART-EVAL-086",
+      "group": "clear-pending",
+      "status": "passed",
+      "durationMs": 57
+    },
+    {
+      "id": "CART-EVAL-087",
+      "group": "clear-pending",
+      "status": "passed",
+      "durationMs": 44
+    },
+    {
+      "id": "CART-EVAL-088",
+      "group": "clear-pending",
+      "status": "passed",
+      "durationMs": 46
+    },
+    {
+      "id": "CART-EVAL-089",
+      "group": "clear-pending",
+      "status": "passed",
+      "durationMs": 44
+    },
+    {
+      "id": "CART-EVAL-090",
+      "group": "clear-pending",
+      "status": "passed",
+      "durationMs": 37
+    },
+    {
+      "id": "CART-EVAL-091",
+      "group": "state-memory",
+      "status": "passed",
+      "durationMs": 36
+    },
+    {
+      "id": "CART-EVAL-092",
+      "group": "state-memory",
+      "status": "passed",
+      "durationMs": 24
+    },
+    {
+      "id": "CART-EVAL-093",
+      "group": "state-memory",
+      "status": "passed",
+      "durationMs": 19
+    },
+    {
+      "id": "CART-EVAL-094",
+      "group": "state-memory",
+      "status": "passed",
+      "durationMs": 21
+    },
+    {
+      "id": "CART-EVAL-095",
+      "group": "state-memory",
+      "status": "passed",
+      "durationMs": 21
+    },
+    {
+      "id": "CART-EVAL-096",
+      "group": "state-memory",
+      "status": "passed",
+      "durationMs": 21
+    },
+    {
+      "id": "CART-EVAL-097",
+      "group": "state-memory",
+      "status": "passed",
+      "durationMs": 20
+    },
+    {
+      "id": "CART-EVAL-098",
+      "group": "state-memory",
+      "status": "passed",
+      "durationMs": 19
+    },
+    {
+      "id": "CART-EVAL-099",
+      "group": "state-memory",
+      "status": "passed",
+      "durationMs": 20
+    },
+    {
+      "id": "CART-EVAL-100",
+      "group": "state-memory",
+      "status": "passed",
+      "durationMs": 19
+    }
+  ]
+}

@@ -5,7 +5,11 @@ coverage/
 .env
 .env.*
 !.env.example
-logs/
+logs/*
+!logs/**/
+!logs/**/*.md
+logs/runtime/
+logs/setup/*.log
 runtime/
 data/
 .venv/

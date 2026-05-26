@@ -5,6 +5,7 @@ const { detectSalesIntent } = await import('../dist/services/agent-orchestrator.
 const { UserAnalysisAgentService } = await import('../dist/services/agents/user-analysis-agent.service.js');
 const { MemoryAgentService } = await import('../dist/services/agents/memory-agent.service.js');
 const { ProductManagerAgentService } = await import('../dist/services/agents/product-manager-agent.service.js');
+const { CartManagerAgentService } = await import('../dist/services/agents/cart-manager-agent.service.js');
 const { RecommendationAgentService } = await import('../dist/services/agents/recommendation-agent.service.js');
 const { AgentQualityGateService } = await import('../dist/services/agents/agent-quality-gate.service.js');
 
@@ -119,6 +120,50 @@ test('user analysis handles add all last recommendations without clarification',
   assert.equal(analysis.needsClarification, undefined);
 });
 
+test('user analysis keeps pet vacuum question as product recommendation', async () => {
+  const service = new UserAnalysisAgentService();
+  const analysis = await service.analyze({
+    message: 'Co robot hut bui nao hop nha co thu cung khong?',
+    memoryInvestigation: {
+      requiresHistory: false,
+      resolvedReference: 'none',
+      referenceProductIds: [],
+      lastSelectedProductIds: [],
+      lastCartActionProductIds: [],
+      confidence: 0.9,
+    },
+  });
+
+  assert.equal(analysis.intent, 'recommend');
+  assert.equal(analysis.cartOperation, undefined);
+  assert.equal(analysis.retrievalMode, 'fresh');
+  assert.equal(analysis.shouldShowProducts, true);
+});
+
+test('detectSalesIntent keeps current retail support and recommendation intent', () => {
+  assert.equal(detectSalesIntent('Minh thich hang tiet kiem dien, co mon nao dang nen mua khong?'), 'recommend');
+  assert.equal(detectSalesIntent('Mua online thi nhan hoa don hay xac nhan don nhu the nao?'), 'policy');
+  assert.equal(detectSalesIntent('Cho them lua chon khac cung nhom nhung gia mem hon'), 'recommend');
+});
+
+test('user analysis preserves explicit product ids even when LLM tries to hide product retrieval', async () => {
+  const modelGateway = {
+    async chat() {
+      return { content: JSON.stringify({ intent: 'smalltalk', retrievalMode: 'none', shouldShowProducts: false, references: {}, constraints: {}, confidence: 0.3 }) };
+    },
+  };
+  const service = new UserAnalysisAgentService(modelGateway);
+  const analysis = await service.analyze({
+    message: 'San pham prod_air_clean_p35 co hop phong ngu khong',
+    memoryInvestigation: { requiresHistory: false, referenceProductIds: [], lastSelectedProductIds: [], lastCartActionProductIds: [], confidence: 0.7 },
+  });
+
+  assert.equal(analysis.intent, 'product_detail');
+  assert.equal(analysis.retrievalMode, 'fresh');
+  assert.equal(analysis.shouldShowProducts, true);
+  assert.deepEqual(analysis.references.resolvedProductIds, ['prod_air_clean_p35']);
+});
+
 test('quality gate blocks contradictory cart status operation', async () => {
   const modelGateway = { async chat() { throw new Error('force fallback'); } };
   const history = { async getHistory() { return { agent: 'user-analysis-agent', entries: [], summary: '' }; }, async appendHistory() {} };
@@ -203,6 +248,75 @@ test('product manager resolves recent products from memory ids', async () => {
   assert.deepEqual(result.selectedProducts.map((item) => item.id), ['air-filter-1']);
 });
 
+test('product manager resolves explicit product ids before lexical search', async () => {
+  const catalog = { async searchProducts() { throw new Error('explicit product ids should not search catalog'); } };
+  const service = new ProductManagerAgentService(catalog);
+  const products = [productFixture('prod_air_clean_p35'), productFixture('prod_fresh_home_mini_20'), productFixture('prod_other')];
+  const result = await service.resolveProducts({
+    message: 'So sanh prod_air_clean_p35 voi prod_fresh_home_mini_20',
+    analysis: { intent: 'compare', retrievalMode: 'fresh', shouldShowProducts: true, references: {}, constraints: {}, confidence: 0.9 },
+    memoryInvestigation: { requiresHistory: false, referenceProductIds: [], lastSelectedProductIds: [], lastCartActionProductIds: [], confidence: 0.7 },
+    cart: emptyCart(),
+    allProducts: products,
+  });
+
+  assert.deepEqual(result.candidates.map((item) => item.id), ['prod_air_clean_p35', 'prod_fresh_home_mini_20']);
+  assert.deepEqual(result.selectedProducts.map((item) => item.id), ['prod_air_clean_p35', 'prod_fresh_home_mini_20']);
+  assert.equal(result.confidence, 0.96);
+});
+
+test('cart action with explicit product name searches catalog and executes cart tool', async () => {
+  const product = { id: 'mop-2', title: 'HomeSweep Mop Max 2', brand: 'HomeSweep', category: 'Vệ sinh nhà cửa', price: 2230000, currency: 'VND', inventory: 5, attributes: {}, description: 'cây lau nhà thông minh' };
+  const catalog = { async searchProducts(query) {
+    assert.equal(query, 'homesweep mop max 2');
+    return [product];
+  } };
+  const productService = new ProductManagerAgentService(catalog);
+  const analysisService = new UserAnalysisAgentService();
+  const analysis = await analysisService.analyze({
+    message: 'thêm HomeSweep Mop Max 2 vào giỏ hàng nha',
+    memoryInvestigation: { requiresHistory: false, referenceProductIds: [], lastSelectedProductIds: [], lastCartActionProductIds: [], confidence: 0.7 },
+  });
+
+  assert.equal(analysis.intent, 'cart_action');
+  assert.equal(analysis.cartOperation, 'add');
+  assert.equal(analysis.retrievalMode, 'fresh');
+  assert.equal(analysis.references.productName, 'homesweep mop max 2');
+
+  const productResult = await productService.resolveProducts({
+    message: 'thêm HomeSweep Mop Max 2 vào giỏ hàng nha',
+    analysis,
+    memoryInvestigation: { requiresHistory: false, referenceProductIds: [], lastSelectedProductIds: [], lastCartActionProductIds: [], confidence: 0.7 },
+    cart: emptyCart(),
+    allProducts: [product],
+  });
+  assert.deepEqual(productResult.selectedProducts.map((item) => item.id), ['mop-2']);
+
+  const commerce = {
+    async addItemToCurrentCart(userId, productId, quantity) {
+      assert.equal(userId, 'user-1');
+      assert.equal(productId, 'mop-2');
+      assert.equal(quantity, 1);
+      return { id: 'cart-1', version: 2, items: [{ productId, quantity, unitPrice: product.price, lineTotal: product.price }], subtotal: product.price, grandTotal: product.price, status: 'active' };
+    },
+  };
+  const memory = { async clearPendingCartPlan() {}, async savePendingCartPlan() {} };
+  const cartService = new CartManagerAgentService(commerce, memory);
+  const cartResult = await cartService.run({
+    message: 'thêm HomeSweep Mop Max 2 vào giỏ hàng nha',
+    userId: 'user-1',
+    cart: emptyCart(),
+    analysis,
+    products: productResult.candidates,
+    selectedProducts: productResult.selectedProducts,
+    memoryContext: { recentTurns: [], preferences: [], recentRecommendationIds: [] },
+  });
+
+  assert.equal(cartResult.toolResults[0]?.status, 'completed');
+  assert.deepEqual(cartResult.toolResults[0]?.productIds, ['mop-2']);
+  assert.equal(cartResult.cart.items.length, 1);
+});
+
 test('recommendation agent shows exactly compared products', async () => {
   const service = new RecommendationAgentService();
   const products = [productFixture('compare-1'), productFixture('compare-2'), productFixture('extra-1')];
@@ -219,6 +333,28 @@ test('recommendation agent shows exactly compared products', async () => {
   assert.equal(result.presentationIntent, 'compare');
   assert.deepEqual(result.products.map((item) => item.id), ['compare-1', 'compare-2']);
   assert.deepEqual(result.mustMentionProductIds, ['compare-1', 'compare-2']);
+});
+
+test('recommendation agent keeps valid fallback rail when LLM tries to hide selected products', async () => {
+  const modelGateway = {
+    async chat() {
+      return { content: JSON.stringify({ shouldShowProducts: false, productIds: [], presentationIntent: 'none', status: 'blocked', displayReason: 'wrong hide', complaints: ['wrong hide'] }) };
+    },
+  };
+  const service = new RecommendationAgentService(modelGateway);
+  const products = [productFixture('prod_air_clean_p35')];
+  const result = await service.planPresentation({
+    message: 'San pham prod_air_clean_p35 co hop phong ngu khong',
+    analysis: { intent: 'product_detail', retrievalMode: 'fresh', shouldShowProducts: true, references: {}, constraints: {}, confidence: 0.9 },
+    productManagerResult: productManagerResult(products, products, 0.96),
+    cartManagerResult: emptyCartManagerResult(),
+    knowledge: [],
+    cart: emptyCart(),
+  });
+
+  assert.equal(result.status, 'approved');
+  assert.equal(result.shouldShowProducts, true);
+  assert.deepEqual(result.products.map((item) => item.id), ['prod_air_clean_p35']);
 });
 
 test('recommendation agent hides products for policy context', async () => {

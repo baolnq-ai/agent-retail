@@ -40,6 +40,7 @@ test('agent chat stream emits status, token, and final events', async () => {
     assert.equal(events.some((event) => event.type === 'token' && event.content.length > 0), true);
     const finalEvent = events.find((event) => event.type === 'final');
     assert.equal(Boolean(finalEvent), true);
+    assert.notEqual(finalEvent.response.model, 'safe-fallback');
     const textBlock = finalEvent.response.blocks.find((block) => block.type === 'text');
     assert.equal(/prod_[a-z0-9_]+/i.test(textBlock.content), false);
     const productBlock = finalEvent.response.blocks.find((block) => block.type === 'product_list');

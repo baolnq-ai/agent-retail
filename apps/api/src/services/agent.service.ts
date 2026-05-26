@@ -11,8 +11,9 @@ import { KnowledgeService } from './knowledge.service.js';
 import { ModelGatewayService } from './model-gateway.service.js';
 import { AgentTraceService } from './agent-trace.service.js';
 import type { AgentPipelineEvent, AgentQualityGateResult, CartToolResult, MemoryAgentResult, ProductManagerResult, RecommendationAgentResult, UserAnalysis } from '../models/agent-execution.models.js';
+import type { PipelineV2Agent } from '../models/agent-pipeline-v2.models.js';
 import { AgentQualityGateService } from './agents/agent-quality-gate.service.js';
-import { CartManagerAgentService } from './agents/cart-manager-agent.service.js';
+import { CartSqlRagAgentService } from './agents/cart-sql-rag-agent.service.js';
 import { MemoryAgentService } from './agents/memory-agent.service.js';
 import { ProductManagerAgentService } from './agents/product-manager-agent.service.js';
 import { RecommendationAgentService } from './agents/recommendation-agent.service.js';
@@ -66,26 +67,19 @@ export class AgentService {
     private readonly recommendationAgentService: RecommendationAgentService,
     private readonly salesEvaluatorAgentService: SalesEvaluatorAgentService,
     private readonly userAnalysisAgentService: UserAnalysisAgentService,
-    private readonly cartManagerAgentService: CartManagerAgentService,
+    private readonly cartSqlRagAgentService: CartSqlRagAgentService,
   ) {}
 
   async chat(request: AgentChatRequest): Promise<AgentChatResponse> {
     const prepared = await this.prepareChat(request);
-    let content: string;
-    let model = 'safe-fallback';
-    try {
-      const modelResponse = await this.modelGatewayService.chat({
-        messages: prepared.messages,
-        maxTokens: 260,
-        temperature: 0.1,
-      });
-      model = modelResponse.model;
-      content = await this.reviseSalesContent(prepared, cleanAssistantText(modelResponse.content, mergeProducts(prepared.products, prepared.recommendationResult.products)));
-    } catch (error) {
-      content = buildModelUnavailableResponse(prepared);
-    }
+    const modelResponse = await this.modelGatewayService.chat({
+      messages: prepared.messages,
+      maxTokens: 220,
+      temperature: 0.1,
+    });
+    const content = await this.reviseSalesContent(prepared, cleanAssistantText(modelResponse.content, mergeProducts(prepared.products, prepared.recommendationResult.products)));
 
-    const response = this.buildResponse(prepared, content, model);
+    const response = this.buildResponse(prepared, content, modelResponse.model);
     await this.chatMemoryService.saveTurn({
       userId: prepared.userId,
       cartId: prepared.cartId,
@@ -98,29 +92,64 @@ export class AgentService {
 
   async *chatStream(request: AgentChatRequest): AsyncGenerator<AgentStreamEvent> {
     yield { type: 'status', message: 'Đang phân tích nhu cầu' };
-    const prepared = await this.prepareChat(request, (message) => ({ type: 'status', message }));
+    const pendingStatuses: AgentStreamEvent[] = [];
+    let wakeStatusLoop: (() => void) | undefined;
+    let prepared: PreparedChat | undefined;
+    let prepareError: unknown;
+    let isPrepareDone = false;
+
+    const preparePromise = this.prepareChat(request, (message) => {
+      pendingStatuses.push({ type: 'status', message });
+      wakeStatusLoop?.();
+      wakeStatusLoop = undefined;
+    }).then((value) => {
+      prepared = value;
+      isPrepareDone = true;
+      wakeStatusLoop?.();
+      wakeStatusLoop = undefined;
+    }).catch((error) => {
+      prepareError = error;
+      isPrepareDone = true;
+      wakeStatusLoop?.();
+      wakeStatusLoop = undefined;
+    });
+
+    while (!isPrepareDone || pendingStatuses.length) {
+      while (pendingStatuses.length) {
+        const event = pendingStatuses.shift();
+        if (event) yield event;
+      }
+      if (isPrepareDone) break;
+      await new Promise<void>((resolve) => {
+        wakeStatusLoop = resolve;
+      });
+    }
+    await preparePromise;
+    if (prepareError) throw prepareError;
+    if (!prepared) throw new Error('Chat preparation failed');
     let content = '';
     let model = '';
 
-    yield { type: 'status', message: 'Đang gọi LLM và kiểm duyệt câu trả lời' };
-    try {
-      for await (const chunk of this.modelGatewayService.streamChat({
-        messages: prepared.messages,
-        maxTokens: 260,
-        temperature: 0.1,
-      })) {
-        content += chunk.content;
-        model = chunk.model ?? model;
-      }
-    } catch (error) {
-      content = buildModelUnavailableResponse(prepared);
-      model = 'safe-fallback';
+    yield { type: 'status', message: statusForDraft(prepared.userAnalysis) };
+    for await (const chunk of this.modelGatewayService.streamChat({
+      messages: prepared.messages,
+      maxTokens: 220,
+      temperature: 0.1,
+    })) {
+      content += chunk.content;
+      model = chunk.model ?? model;
     }
 
     const cleanedContent = cleanAssistantText(content, mergeProducts(prepared.products, prepared.recommendationResult.products));
-    const finalContent = model === 'safe-fallback' ? cleanedContent : await this.reviseSalesContent(prepared, cleanedContent);
-    yield { type: 'token', content: finalContent };
+    const revisedContent = await this.reviseSalesContent(prepared, cleanedContent);
+    const finalContent = alignContentWithProductRail(revisedContent, prepared.recommendationResult.products);
     const response = this.buildResponse(prepared, finalContent, model || 'streaming-model');
+    const responseTextBlock = response.blocks.find((block) => block.type === 'text');
+    const displayContent = responseTextBlock?.type === 'text' ? responseTextBlock.content : finalContent;
+    yield { type: 'status', message: 'Đang gửi câu trả lời' };
+    for await (const contentChunk of streamTextChunks(displayContent)) {
+      yield { type: 'token', content: contentChunk };
+    }
     await this.chatMemoryService.saveTurn({
       userId: prepared.userId,
       cartId: prepared.cartId,
@@ -133,7 +162,7 @@ export class AgentService {
 
   private async prepareChat(
     request: AgentChatRequest,
-    createStatus?: (message: string) => AgentStreamEvent,
+    createStatus?: (message: string) => void,
   ): Promise<PreparedChat> {
     const message = request.message.trim();
     const userId = request.user?.id;
@@ -180,10 +209,10 @@ export class AgentService {
     });
     gateEvents.push(buildQualityGateEvent('user-analysis-agent', analysisGate));
     if (!analysisGate.pass && analysisGate.severity === 'block') gateErrors.push({ source: 'user-analysis-agent-quality-gate', message: analysisGate.complaints.join('; ') });
-    createStatus?.('Đang tìm sản phẩm và chính sách phù hợp');
+    createStatus?.(statusForResolution(userAnalysis));
     const [productManagerResult, knowledge] = await Promise.all([
       this.productManagerAgentService.resolveProducts({ message, analysis: userAnalysis, memoryInvestigation, cart: initialCart, allProducts }),
-      this.knowledgeService.searchKnowledge(message),
+      shouldSearchKnowledge(userAnalysis, message) ? this.knowledgeService.searchKnowledge(message) : Promise.resolve([]),
     ]);
     const productGate = await this.evaluateAgentOutput({
       userId,
@@ -207,7 +236,7 @@ export class AgentService {
     const intent = userAnalysis.intent === 'confirm_pending' || userAnalysis.intent === 'cancel_pending' ? 'cart_action' : userAnalysis.intent;
     const products = productManagerResult.candidates;
     const selectedProducts = productManagerResult.selectedProducts;
-    const cartManagerResult = await this.cartManagerAgentService.run({
+    const cartManagerResult = await this.cartSqlRagAgentService.runGoal({
       message,
       userId,
       cart: initialCart,
@@ -276,33 +305,37 @@ export class AgentService {
     const contextDocuments = buildContextDocuments(selectedProducts, knowledge);
     const traceErrors: AgentTrace['errors'] = [];
 
-    createStatus?.('Đang gọi embedding thật');
+    if (contextDocuments.length) createStatus?.(statusForGrounding(userAnalysis));
     let embeddings: number[][] = [];
-    try {
-      embeddings = await this.modelGatewayService.embed([message, ...contextDocuments]);
-    } catch (error) {
-      traceErrors.push({ source: 'embedding', message: error instanceof Error ? error.message : 'embedding failed' });
+    if (contextDocuments.length) {
+      try {
+        embeddings = await this.modelGatewayService.embed([message, ...contextDocuments]);
+      } catch (error) {
+        traceErrors.push({ source: 'embedding', message: error instanceof Error ? error.message : 'embedding failed' });
+      }
     }
 
-    createStatus?.('Đang rerank bằng model rerank thật');
+    if (contextDocuments.length) createStatus?.('Đang xếp hạng nguồn phù hợp');
     let reranked: Array<{ document: string; score: number }> = [];
     let fallbackRanking: 'lexical' | undefined;
-    try {
-      reranked = (await this.modelGatewayService.rerank(message, contextDocuments))
-        .filter((item) => item.index >= 0 && item.index < contextDocuments.length);
-      if (reranked.length === 0 && contextDocuments.length > 0) {
+    if (contextDocuments.length) {
+      try {
+        reranked = (await this.modelGatewayService.rerank(message, contextDocuments))
+          .filter((item) => item.index >= 0 && item.index < contextDocuments.length);
+        if (reranked.length === 0) {
+          fallbackRanking = 'lexical';
+          traceErrors.push({ source: 'rerank', message: 'rerank returned no valid documents' });
+        }
+      } catch (error) {
         fallbackRanking = 'lexical';
-        traceErrors.push({ source: 'rerank', message: 'rerank returned no valid documents' });
+        traceErrors.push({ source: 'rerank', message: error instanceof Error ? error.message : 'rerank failed' });
       }
-    } catch (error) {
-      fallbackRanking = 'lexical';
-      traceErrors.push({ source: 'rerank', message: error instanceof Error ? error.message : 'rerank failed' });
     }
     traceErrors.push(...gateErrors, ...cartManagerResult.errors);
     const rankedDocuments = reranked.length ? reranked.map((item) => item.document) : contextDocuments;
     const selectedContext = rankedDocuments.slice(0, 5).join('\n---\n');
     const messageId = randomUUID();
-    const traceAgents = buildRuntimeAgents(orchestrationPlan.agents, recommendationResult, actionTraceItems);
+    const traceAgents = buildRuntimeAgents(orchestrationPlan.agents, recommendationResult, actionTraceItems, intent, contextDocuments.length, gateEvents, orchestrationPlan.pipelineAgents);
     const trace = buildTrace({
       messageId,
       intent,
@@ -439,14 +472,15 @@ export class AgentService {
   private buildResponse(prepared: PreparedChat, content: string, model: string): AgentChatResponse {
     const completedCartAction = hasCompletedCartAction(prepared.toolResults);
     const blockedCartAction = Boolean(prepared.userAnalysis.cartOperation && prepared.actionResult && !completedCartAction);
-    const recommendedProducts = prepared.recommendationResult.shouldShowProducts && !blockedCartAction ? prepared.recommendationResult.products : [];
-    const rawFinalContent = blockedCartAction ? prepared.actionResult ?? content : prepared.actionResult && completedCartAction ? `${prepared.actionResult}\n${content}` : content;
-    const finalContent = sanitizeRecommendationLeakage(rawFinalContent, recommendedProducts);
+    const recommendedProducts = resolveDisplayProducts(prepared, blockedCartAction);
+    const safeActionResult = prepared.actionResult ? sanitizeCartActionResult(prepared.actionResult, mergeProducts(mergeProducts(prepared.products, prepared.selectedProducts), recommendedProducts)) : undefined;
+    const rawFinalContent = blockedCartAction ? safeActionResult ?? content : safeActionResult && completedCartAction ? `${safeActionResult}\n${content}` : content;
+    const finalContent = sanitizeRecommendationLeakage(alignContentWithProductRail(rawFinalContent, recommendedProducts), recommendedProducts);
     const trace: AgentTrace = { ...prepared.trace, llm: { ...prepared.trace.llm, model } };
     const blocks: AgentMessageBlock[] = [
       { type: 'text', version: 1, content: finalContent },
       { type: 'product_list', version: 1, items: recommendedProducts },
-      { type: 'policy_answer', version: 1, items: shouldShowPolicy(prepared.requestMessage) ? prepared.knowledge.slice(0, 2) : [] },
+      { type: 'policy_answer', version: 1, items: prepared.userAnalysis.intent === 'policy' || shouldShowPolicy(prepared.requestMessage) ? prepared.knowledge.slice(0, 2) : [] },
       { type: 'cart_summary', version: 1, cart: prepared.cart },
       { type: 'quick_replies', version: 1, items: buildQuickReplies(normalizeQuickReplyIntent(prepared.userAnalysis.intent), recommendedProducts, prepared.knowledge, prepared.actionResult !== undefined) },
     ];
@@ -473,12 +507,72 @@ function hasCompletedCartAction(toolResults: CartToolResult[]): boolean {
   return toolResults.some((toolResult) => toolResult.status === 'completed' && toolResult.productIds.length > 0);
 }
 
+function resolveDisplayProducts(prepared: PreparedChat, blockedCartAction: boolean): Product[] {
+  if (blockedCartAction) return [];
+  if (prepared.recommendationResult.shouldShowProducts && prepared.recommendationResult.products.length > 0) {
+    return prepared.recommendationResult.products;
+  }
+  if (!['recommend', 'compare', 'product_detail'].includes(prepared.userAnalysis.intent)) return [];
+  if (prepared.selectedProducts.length === 0) return [];
+  const limit = prepared.userAnalysis.intent === 'compare' ? 2 : prepared.userAnalysis.intent === 'product_detail' ? 1 : 3;
+  return prepared.selectedProducts.slice(0, limit);
+}
+
+function sanitizeCartActionResult(actionResult: string, products: Product[]): string {
+  let text = cleanAssistantText(actionResult, products);
+  if (/^Cart mutation rejected:\s*product_not_found\.?/i.test(text)) return 'MÃ¬nh chÆ°a tÃ¬m tháº¥y sáº£n pháº©m Ä‘Ã³ Ä‘á»ƒ thao tÃ¡c trong giá» hÃ ng.';
+  text = text
+    .replace(/^Added product .+ to cart\./i, 'Mình đã thêm sản phẩm vào giỏ hàng.')
+    .replace(/^Removed product .+ from cart\./i, 'Mình đã xoá sản phẩm khỏi giỏ hàng.')
+    .replace(/^Decreased product .+ quantity to \d+\./i, 'Mình đã cập nhật số lượng sản phẩm trong giỏ hàng.')
+    .replace(/^Increased product .+ quantity to \d+\./i, 'Mình đã cập nhật số lượng sản phẩm trong giỏ hàng.')
+    .replace(/^Set product .+ quantity to \d+\./i, 'Mình đã cập nhật số lượng sản phẩm trong giỏ hàng.');
+  return text.replace(/prod_[a-z0-9_]+/gi, 'sản phẩm này').trim();
+}
+
 function sanitizeRecommendationLeakage(content: string, recommendedProducts: Product[]): string {
-  const leakageIndex = content.search(/Recommendation-agent handoff|status=|shouldShowProducts=|presentationIntent=|displayReason=|mustMentionProductIds=/i);
+  const leakageIndex = content.search(/Recommendation-agent|Chỉ dẫn nội bộ|status=|shouldShowProducts=|presentationIntent=|displayReason=|mustMentionProductIds=/i);
   const visibleText = leakageIndex >= 0 ? content.slice(0, leakageIndex).trim() : content.trim();
   if (visibleText) return visibleText;
   if (recommendedProducts.length > 0) return `Mình đã chọn ${recommendedProducts.length} sản phẩm phù hợp và gửi đúng các sản phẩm đó ở khung gợi ý bên dưới.`;
   return 'Mình chưa có sản phẩm phù hợp để hiển thị trong khung gợi ý. Bạn có thể nói rõ thêm nhu cầu hoặc nới điều kiện tìm kiếm nhé.';
+}
+
+function alignContentWithProductRail(content: string, recommendedProducts: Product[]): string {
+  if (recommendedProducts.length === 0) return content;
+  const normalizedContent = normalize(content);
+  const contradictsVisibleRail = /chưa thể trả lời chắc chắn|chưa đủ dữ liệu|chưa đủ chắc chắn|chưa có sản phẩm|chưa có gợi ý|chưa có .*phù hợp|không có sản phẩm|không .*phù hợp|chưa tìm thấy|chọn lại sản phẩm trong khung gợi ý/.test(normalizedContent);
+  if (!contradictsVisibleRail) return content;
+
+  const productNames = recommendedProducts.slice(0, 4).map((product) => product.title);
+  if (recommendedProducts.length === 1) {
+    return `Mình đang giữ lại ${productNames[0]} trong khung gợi ý vì sản phẩm này khớp nhất với dữ liệu hiện có. Bạn có thể xem thông tin trên thẻ hoặc nói thêm tiêu chí để mình lọc lại chính xác hơn.`;
+  }
+
+  return `Mình đang hiển thị ${recommendedProducts.length} lựa chọn phù hợp trong khung gợi ý: ${joinVietnameseList(productNames)}. Bạn có thể bấm qua từng thẻ để xem nhanh, hoặc nói thêm ngân sách/kích thước/phòng dùng để mình lọc tiếp.`;
+}
+
+async function* streamTextChunks(content: string): AsyncGenerator<string> {
+  const words = content.match(/\S+\s*/g) ?? [content];
+  let buffer = '';
+  for (const word of words) {
+    buffer += word;
+    if (buffer.length < 18 && !/[.!?]\s$/.test(buffer)) continue;
+    yield buffer;
+    buffer = '';
+    await delay(18);
+  }
+  if (buffer) yield buffer;
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function joinVietnameseList(values: string[]): string {
+  if (values.length <= 1) return values[0] ?? '';
+  if (values.length === 2) return `${values[0]} và ${values[1]}`;
+  return `${values.slice(0, -1).join(', ')} và ${values[values.length - 1]}`;
 }
 
 function detectChatIntent(message: string): ChatIntent {
@@ -535,15 +629,7 @@ function buildSafeFinalResponse(prepared: PreparedChat, complaints: string[]): s
   if (isClearlyOutOfScope(prepared.requestMessage)) return 'Mình chỉ hỗ trợ tư vấn sản phẩm, chính sách, tài khoản và giỏ hàng của RetailHome. Bạn cần mình hỗ trợ phần nào trong cửa hàng?';
   if (prepared.actionResult) return prepared.actionResult;
   if (prepared.recommendationResult.products.length > 0) return `Mình đã tìm được ${prepared.recommendationResult.products.length} sản phẩm phù hợp trong khung gợi ý, nhưng cần bạn xác nhận thêm nhu cầu để mình tư vấn chính xác hơn.`;
-  return complaints.length ? `Mình chưa đủ chắc chắn để trả lời chính xác: ${complaints[0]} Bạn nói rõ thêm nhu cầu giúp mình nhé.` : 'Mình chưa đủ dữ liệu để trả lời chắc chắn. Bạn nói rõ hơn nhu cầu sản phẩm, chính sách hoặc giỏ hàng giúp mình nhé.';
-}
-
-function buildModelUnavailableResponse(prepared: PreparedChat): string {
-  if (prepared.actionResult) return prepared.actionResult;
-  if (prepared.recommendationResult.products.length > 0) {
-    return `Mình đã tìm được ${prepared.recommendationResult.products.length} sản phẩm phù hợp trong khung gợi ý. Hiện kết nối mô hình trả lời đang chưa sẵn sàng, bạn có thể xem sản phẩm trong khung hoặc thử lại sau khi cấu hình model.`;
-  }
-  return 'Hiện kết nối mô hình trả lời đang chưa sẵn sàng nên mình chưa thể tạo câu trả lời chi tiết. Bạn kiểm tra cấu hình model trong phần cài đặt hoặc thử lại sau nhé.';
+  return 'Mình chưa đủ dữ liệu để trả lời chắc chắn. Bạn nói rõ hơn nhu cầu sản phẩm, chính sách hoặc giỏ hàng giúp mình nhé.';
 }
 
 function buildSalesRevisionPrompt(prepared: PreparedChat, draft: string, complaints: string[], revisedInstruction: string | undefined): string {
@@ -659,7 +745,8 @@ function buildTrace(params: {
     summary: summarizeAgent(agent, params.intent),
   }));
   const nodes = buildTraceNodes(params);
-  const graphEdges = buildTraceGraphEdges(nodes, params.actionTraceItems.length > 0);
+  const graphEdges = buildTraceGraphEdges(nodes, params.agents.includes('cart-manager-agent') || params.actionTraceItems.length > 0);
+  const playbackEvents = buildTracePlaybackEvents(graphEdges);
   return {
     traceId: randomUUID(),
     messageId: params.messageId,
@@ -669,6 +756,7 @@ function buildTrace(params: {
     edges: buildAgentEdges(params.agents),
     nodes,
     graphEdges,
+    playbackEvents,
     steps,
     events: buildTraceEvents(params.agents, params.intent, params.actionTraceItems, params.traceErrors),
     memory: {
@@ -704,17 +792,48 @@ function buildTrace(params: {
   };
 }
 
-function buildRuntimeAgents(agents: AgentTraceAgent[], recommendationResult: RecommendationAgentResult, actionTraceItems: AgentTrace['cart']['actions']): AgentTraceAgent[] {
-  const next = new Set(agents);
-  next.add('recommendation-agent');
-  if (recommendationResult.products.length > 0 && !next.has('retrieval-agent')) next.add('retrieval-agent');
-  if (actionTraceItems.length > 0) next.add('cart-manager-agent');
+function buildRuntimeAgents(
+  agents: AgentTraceAgent[],
+  recommendationResult: RecommendationAgentResult,
+  actionTraceItems: AgentTrace['cart']['actions'],
+  intent: SalesAgentIntent,
+  contextDocumentCount: number,
+  gateEvents: AgentPipelineEvent[],
+  pipelineAgents: PipelineV2Agent[] = [],
+): AgentTraceAgent[] {
+  const next = new Set<AgentTraceAgent>(pipelineAgents);
+  next.add('lead-agent');
+  next.add('storage-memory-agent');
+  if (agents.includes('memory-agent')) next.add('history-agent');
+  if (agents.includes('product-manager-agent') || recommendationResult.products.length > 0 || ['recommend', 'compare', 'product_detail'].includes(intent)) next.add('search-agent');
+  if (recommendationResult.products.length > 0 || ['recommend', 'compare', 'product_detail'].includes(intent)) next.add('recommendation-agent');
+  if (contextDocumentCount > 0 || intent === 'policy') next.add('rag-agent');
+  if (actionTraceItems.length > 0 || intent === 'cart_action' || intent === 'cart_status') next.add('cart-agent');
+  if (intent === 'policy') next.add('customer-support-agent');
+  if (gateEvents.length > 0) next.add('security-agent');
   next.add('sales-agent');
   return buildAgentOrder([...next]);
 }
 
 function buildAgentOrder(agents: AgentTraceAgent[]): AgentTraceAgent[] {
-  const order: AgentTraceAgent[] = ['memory-agent', 'user-analysis-agent', 'product-manager-agent', 'recommendation-agent', 'retrieval-agent', 'cart-manager-agent', 'sales-agent'];
+  const order: AgentTraceAgent[] = [
+    'lead-agent',
+    'storage-memory-agent',
+    'history-agent',
+    'search-agent',
+    'recommendation-agent',
+    'rag-agent',
+    'cart-agent',
+    'security-agent',
+    'customer-support-agent',
+    'sales-agent',
+    'memory-agent',
+    'user-analysis-agent',
+    'product-manager-agent',
+    'retrieval-agent',
+    'cart-manager-agent',
+    'sales-evaluator-agent',
+  ];
   return order.filter((agent) => agents.includes(agent));
 }
 
@@ -748,7 +867,12 @@ function buildTraceNodes(params: {
   }));
   return [
     { id: 'user-message', label: 'User message', kind: 'text', status: 'completed', detail: 'input', order: -1 },
+    { id: 'pipeline-executor', label: 'Pipeline executor', kind: 'service', status: 'completed', detail: 'ExecutionPlan', order: 0, shortCode: 'FLOW' },
+    { id: 'session-context', label: 'Session context', kind: 'text', status: 'completed', detail: `${params.memoryContext.recentTurns.length} turns, ${params.memoryContext.preferences.length} prefs, ${params.contextDocumentCount} docs`, order: 1, shortCode: 'CTX' },
+    { id: 'task-context', label: 'Task workspace', kind: 'text', status: 'completed', detail: 'shared task refs and agent results', order: 2, shortCode: 'TASK' },
     ...agentNodes,
+    { id: 'postgres-db', label: 'Postgres DB', kind: 'db', status: 'completed', detail: 'app data', order: 10, shortCode: 'PG' },
+    { id: 'qdrant-db', label: 'Qdrant DB', kind: 'vector_db', status: params.contextDocumentCount ? 'completed' : 'skipped', detail: `${params.contextDocumentCount} context docs`, order: 11, shortCode: 'VDB' },
     { id: 'memory-db', label: 'DB chat history', kind: 'db', status: 'completed', detail: `${params.memoryContext.recentTurns.length} recent turns`, order: 20 },
     { id: 'memory-preferences', label: 'DB preferences', kind: 'db', status: 'completed', detail: `${params.memoryContext.preferences.length} keys`, order: 21 },
     { id: 'memory-wiki', label: 'Wiki memory graph', kind: 'text', status: params.memoryInvestigation.visitedNodes.length ? 'completed' : 'skipped', detail: `${params.memoryInvestigation.visitedNodes.length} nodes`, order: 22 },
@@ -764,7 +888,10 @@ function buildTraceNodes(params: {
     { id: 'rerank-tool', label: 'Rerank tool', kind: 'tool', status: params.contextDocumentCount ? 'completed' : 'skipped', detail: 'real rerank', order: 43 },
     { id: 'cart-state', label: 'Cart DB state', kind: 'db', status: 'completed', detail: `${params.cartBefore.items.length} → ${params.cartAfter.items.length} lines`, order: 50 },
     ...actionNodes,
-    { id: 'llm-call', label: 'LLM call', kind: 'tool', status: 'completed', detail: 'sales response', order: 80 },
+    { id: 'security-result', label: 'Security result', kind: 'text', status: params.agents.includes('security-agent') ? 'completed' : 'skipped', detail: 'guardrail', order: 70, shortCode: 'SEC' },
+    { id: 'support-case', label: 'Support case', kind: 'service', status: params.agents.includes('customer-support-agent') ? 'completed' : 'skipped', detail: 'support handoff', order: 71, shortCode: 'SUP' },
+    { id: 'llm-service', label: 'LLM service', kind: 'llm', status: 'completed', detail: 'model gateway', order: 79, shortCode: 'LLM' },
+    { id: 'llm-call', label: 'LLM call', kind: 'llm', status: 'completed', detail: 'sales response', order: 80, shortCode: 'LLM' },
     { id: 'assistant-response', label: 'Assistant response', kind: 'text', status: 'completed', detail: 'frontend blocks', order: 90 },
   ];
 }
@@ -772,15 +899,70 @@ function buildTraceNodes(params: {
 function buildTraceGraphEdges(nodes: AgentTraceNode[], hasCartAction: boolean): AgentTraceGraphEdge[] {
   const nodeIds = new Set(nodes.map((node) => node.id));
   const edges: AgentTraceGraphEdge[] = [
-    { from: 'user-message', to: 'memory-agent', status: 'completed', order: 1, label: 'gọi điều tra', direction: 'call' },
+    { from: 'user-message', to: 'pipeline-executor', status: 'completed', order: -48, label: 'receive', direction: 'call' },
+    { from: 'pipeline-executor', to: 'session-context', status: 'completed', order: -47.6, label: 'load session', direction: 'data' },
+    { from: 'session-context', to: 'task-context', status: 'completed', order: -47, label: 'seed task', direction: 'write' },
+    { from: 'task-context', to: 'lead-agent', status: 'completed', order: -46, label: 'session context', direction: 'data' },
+    { from: 'lead-agent', to: 'storage-memory-agent', status: 'completed', order: -28, label: 'context check', direction: 'call' },
+    { from: 'task-context', to: 'storage-memory-agent', status: 'completed', order: -27.8, label: 'read task context', direction: 'data' },
+    { from: 'storage-memory-agent', to: 'postgres-db', status: 'completed', order: -27, label: 'read memory', direction: 'call' },
+    { from: 'postgres-db', to: 'storage-memory-agent', status: 'completed', order: -26, label: 'memory rows', direction: 'return' },
+    { from: 'storage-memory-agent', to: 'history-agent', status: 'completed', order: -25, label: 'resolve history', direction: 'data' },
+    { from: 'storage-memory-agent', to: 'task-context', status: 'completed', order: -24.8, label: 'memory brief', direction: 'write' },
+    { from: 'task-context', to: 'lead-agent', status: 'completed', order: -24.6, label: 'memory return', direction: 'return' },
+    { from: 'lead-agent', to: 'user-analysis-agent', status: 'completed', order: -24.4, label: 'analyze intent', direction: 'call' },
+    { from: 'task-context', to: 'user-analysis-agent', status: 'completed', order: -24.3, label: 'read task context', direction: 'data' },
+    { from: 'lead-agent', to: 'search-agent', status: 'completed', order: -24, label: 'product search', direction: 'call' },
+    { from: 'task-context', to: 'search-agent', status: 'completed', order: -23.8, label: 'read task context', direction: 'data' },
+    { from: 'search-agent', to: 'postgres-db', status: 'completed', order: -23, label: 'exact search', direction: 'call' },
+    { from: 'postgres-db', to: 'search-agent', status: 'completed', order: -22.8, label: 'candidate rows', direction: 'return' },
+    { from: 'search-agent', to: 'task-context', status: 'completed', order: -22.6, label: 'search result', direction: 'write' },
+    { from: 'task-context', to: 'lead-agent', status: 'completed', order: -22.4, label: 'search return', direction: 'return' },
+    { from: 'lead-agent', to: 'recommendation-agent', status: 'completed', order: -22, label: 'recommend from search result', direction: 'call' },
+    { from: 'task-context', to: 'recommendation-agent', status: 'completed', order: -21.8, label: 'read task context', direction: 'data' },
+    { from: 'lead-agent', to: 'rag-agent', status: 'completed', order: -21, label: 'grounding need', direction: 'call' },
+    { from: 'task-context', to: 'rag-agent', status: 'completed', order: -20.8, label: 'read task context', direction: 'data' },
+    { from: 'recommendation-agent', to: 'task-context', status: 'completed', order: -20.7, label: 'display contract', direction: 'write' },
+    { from: 'task-context', to: 'lead-agent', status: 'completed', order: -20.6, label: 'recommendation return', direction: 'return' },
+    { from: 'rag-agent', to: 'qdrant-db', status: 'completed', order: -20, label: 'embedding search', direction: 'call' },
+    { from: 'qdrant-db', to: 'rag-agent', status: 'completed', order: -19, label: 'ranked paths', direction: 'return' },
+    { from: 'rag-agent', to: 'task-context', status: 'completed', order: -18.8, label: 'grounded context', direction: 'write' },
+    { from: 'task-context', to: 'lead-agent', status: 'completed', order: -18.6, label: 'rag return', direction: 'return' },
+    { from: 'lead-agent', to: 'cart-agent', status: 'completed', order: -18, label: 'cart task', direction: 'call' },
+    { from: 'task-context', to: 'cart-agent', status: 'completed', order: -17.8, label: 'read task context', direction: 'data' },
+    { from: 'cart-agent', to: 'postgres-db', status: 'completed', order: -17, label: 'cart sql rag', direction: 'write' },
+    { from: 'postgres-db', to: 'cart-agent', status: 'completed', order: -16.8, label: 'cart rows', direction: 'return' },
+    { from: 'cart-agent', to: 'task-context', status: 'completed', order: -16.6, label: 'cart result', direction: 'write' },
+    { from: 'task-context', to: 'lead-agent', status: 'completed', order: -16.4, label: 'cart return', direction: 'return' },
+    { from: 'lead-agent', to: 'security-agent', status: 'completed', order: -16, label: 'guardrail', direction: 'guard' },
+    { from: 'task-context', to: 'security-agent', status: 'completed', order: -15.8, label: 'read task context', direction: 'data' },
+    { from: 'security-agent', to: 'security-result', status: 'completed', order: -15, label: 'risk decision', direction: 'return' },
+    { from: 'security-result', to: 'task-context', status: 'completed', order: -14.8, label: 'guard result', direction: 'write' },
+    { from: 'task-context', to: 'lead-agent', status: 'completed', order: -14.6, label: 'security return', direction: 'return' },
+    { from: 'lead-agent', to: 'customer-support-agent', status: 'completed', order: -14, label: 'support route', direction: 'call' },
+    { from: 'task-context', to: 'customer-support-agent', status: 'completed', order: -13.8, label: 'read task context', direction: 'data' },
+    { from: 'customer-support-agent', to: 'support-case', status: 'completed', order: -13, label: 'case state', direction: 'write' },
+    { from: 'support-case', to: 'task-context', status: 'completed', order: -12.8, label: 'support result', direction: 'write' },
+    { from: 'task-context', to: 'lead-agent', status: 'completed', order: -12.6, label: 'support return', direction: 'return' },
+    { from: 'lead-agent', to: 'sales-agent', status: 'completed', order: -12, label: 'answer brief', direction: 'data' },
+    { from: 'task-context', to: 'sales-agent', status: 'completed', order: -11.8, label: 'prompt context', direction: 'data' },
+    { from: 'sales-agent', to: 'llm-service', status: 'completed', order: -11, label: 'compose', direction: 'call' },
+    { from: 'llm-service', to: 'sales-agent', status: 'completed', order: -10, label: 'draft', direction: 'return' },
+    { from: 'sales-agent', to: 'task-context', status: 'completed', order: -9.8, label: 'final draft', direction: 'write' },
+    { from: 'task-context', to: 'session-context', status: 'completed', order: -9.7, label: 'persist context', direction: 'write' },
+    { from: 'task-context', to: 'lead-agent', status: 'completed', order: -9.6, label: 'final answer ready', direction: 'return' },
+    { from: 'lead-agent', to: 'assistant-response', status: 'completed', order: -9, label: 'final blocks', direction: 'return' },
+    { from: 'lead-agent', to: 'memory-agent', status: 'completed', order: 1, label: 'gọi điều tra', direction: 'call' },
     { from: 'memory-agent', to: 'memory-db', status: 'completed', order: 2, label: 'đọc history', direction: 'call' },
     { from: 'memory-db', to: 'memory-agent', status: 'completed', order: 3, label: 'trả turns', direction: 'return' },
     { from: 'memory-agent', to: 'memory-preferences', status: 'completed', order: 4, label: 'đọc cache', direction: 'call' },
     { from: 'memory-preferences', to: 'memory-wiki', status: 'completed', order: 5, label: 'seed nodes', direction: 'data' },
     { from: 'memory-wiki', to: 'memory-result', status: 'completed', order: 6, label: 'resolve refs', direction: 'return' },
     { from: 'memory-result', to: 'user-analysis-agent', status: 'completed', order: 7, label: 'context', direction: 'data' },
-    { from: 'user-message', to: 'user-analysis-agent', status: 'completed', order: 8, label: 'phân tích', direction: 'call' },
+    { from: 'lead-agent', to: 'user-analysis-agent', status: 'completed', order: 8, label: 'analyze', direction: 'call' },
     { from: 'user-analysis-agent', to: 'analysis-result', status: 'completed', order: 9, label: 'intent', direction: 'return' },
+    { from: 'analysis-result', to: 'task-context', status: 'completed', order: 9.2, label: 'write analysis', direction: 'write' },
+    { from: 'task-context', to: 'lead-agent', status: 'completed', order: 9.4, label: 'analysis return', direction: 'return' },
     { from: 'analysis-result', to: 'product-manager-agent', status: 'completed', order: 10, label: 'yêu cầu sản phẩm', direction: 'call' },
     { from: 'memory-result', to: 'product-manager-agent', status: 'completed', order: 11, label: 'product refs', direction: 'data' },
     { from: 'product-manager-agent', to: 'product-db', status: 'completed', order: 12, label: 'search/resolve', direction: 'call' },
@@ -798,7 +980,10 @@ function buildTraceGraphEdges(nodes: AgentTraceNode[], hasCartAction: boolean): 
     { from: 'rag-context', to: 'sales-agent', status: 'completed', order: 22, label: 'prompt sections', direction: 'data' },
     { from: 'sales-agent', to: 'llm-call', status: 'completed', order: 23, label: 'gọi model', direction: 'call' },
     { from: 'llm-call', to: 'sales-agent', status: 'completed', order: 24, label: 'tokens', direction: 'return' },
-    { from: 'sales-agent', to: 'assistant-response', status: 'completed', order: 25, label: 'blocks', direction: 'return' },
+    { from: 'sales-agent', to: 'task-context', status: 'completed', order: 24.5, label: 'draft blocks', direction: 'write' },
+    { from: 'task-context', to: 'session-context', status: 'completed', order: 24.7, label: 'persist context', direction: 'write' },
+    { from: 'task-context', to: 'lead-agent', status: 'completed', order: 24.8, label: 'final answer ready', direction: 'return' },
+    { from: 'lead-agent', to: 'assistant-response', status: 'completed', order: 25, label: 'blocks', direction: 'return' },
   ];
   if (hasCartAction) {
     edges.push(
@@ -807,13 +992,42 @@ function buildTraceGraphEdges(nodes: AgentTraceNode[], hasCartAction: boolean): 
       { from: 'cart-state', to: 'cart-manager-agent', status: 'completed', order: 32, label: 'cart hiện tại', direction: 'return' },
       { from: 'cart-manager-agent', to: 'cart-tool-1', status: 'completed', order: 33, label: 'execute', direction: 'call' },
       { from: 'cart-tool-1', to: 'cart-state', status: 'completed', order: 34, label: 'write cart', direction: 'data' },
-      { from: 'cart-state', to: 'sales-agent', status: 'completed', order: 35, label: 'tool result', direction: 'data' },
+      { from: 'cart-state', to: 'task-context', status: 'completed', order: 35, label: 'tool result', direction: 'write' },
+      { from: 'task-context', to: 'lead-agent', status: 'completed', order: 35.2, label: 'cart tool return', direction: 'return' },
     );
   }
   return edges.filter((edge) => nodeIds.has(edge.from) && nodeIds.has(edge.to));
 }
 
+function buildTracePlaybackEvents(graphEdges: AgentTraceGraphEdge[]): NonNullable<AgentTrace['playbackEvents']> {
+  return graphEdges
+    .filter((edge) => edge.status !== 'skipped')
+    .sort((left, right) => (left.order ?? 0) - (right.order ?? 0))
+    .map((edge, index) => ({
+      id: `live_${index}_${compactTraceId(edge.from)}_${compactTraceId(edge.to)}`,
+      from: edge.from,
+      to: edge.to,
+      order: edge.order ?? index,
+      direction: edge.direction ?? 'call',
+      status: edge.status ?? 'completed',
+      label: edge.label,
+    }));
+}
+
+function compactTraceId(value: string): string {
+  return value.toLocaleLowerCase('vi-VN').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'node';
+}
+
 function summarizeGraphNode(agent: AgentTraceAgent): string {
+  if (agent === 'lead-agent') return 'Lead dieu phoi';
+  if (agent === 'storage-memory-agent') return 'Bo nho tong';
+  if (agent === 'history-agent') return 'Lich su';
+  if (agent === 'search-agent') return 'Tim kiem';
+  if (agent === 'cart-agent') return 'Gio hang';
+  if (agent === 'rag-agent') return 'RAG';
+  if (agent === 'security-agent') return 'Bao mat';
+  if (agent === 'customer-support-agent') return 'Ho tro';
+  if (agent === 'sales-agent') return 'Sales';
   if (agent === 'memory-agent') return 'Bộ nhớ';
   if (agent === 'user-analysis-agent') return 'Phân tích user';
   if (agent === 'product-manager-agent') return 'Quản lý sản phẩm';
@@ -846,6 +1060,15 @@ function buildTraceEvents(agents: AgentTraceAgent[], intent: SalesAgentIntent, c
 }
 
 function summarizeAgent(agent: AgentTraceAgent, intent: SalesAgentIntent): string {
+  if (agent === 'lead-agent') return `Dieu phoi intent ${intent}, chon agent can hoi va danh gia cau tra loi truoc khi tra frontend.`;
+  if (agent === 'storage-memory-agent') return 'Quan ly bo nho tong, doc/ghi ngu canh on dinh va goi history khi cau hoi mo ho.';
+  if (agent === 'history-agent') return 'Tra cuu lich su gan, trung han, dai han de resolve tham chieu trong hoi thoai.';
+  if (agent === 'search-agent') return 'Tim san pham bang exact search truoc, fallback embedding khi khong thay ket qua chinh xac.';
+  if (agent === 'cart-agent') return 'SQL RAG cho gio hang: tu lap truy van, kiem loi, hop nhat ket qua va tra ve lead-agent.';
+  if (agent === 'rag-agent') return 'Truy xuat tai lieu noi bo bang Qdrant, gom path, rerank va kiem soat token context.';
+  if (agent === 'security-agent') return 'Kiem duyet input/output va chan rui ro truoc khi cau tra loi den nguoi dung.';
+  if (agent === 'customer-support-agent') return 'Xu ly loi, doi tra, khieu nai va tao handoff ho tro khi can.';
+  if (agent === 'sales-agent') return 'Bien brief cua lead-agent thanh cau tra loi ban hang tu nhien, khop san pham hien tren chat.';
   if (agent === 'memory-agent') return 'Đọc short-term turns, rolling summary và recent recommendations.';
   if (agent === 'user-analysis-agent') return `Phân loại intent: ${intent}.`;
   if (agent === 'product-manager-agent') return 'Quản lý truy vấn DB sản phẩm và chọn candidate đúng ngữ cảnh.';
@@ -884,6 +1107,37 @@ function cleanAssistantText(value: string, products: Product[]): string {
   text = text.replace(/^['"]|['"]$/g, '').trim();
 
   return text || 'Mình đã tìm sản phẩm phù hợp trong catalog. Bạn có thể xem các gợi ý bên dưới và bấm Thêm giỏ để tiếp tục.';
+}
+
+function statusForResolution(analysis: UserAnalysis): string {
+  if (analysis.intent === 'policy') return 'Đang tra cứu chính sách và hỗ trợ';
+  if (analysis.intent === 'cart_status') return 'Đang đọc trạng thái giỏ hàng';
+  if (analysis.intent === 'cart_action' || analysis.intent === 'confirm_pending' || analysis.intent === 'cancel_pending') return 'Đang kiểm tra thao tác giỏ hàng';
+  if (analysis.intent === 'smalltalk') return 'Đang kiểm tra phạm vi hỗ trợ';
+  if (analysis.intent === 'compare') return 'Đang chọn sản phẩm để so sánh';
+  if (analysis.intent === 'product_detail') return 'Đang lấy chi tiết sản phẩm';
+  return 'Đang tìm sản phẩm phù hợp';
+}
+
+function statusForGrounding(analysis: UserAnalysis): string {
+  if (analysis.intent === 'policy') return 'Đang neo câu trả lời vào tài liệu chính sách';
+  if (analysis.intent === 'cart_action' || analysis.intent === 'cart_status') return 'Đang xác minh dữ liệu giỏ hàng';
+  if (analysis.intent === 'smalltalk') return 'Đang kiểm duyệt câu trả lời';
+  return 'Đang kiểm tra nguồn sản phẩm';
+}
+
+function statusForDraft(analysis: UserAnalysis): string {
+  if (analysis.intent === 'policy') return 'Đang soạn trả lời chính sách';
+  if (analysis.intent === 'cart_action' || analysis.intent === 'cart_status' || analysis.intent === 'confirm_pending' || analysis.intent === 'cancel_pending') return 'Đang soạn cập nhật giỏ hàng';
+  if (analysis.intent === 'smalltalk') return 'Đang soạn phản hồi phù hợp';
+  if (analysis.intent === 'compare') return 'Đang soạn phần so sánh';
+  return 'Đang soạn tư vấn sản phẩm';
+}
+
+function shouldSearchKnowledge(analysis: UserAnalysis, message: string): boolean {
+  if (analysis.intent === 'policy') return true;
+  if (analysis.intent === 'smalltalk' || analysis.intent === 'cart_status' || analysis.intent === 'cart_action' || analysis.intent === 'confirm_pending' || analysis.intent === 'cancel_pending') return false;
+  return /bảo hành|bao hanh|đổi trả|doi tra|hoàn tiền|hoan tien|vận chuyển|van chuyen|chính sách|chinh sach|giao hàng|giao hang/.test(normalize(message));
 }
 
 function formatVnd(value: number): string {

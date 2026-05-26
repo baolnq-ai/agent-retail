@@ -1,4 +1,5 @@
 import { AddToCartButton } from '../../add-to-cart-button.js';
+import { productImageUrl, productSourceName, productSourceUrl, productSpec, productUseCase } from '../../product-media.js';
 
 interface Product {
   id: string;
@@ -17,24 +18,42 @@ const apiBaseUrl = process.env.API_BASE_URL ?? 'http://127.0.0.1:7010';
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const product = await loadProduct(id);
-  const related = (await loadProducts()).filter((item) => item.category === product.category && item.id !== product.id).slice(0, 3);
+  const related = (await loadProducts()).filter((item) => item.category === product.category && item.id !== product.id).slice(0, 4);
 
   return (
     <>
+      <nav className="product-breadcrumb" aria-label="Breadcrumb">
+        <a href="/products">Sản phẩm</a>
+        <span>/</span>
+        <a href={`/products?category=${encodeURIComponent(product.category)}`}>{product.category}</a>
+      </nav>
+
       <section className="product-detail-shell">
-        <div className="product-detail-visual">{product.brand.slice(0, 2).toUpperCase()}</div>
+        <div className="product-detail-media">
+          <img src={productImageUrl(product)} alt={product.title} />
+          <div className="source-ribbon">Nguồn: {productSourceName(product)}</div>
+        </div>
         <article className="product-detail-card">
           <p className="eyebrow">{product.category}</p>
           <h1>{product.title}</h1>
-          <p>{product.description}</p>
           <strong className="detail-price">{formatPrice(product.price)}</strong>
           <p className="detail-stock">Còn {product.inventory} sản phẩm</p>
+          <p className="detail-summary">{product.description}</p>
+          <div className="detail-trust-grid" aria-label="Cam kết mua hàng">
+            <span>Đổi trả 7 ngày</span>
+            <span>Bảo hành chính hãng</span>
+            <span>Giỏ hàng theo tài khoản</span>
+          </div>
           <AddToCartButton apiBaseUrl={apiBaseUrl} productId={product.id} label="Thêm vào giỏ hàng" />
-          <dl className="detail-attributes">
-            {Object.entries(product.attributes).map(([key, value]) => (
-              <div key={key}><dt>{key}</dt><dd>{value}</dd></div>
-            ))}
-          </dl>
+          <section className="detail-specs" aria-label="Thông số nổi bật">
+            <h2>Thông số nổi bật</h2>
+            <dl className="detail-attributes">
+              <div><dt>Điểm chính</dt><dd>{productSpec(product)}</dd></div>
+              <div><dt>Phù hợp</dt><dd>{productUseCase(product)}</dd></div>
+              <div><dt>Thương hiệu</dt><dd>{product.brand}</dd></div>
+              <div><dt>Nguồn</dt><dd><a href={productSourceUrl(product)} target="_blank" rel="noreferrer">{productSourceName(product)}</a></dd></div>
+            </dl>
+          </section>
         </article>
       </section>
 
@@ -49,8 +68,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         <div className="commerce-grid small-grid">
           {related.map((item) => (
             <article className="commerce-product-card" key={item.id}>
-              <a className="commerce-product-visual" href={`/products/${item.id}`}>{item.brand.slice(0, 2).toUpperCase()}</a>
-              <h3><a href={`/products/${item.id}`}>{item.title}</a></h3>
+              <a className="commerce-product-media" href={`/products/${item.id}`}><img src={productImageUrl(item)} alt={item.title} loading="lazy" /></a>
+              <div className="product-card-body">
+                <h3><a href={`/products/${item.id}`}>{item.title}</a></h3>
+                <p>{productSpec(item)}</p>
+              </div>
               <footer><strong>{formatPrice(item.price)}</strong><a href={`/products/${item.id}`}>Chi tiết</a></footer>
             </article>
           ))}

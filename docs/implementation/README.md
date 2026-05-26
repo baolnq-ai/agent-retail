@@ -5,11 +5,11 @@
 
 The canonical current docs are now in the parent `docs/` directory:
 
-- [`../architecture.md`](../architecture.md)
-- [`../agent-pipeline.md`](../agent-pipeline.md)
-- [`../operations.md`](../operations.md)
-- [`../development.md`](../development.md)
-- [`../ci-cd.md`](../ci-cd.md)
+- [`../core/architecture.md`](../core/architecture.md)
+- [`../agent-pipeline/legacy/current-sales-pipeline.md`](../agent-pipeline/legacy/current-sales-pipeline.md)
+- [`../core/operations.md`](../core/operations.md)
+- [`../core/development.md`](../core/development.md)
+- [`../core/ci-cd.md`](../core/ci-cd.md)
 
 ## Archive guidance
 

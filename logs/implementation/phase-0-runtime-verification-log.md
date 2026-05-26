@@ -6,7 +6,7 @@
 ## Hoạt động chính
 
 - Đọc các skill bắt buộc: `project-workflow`, `backend-skill`, `frontend-skill`, `documentation-skill`, `logging-skill`, `push-code-skill`.
-- Cập nhật `plans/plan-master-implementation-roadmap.md` để bắt buộc runtime test thật, request HTTP thật, không tính smoke/fallback là pass.
+- Cập nhật `plans/archive/initial-roadmap/master-implementation-roadmap.md` để bắt buộc runtime test thật, request HTTP thật, không tính smoke/fallback là pass.
 - Xác nhận source ban đầu gần như chỉ có docs/plans/logs, chưa có app code/package.json.
 - User chọn stack `Nest + Next`.
 - Tạo monorepo pnpm với `apps/api`, `apps/web`, `packages/shared`.

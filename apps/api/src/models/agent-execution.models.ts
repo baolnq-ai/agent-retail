@@ -69,6 +69,190 @@ export interface MemoryAgentResult extends MemoryInvestigationResult {
   evidence: string[];
 }
 
+export type StorageMemoryTier = 'near' | 'mid' | 'far';
+export type StorageMemoryNeed = 'none' | 'near' | 'near_mid' | 'near_mid_far';
+export type StorageMemoryRole = 'user' | 'assistant' | 'agent' | 'system';
+
+export interface StorageMemorySourceRef {
+  table: string;
+  id: string;
+  agent?: AgentTraceAgent | string;
+  type?: string;
+}
+
+export interface StorageMemoryContextItem {
+  id: string;
+  tier: StorageMemoryTier;
+  key: string;
+  summary: string;
+  value?: unknown;
+  sourceRefs: StorageMemorySourceRef[];
+  confidence: number;
+  tokenEstimate: number;
+  updatedAt?: string;
+}
+
+export interface StorageMemoryPreferenceSignal {
+  key: string;
+  value: unknown;
+  confidence: number;
+  sourceRefs: StorageMemorySourceRef[];
+  updatedAt?: string;
+}
+
+export interface StorageMemoryBehaviorSignal {
+  type: string;
+  weight: number;
+  productId?: string;
+  category?: string;
+  brand?: string;
+  sourceAgent?: string;
+  metadata?: unknown;
+  createdAt?: string;
+}
+
+export interface StorageMemoryAgentIndexSignal {
+  sourceAgent: string;
+  sourceTable: string;
+  sourceId: string;
+  summary: string;
+  tags: string[];
+  productIds: string[];
+  cartId?: string;
+  confidence: number;
+  createdAt?: string;
+}
+
+export interface StorageMemoryContextResult {
+  need: StorageMemoryNeed;
+  brief: string;
+  near: StorageMemoryContextItem[];
+  midSummaries: StorageMemoryContextItem[];
+  farProfile: StorageMemoryContextItem[];
+  preferences: StorageMemoryPreferenceSignal[];
+  behaviorSignals: StorageMemoryBehaviorSignal[];
+  agentIndexes: StorageMemoryAgentIndexSignal[];
+  evidence: string[];
+  references: {
+    lastProductIds: string[];
+    lastRecommendationIds: string[];
+    lastCartProductIds: string[];
+  };
+  tokenEstimate: number;
+  truncated: boolean;
+  confidence: number;
+}
+
+export interface StorageMemoryWriteResult {
+  status: 'completed' | 'skipped';
+  id?: string;
+  summary: string;
+  evidence: string[];
+}
+
+export type HistoryAmbiguityType = 'previous_recommendation' | 'previous_search' | 'cart_item' | 'ordinal' | 'pronoun' | 'general_context';
+export type HistoryAgentStatus = 'resolved' | 'partial' | 'not_found' | 'ambiguous' | 'failed';
+export type HistoryReferenceType = 'product' | 'cart_item' | 'recommendation_set' | 'search_result' | 'conversation_topic';
+
+export interface HistoryAgentRequest {
+  requestId: string;
+  userId?: string;
+  message: string;
+  ambiguityHint?: {
+    phrase?: string;
+    type?: HistoryAmbiguityType;
+  };
+  contextBudget?: number;
+  allowedSources?: Array<'memory' | 'cart_history' | 'search_history' | 'recommendation_history' | 'chat_turns'>;
+}
+
+export interface HistoryResolvedReference {
+  refType: HistoryReferenceType;
+  phrase: string;
+  productId?: string;
+  productTitle?: string;
+  productIds?: string[];
+  sourceAgent?: 'cart' | 'search' | 'recommendation' | 'memory' | 'lead';
+  confidence: number;
+  evidence: Array<{ source: string; sourceId?: string; summary: string; createdAt?: string }>;
+}
+
+export interface HistoryNextAgentHint {
+  agent: 'search' | 'recommendation' | 'cart' | 'sales' | 'rag' | 'customer_support' | 'security' | 'lead';
+  reason: string;
+  inputHint: unknown;
+}
+
+export interface HistoryAgentResult {
+  status: HistoryAgentStatus;
+  ambiguity: {
+    phrase?: string;
+    type: HistoryAmbiguityType;
+    confidence: number;
+  };
+  resolvedReferences: HistoryResolvedReference[];
+  missingInfo: string[];
+  nextAgentHints: HistoryNextAgentHint[];
+  handoff: {
+    agentMessage: string;
+    leadInstruction: string;
+    allowedClaims: string[];
+    forbiddenClaims: string[];
+    mustMentionProductIds: string[];
+    mustNotMentionProductIds: string[];
+  };
+}
+
+export interface HistoryRailConsistencyResult {
+  pass: boolean;
+  complaints: string[];
+  mustMentionProductIds: string[];
+  unexpectedProductIds: string[];
+}
+
+export type SearchLane = 'exact' | 'filter' | 'lexical' | 'embedding';
+export type SearchMatchType = 'exact' | 'strong_lexical' | 'filtered' | 'semantic_fallback' | 'none';
+
+export interface SearchAgentRequest {
+  requestId: string;
+  userId?: string;
+  query: string;
+  filters?: {
+    productId?: string;
+    category?: string;
+    brand?: string;
+    budgetMin?: number;
+    budgetMax?: number;
+    attributes?: Record<string, string | number | boolean>;
+    requireInStock?: boolean;
+  };
+  limit?: number;
+  fallbackPolicy?: 'hard_only' | 'embedding_if_low_recall';
+}
+
+export interface SearchAgentCandidate {
+  productId: string;
+  score: number;
+  confidence: number;
+  matchedFields: string[];
+  evidence: string[];
+}
+
+export interface SearchAgentResult {
+  status: 'completed' | 'no_results' | 'needs_clarification' | 'failed';
+  query: string;
+  usedLanes: SearchLane[];
+  matchType: SearchMatchType;
+  candidates: SearchAgentCandidate[];
+  issues: Array<{ code: string; message: string; recoverable: boolean }>;
+  handoff: {
+    agentMessage: string;
+    leadInstruction: string;
+    allowedClaims: string[];
+    forbiddenClaims: string[];
+  };
+}
+
 export type RetrievalMode = 'none' | 'recent' | 'fresh' | 'alternatives';
 
 export interface ProductManagerResult {

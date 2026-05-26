@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Put, Req, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Post, Put, Req, UnauthorizedException } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 import { AuthService } from '../services/auth.service.js';
 import { ModelGatewayService } from '../services/model-gateway.service.js';
@@ -13,8 +13,7 @@ export class ModelSettingsController {
   ) {}
 
   @Get()
-  async get(@Req() request: FastifyRequest) {
-    await this.requireUser(request);
+  get() {
     return this.modelSettingsService.snapshot();
   }
 
@@ -25,9 +24,14 @@ export class ModelSettingsController {
   }
 
   @Post('/ping')
-  async ping(@Req() request: FastifyRequest) {
-    await this.requireUser(request);
-    return this.modelGatewayService.health();
+  async ping(@Body() body: { chatModelBaseUrl?: string; chatModelId?: string; embedRerankBaseUrl?: string; apiKey?: string }) {
+    try {
+      const settings = this.modelSettingsService.resolve(body);
+      return await this.modelGatewayService.ping(settings);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'model connection check failed';
+      throw new BadRequestException(message);
+    }
   }
 
   private async requireUser(request: FastifyRequest) {
