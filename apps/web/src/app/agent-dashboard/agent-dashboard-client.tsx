@@ -47,6 +47,16 @@ interface AgentTrace {
   errors: Array<{ source: string; message: string }>;
 }
 
+interface PromptSetting {
+  key: string;
+  label: string;
+  owner: string;
+  description: string;
+  content: string;
+  updatedAt: string;
+  source: 'default' | 'database';
+}
+
 const apiBaseUrl = resolveBrowserApiBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:7010');
 const agentLabels: Record<string, string> = {
   'lead-agent': 'Lead',
@@ -81,7 +91,7 @@ const fallbackGraphNodes: Record<string, { x: number; y: number; icon: string; t
   'customer-support-agent': { x: 78, y: 64, icon: 'SUP', tone: 'support', label: 'Hỗ trợ' },
   'sales-agent': { x: 92, y: 50, icon: 'SALE', tone: 'sales', label: 'Sales' },
   'postgres-db': { x: 50, y: 90, icon: 'PG', tone: 'db', label: 'Postgres' },
-  'qdrant-db': { x: 50, y: 10, icon: 'VDB', tone: 'db', label: 'Qdrant' },
+  'qdrant-db': { x: 50, y: 20, icon: 'VDB', tone: 'db', label: 'Qdrant' },
   'llm-service': { x: 92, y: 18, icon: 'LLM', tone: 'service', label: 'LLM' },
   'pipeline-executor': { x: 10, y: 18, icon: 'FLOW', tone: 'service', label: 'Executor' },
   'task-context': { x: 14, y: 28, icon: 'TASK', tone: 'service', label: 'Task' },
@@ -213,6 +223,7 @@ export function AgentDashboardClient() {
 const AgentGraph = memo(function AgentGraph({ trace }: { trace: AgentTrace }) {
   const [detail, setDetail] = useState<GraphDetail | undefined>(undefined);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | undefined>(undefined);
+  const [activeTab, setActiveTab] = useState<'flow' | 'prompt'>('flow');
   const { activeAgent, playbackEvents, visibleEdges, visibleNodes } = useMemo(() => buildGraphView(trace), [trace.traceId, trace.pipeline?.length, trace.events.length]);
   const nodeStepBadges = useMemo(() => buildNodeStepBadges(visibleEdges), [visibleEdges]);
   const edgePairCounts = useMemo(() => buildEdgePairCounts(visibleEdges), [visibleEdges]);
@@ -275,6 +286,15 @@ const AgentGraph = memo(function AgentGraph({ trace }: { trace: AgentTrace }) {
         ) : null}
         {detail ? <GraphDetailPopup detail={detail} onClose={() => setDetail(undefined)} /> : null}
       </div>
+      <div className="agent-dashboard-tabs" role="tablist" aria-label="Công cụ dashboard">
+        <button type="button" className={activeTab === 'flow' ? 'active' : ''} onClick={() => setActiveTab('flow')} role="tab" aria-selected={activeTab === 'flow'}>Flow</button>
+        <button type="button" className={activeTab === 'prompt' ? 'active' : ''} onClick={() => setActiveTab('prompt')} role="tab" aria-selected={activeTab === 'prompt'}>Prompt</button>
+      </div>
+      {activeTab === 'flow' ? (
+        <TraceFlowBoard activeAgent={activeAgent} edges={visibleEdges} nodes={visibleNodes} playbackEvents={playbackEvents} trace={trace} onSelect={setDetail} />
+      ) : (
+        <PromptEditor trace={trace} />
+      )}
     </>
   );
 });
@@ -286,6 +306,122 @@ type GraphCluster = { id: string; label: string; tone: string; x: number; y: num
 
 type PositionedGraphNode = { id: string; label: string; kind: string; status: string; detail?: string; x: number; y: number; icon: string; tone?: NodeTone; order?: number };
 const maxVisibleTraceNodes = 40;
+
+function PromptEditor({ trace }: { trace: AgentTrace }) {
+  const [prompts, setPrompts] = useState<PromptSetting[]>([]);
+  const [selectedKey, setSelectedKey] = useState('');
+  const [draft, setDraft] = useState('');
+  const [status, setStatus] = useState('Đang tải prompt...');
+  const [isBusy, setIsBusy] = useState(false);
+  const selectedPrompt = prompts.find((prompt) => prompt.key === selectedKey);
+
+  const loadPrompts = useCallback(async () => {
+    setIsBusy(true);
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/v1/prompt-settings`, { credentials: 'include', cache: 'no-store' });
+      const text = await response.text();
+      if (!response.ok) throw new Error(parseErrorText(text, response.status));
+      const payload = JSON.parse(text) as { prompts: PromptSetting[] };
+      setPrompts(payload.prompts);
+      const nextSelected = selectedKey && payload.prompts.some((prompt) => prompt.key === selectedKey) ? selectedKey : payload.prompts[0]?.key ?? '';
+      setSelectedKey(nextSelected);
+      setDraft(payload.prompts.find((prompt) => prompt.key === nextSelected)?.content ?? '');
+      setStatus(`Đã tải ${payload.prompts.length} prompt từ cơ sở dữ liệu.`);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : 'Không tải được prompt');
+    } finally {
+      setIsBusy(false);
+    }
+  }, [selectedKey]);
+
+  useEffect(() => {
+    void loadPrompts();
+  }, [loadPrompts]);
+
+  const selectPrompt = (key: string) => {
+    const prompt = prompts.find((item) => item.key === key);
+    setSelectedKey(key);
+    setDraft(prompt?.content ?? '');
+  };
+
+  const savePrompt = async () => {
+    if (!selectedPrompt) return;
+    setIsBusy(true);
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/v1/prompt-settings`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ key: selectedPrompt.key, content: draft }),
+      });
+      const text = await response.text();
+      if (!response.ok) throw new Error(parseErrorText(text, response.status));
+      const updated = JSON.parse(text) as PromptSetting;
+      setPrompts((items) => items.map((item) => (item.key === updated.key ? updated : item)));
+      setDraft(updated.content);
+      setStatus(`Đã lưu ${updated.label}. Prompt có hiệu lực cho request mới.`);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : 'Không lưu được prompt');
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const resetPrompt = async () => {
+    if (!selectedPrompt) return;
+    setIsBusy(true);
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/v1/prompt-settings/reset`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ key: selectedPrompt.key }),
+      });
+      const text = await response.text();
+      if (!response.ok) throw new Error(parseErrorText(text, response.status));
+      const updated = JSON.parse(text) as PromptSetting;
+      setPrompts((items) => items.map((item) => (item.key === updated.key ? updated : item)));
+      setDraft(updated.content);
+      setStatus(`Đã khôi phục ${updated.label}.`);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : 'Không khôi phục được prompt');
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  return (
+    <section className="prompt-editor-panel" aria-label="Xem và sửa prompt">
+      <div className="prompt-editor-sidebar" role="list" aria-label="Danh sách prompt">
+        {prompts.map((prompt) => (
+          <button type="button" className={prompt.key === selectedKey ? 'active' : ''} onClick={() => selectPrompt(prompt.key)} key={prompt.key}>
+            <strong>{prompt.label}</strong>
+            <span>{prompt.owner}</span>
+          </button>
+        ))}
+      </div>
+      <div className="prompt-editor-main">
+        <div className="prompt-editor-header">
+          <div>
+            <strong>{selectedPrompt?.label ?? 'Prompt'}</strong>
+            <span>{selectedPrompt ? `${selectedPrompt.owner} · ${selectedPrompt.source === 'default' ? 'mặc định' : 'đã sửa trong DB'}` : status}</span>
+          </div>
+          <div className="prompt-editor-actions">
+            <button type="button" onClick={() => selectedPrompt && setDraft(selectedPrompt.content)} disabled={!selectedPrompt || isBusy}>Hoàn tác</button>
+            <button type="button" onClick={() => void resetPrompt()} disabled={!selectedPrompt || isBusy}>Mặc định</button>
+            <button type="button" className="primary" onClick={() => void savePrompt()} disabled={!selectedPrompt || isBusy || draft.trim().length < 20}>Lưu prompt</button>
+          </div>
+        </div>
+        <textarea value={draft} onChange={(event) => setDraft(event.target.value)} spellCheck={false} aria-label="Nội dung prompt lưu trong DB" />
+        <div className="prompt-editor-footer">
+          <span>{draft.trim().length.toLocaleString('vi-VN')} ký tự</span>
+          <span>{status}</span>
+          <span>Trace đang dùng: {trace.llm.promptSections.join(', ') || 'không có section'}</span>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function TraceFlowBoard({
   activeAgent,
@@ -2067,15 +2203,15 @@ function buildPositionedGraphNodes(trace: AgentTrace): PositionedGraphNode[] {
 
 function dashboardCanvasPosition(id: string, fallback: { x: number; y: number }): { x: number; y: number } {
   const positions = new Map<string, { x: number; y: number }>([
-    ['pipeline-executor', { x: 10, y: 18 }],
-    ['session-context', { x: 15, y: 32 }],
-    ['task-context', { x: 15, y: 45 }],
+    ['pipeline-executor', { x: 10, y: 23 }],
+    ['session-context', { x: 15, y: 37 }],
+    ['task-context', { x: 15, y: 50 }],
     ['lead-agent', { x: 14, y: 60 }],
     ['user-analysis-agent', { x: 34, y: 54 }],
     ['analysis-result', { x: 28, y: 70 }],
     ['storage-memory-agent', { x: 36, y: 28 }],
     ['postgres-db', { x: 56, y: 91 }],
-    ['qdrant-db', { x: 60, y: 12 }],
+    ['qdrant-db', { x: 60, y: 22 }],
     ['search-agent', { x: 54, y: 38 }],
     ['recommendation-agent', { x: 58, y: 70 }],
     ['cart-agent', { x: 66, y: 83 }],
@@ -2115,9 +2251,9 @@ function applySessionFlowLayout(nodes: PositionedGraphNode[], trace: AgentTrace,
     .sort((left, right) => (firstOrderByNode.get(left.id) ?? 999) - (firstOrderByNode.get(right.id) ?? 999) || left.label.localeCompare(right.label));
 
   const fixedPositions = new Map<string, { x: number; y: number }>([
-    ['pipeline-executor', { x: 13, y: 15 }],
-    ['session-context', { x: 13, y: 30 }],
-    ['task-context', { x: 13, y: 47 }],
+    ['pipeline-executor', { x: 13, y: 23 }],
+    ['session-context', { x: 13, y: 38 }],
+    ['task-context', { x: 13, y: 54 }],
     ['history-agent', { x: 25, y: 58 }],
     ['assistant-response', { x: 91, y: 65 }],
   ]);
@@ -2125,13 +2261,13 @@ function applySessionFlowLayout(nodes: PositionedGraphNode[], trace: AgentTrace,
   if (agentNodes.length > 3) {
     const preferredAgentGrid = new Map<string, { x: number; y: number }>([
       ['lead-agent', { x: 40, y: 47 }],
-      ['storage-memory-agent', { x: 25, y: 28 }],
+      ['storage-memory-agent', { x: 25, y: 34 }],
       ['history-agent', { x: 24, y: 62 }],
       ['user-analysis-agent', { x: 31, y: 78 }],
-      ['search-agent', { x: 49, y: 23 }],
+      ['search-agent', { x: 49, y: 30 }],
       ['rag-agent', { x: 43, y: 82 }],
       ['recommendation-agent', { x: 56, y: 75 }],
-      ['security-agent', { x: 76, y: 23 }],
+      ['security-agent', { x: 76, y: 31 }],
       ['customer-support-agent', { x: 76, y: 48 }],
       ['cart-agent', { x: 70, y: 82 }],
       ['sales-agent', { x: 84, y: 62 }],
@@ -2199,8 +2335,8 @@ function applySessionFlowLayout(nodes: PositionedGraphNode[], trace: AgentTrace,
     });
 
   const preferredDbPositions = new Map<string, { x: number; y: number }>([
-    ['postgres-db', { x: 22, y: 17 }],
-    ['qdrant-db', { x: 63, y: 40 }],
+    ['postgres-db', { x: 22, y: 25 }],
+    ['qdrant-db', { x: 63, y: 44 }],
     ['llm-service', { x: 74, y: 71 }],
     ['cart-state', { x: 75, y: 83 }],
   ]);
@@ -2282,11 +2418,11 @@ function buildNodeLayout(nodeIds: string[]): Map<string, { x: number; y: number 
     ['customer-support-agent', { x: 78, y: 64 }],
     ['sales-agent', { x: 92, y: 50 }],
     ['postgres-db', { x: 50, y: 90 }],
-    ['qdrant-db', { x: 50, y: 10 }],
+    ['qdrant-db', { x: 50, y: 24 }],
     ['llm-service', { x: 92, y: 18 }],
-    ['pipeline-executor', { x: 10, y: 18 }],
+    ['pipeline-executor', { x: 10, y: 24 }],
     ['session-context', { x: 14, y: 38 }],
-    ['task-context', { x: 14, y: 28 }],
+    ['task-context', { x: 14, y: 54 }],
     ['memory-agent', { x: 18, y: 44 }],
     ['user-analysis-agent', { x: 30, y: 44 }],
     ['product-manager-agent', { x: 42, y: 44 }],

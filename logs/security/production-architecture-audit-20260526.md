@@ -8,7 +8,7 @@
 
 - Kiểm tra `infra/docker/docker-compose.yml`, `.env.example`, `setup.ps1`, `setup.sh`.
 - Kiểm tra Prisma schema và các service liên quan search/memory/RAG.
-- Xác nhận runtime search hiện còn semantic fallback heuristic, chưa query Qdrant thật.
+- Xác nhận runtime search đã bỏ semantic heuristic trên text và chuyển nhánh embedding sang Qdrant thật.
 - Thêm Qdrant vào Docker Compose để quản lý cùng PostgreSQL, Redis và nginx.
 - Cập nhật setup script để đọc `QDRANT_URL`, chờ Qdrant health và truyền env cho API.
 - Chỉnh spacing dashboard để tool/history/DB không dính sát agent, line dễ đọc hơn.
@@ -27,8 +27,8 @@
 
 ## Rủi ro còn lại
 
-- Qdrant đã có hạ tầng nhưng chưa được runtime search/RAG gọi thật.
-- Cần thêm ingest/query vector, collection versioning và benchmark trước khi gọi semantic search là production-ready.
+- Qdrant đã được Search Agent gọi thật, nhưng cần tách job ingest/index riêng trước production.
+- Cần thêm collection versioning, benchmark tải lớn và cơ chế rebuild index Qdrant.
 - Cần chụp lại dashboard sau khi chạy dev server để xác nhận spacing trực quan trên desktop/mobile.
 
 ## Verify

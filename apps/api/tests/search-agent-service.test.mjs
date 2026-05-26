@@ -25,14 +25,14 @@ test('search agent applies hard budget stock and category filters', async () => 
   assert.deepEqual(result.candidates.map((item) => item.productId), ['prod-air-mini']);
 });
 
-test('search agent uses semantic fallback with clear wording when exact is missing', async () => {
-  const service = new SearchAgentService({ client: fakeClient(products()) });
+test('search agent uses Qdrant embedding fallback with clear wording when exact is missing', async () => {
+  const service = new SearchAgentService({ client: fakeClient(products()) }, fakeModelGateway(), fakeQdrant('prod-air-mini'));
   const result = await service.runGoal({ requestId: 'req-3', query: 'máy làm sạch bụi phòng ngủ z999', fallbackPolicy: 'embedding_if_low_recall' });
 
   assert.equal(result.status, 'completed');
   assert.equal(result.matchType, 'semantic_fallback');
   assert.equal(result.usedLanes.includes('embedding'), true);
-  assert.equal(result.issues.some((issue) => issue.code === 'semantic_fallback_used'), true);
+  assert.equal(result.issues.some((issue) => issue.code === 'qdrant_embedding_used'), true);
   assert.match(result.handoff.leadInstruction, /no exact product\/name was found/i);
   assert.equal(result.handoff.forbiddenClaims.some((claim) => /exact matches/i.test(claim)), true);
 });
@@ -85,6 +85,24 @@ function fakeClient(seedProducts) {
       async findMany() {
         return rows.searchAgentMemory;
       },
+    },
+  };
+}
+
+function fakeModelGateway() {
+  return {
+    async embed(texts) {
+      return texts.map((text, index) => [1, index + 1, text.length % 17]);
+    },
+  };
+}
+
+function fakeQdrant(productId) {
+  return {
+    async ensureCollection() {},
+    async upsert() {},
+    async search() {
+      return [{ productId, score: 0.82 }];
     },
   };
 }

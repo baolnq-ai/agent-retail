@@ -30,7 +30,7 @@ Repo này là hệ thống retail chatbot có web storefront, chat widget, giỏ
 | Proxy | nginx Docker | Một cổng vào cho tunnel: web + API cùng origin |
 | Model | API ngoài | vLLM/chat model, embedding, rerank qua HTTP |
 
-Ghi chú thực tế: runtime search hiện vẫn có semantic fallback dạng heuristic trên text trong PostgreSQL. Qdrant đã được đưa vào Docker Compose để chuẩn hóa hạ tầng, nhưng phần ingest/query vector thật cần được hoàn thiện trước khi gọi hệ thống là production-ready cho semantic search.
+Ghi chú thực tế: Search Agent đã gọi embedding API và Qdrant cho nhánh semantic khi exact/lexical không đủ recall; không còn chạy semantic heuristic trên text PostgreSQL. PostgreSQL vẫn là nguồn fact chính cho giá, tồn kho, catalog và memory.
 
 ## Port Mặc Định
 
@@ -139,7 +139,7 @@ flowchart LR
   Lead --> Security[Security agent]
   Lead --> Sales[Sales agent]
   Search --> Postgres[(PostgreSQL)]
-  Search -. semantic target .-> Qdrant[(Qdrant)]
+  Search --> Qdrant[(Qdrant)]
   RAG --> Qdrant
   Sales --> ChatModel[vLLM/chat API]
   RAG --> Embed[Embedding/Rerank API]
@@ -214,25 +214,13 @@ Backend bọc model service ngoài qua `/model-gateway/*`.
 POST /model-gateway/chat
 Content-Type: application/json
 
-{
-  "model": "google/gemma-4-E4B-it",
-  "messages": [
-    { "role": "system", "content": "Bạn là trợ lý bán hàng RetailHome." },
-    { "role": "user", "content": "Tư vấn máy lọc không khí" }
-  ],
-  "temperature": 0.2,
-  "maxTokens": 700
-}
+{ "message": "Tư vấn máy lọc không khí" }
 ```
 
 ```json
 {
   "content": "Nội dung trả lời của model",
-  "usage": {
-    "promptTokens": 1200,
-    "completionTokens": 220,
-    "totalTokens": 1420
-  }
+  "model": "google/gemma-4-E4B-it"
 }
 ```
 
@@ -240,14 +228,11 @@ Content-Type: application/json
 POST /model-gateway/embed
 Content-Type: application/json
 
-{ "input": ["máy lọc không khí phòng ngủ"] }
+{ "texts": ["máy lọc không khí phòng ngủ"] }
 ```
 
 ```json
-{
-  "embeddings": [[0.01, -0.02, 0.03]],
-  "dimensions": 768
-}
+[[0.01, -0.02, 0.03]]
 ```
 
 ```http
@@ -256,20 +241,39 @@ Content-Type: application/json
 
 {
   "query": "máy lọc không khí phòng ngủ",
-  "documents": [
-    { "id": "doc-1", "text": "Máy lọc không khí..." }
-  ],
-  "topK": 3
+  "documents": ["Máy lọc không khí..."]
 }
 ```
 
 ```json
+[
+  { "index": 0, "document": "Máy lọc không khí...", "score": 0.94 }
+]
+```
+
+### Prompt Settings
+
+Dashboard agent có tab `Prompt` để xem prompt đang dùng. Prompt được lưu ở PostgreSQL qua bảng `PromptSetting`, không lưu tạm trong process.
+
+```http
+GET /api/v1/prompt-settings
+```
+
+```json
 {
-  "results": [
-    { "id": "doc-1", "score": 0.94, "index": 0 }
+  "prompts": [
+    {
+      "key": "sales-system",
+      "label": "Sales system prompt",
+      "owner": "sales-agent",
+      "content": "...",
+      "source": "default"
+    }
   ]
 }
 ```
+
+`PUT /api/v1/prompt-settings` và `POST /api/v1/prompt-settings/reset` cần cookie đăng nhập.
 
 ## Test Và Benchmark
 
@@ -297,7 +301,7 @@ Hiện trạng đạt cho local/dev và demo có bằng chứng test. Chưa nên
 | Mảng | Hiện trạng | Cần làm trước production |
 | --- | --- | --- |
 | Docker runtime | Compose quản lý PostgreSQL, Redis, Qdrant, nginx | Thêm profile build API/Web container nếu muốn chạy toàn bộ app trong Docker |
-| Vector search | Qdrant đã có trong hạ tầng; code search vẫn fallback heuristic | Ingest product/doc chunks vào Qdrant, query bằng embedding thật, version collection |
+| Vector search | Search Agent query Qdrant bằng embedding thật khi cần semantic recall | Tách job ingest/index riêng, version collection, thêm benchmark Qdrant tải lớn |
 | PostgreSQL | Prisma schema rõ, nhiều bảng memory/cart/search | Bổ sung migration versioned thay cho chỉ `db push` khi deploy |
 | Ảnh sản phẩm | Seed dùng URL ảnh ngoài | Production nên có CDN/object storage, cache, fallback image và kiểm soát license |
 | Security | Có HttpOnly cookie, redaction trong memory service | Cần audit authz, CORS allowlist production, rate limit, secret manager |

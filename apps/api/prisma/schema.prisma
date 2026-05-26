@@ -211,6 +211,17 @@ model ProductEmbedding {
   @@unique([productId, model])
 }
 
+model PromptSetting {
+  key       String   @id
+  label     String
+  owner     String
+  description String
+  content   String
+  source    String   @default("default")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model SearchAgentInteraction {
   id                  String   @id @default(cuid())
   userId              String?

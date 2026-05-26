@@ -3,6 +3,9 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { createPrismaClient } from '../dist/utils/prisma-client.js';
 import { SearchAgentService } from '../dist/services/agents/search-agent.service.js';
+import { ModelGatewayService } from '../dist/services/model-gateway.service.js';
+import { ModelSettingsService } from '../dist/services/model-settings.service.js';
+import { QdrantService } from '../dist/services/qdrant.service.js';
 
 const databaseUrl = process.env.DATABASE_URL ?? 'postgresql://retail:retail_password@localhost:55432/retail_agent?schema=public';
 const prisma = createPrismaClient(databaseUrl);
@@ -16,7 +19,7 @@ const productIds = {
   outOfStock: `runtime-search-out-${suffix}`,
 };
 const reportPath = new URL('../../../logs/planning/agent-pipeline/search-agent-real-request-100-report.json', import.meta.url);
-const search = new SearchAgentService({ client: prisma });
+const search = new SearchAgentService({ client: prisma }, new ModelGatewayService(new ModelSettingsService()), new QdrantService());
 const results = [];
 
 try {
@@ -76,7 +79,7 @@ async function semanticFallbackCase(index) {
   assert.equal(result.status, 'completed');
   assert.equal(result.matchType, 'semantic_fallback');
   assert.equal(result.usedLanes.includes('embedding'), true);
-  assert.equal(result.issues.some((issue) => issue.code === 'semantic_fallback_used'), true);
+  assert.equal(result.issues.some((issue) => issue.code === 'qdrant_embedding_used'), true);
   assert.match(result.handoff.leadInstruction, /no exact product\/name was found/i);
 }
 

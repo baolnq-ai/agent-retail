@@ -6,7 +6,7 @@
 
 ## Kết luận
 
-Dự án đã đủ rõ để chạy local/dev bằng một Docker Compose cho hạ tầng: PostgreSQL, Redis, Qdrant và nginx. Tuy nhiên chưa nên gọi là production-ready hoàn toàn vì runtime semantic search chưa query Qdrant thật, schema vector hiện còn lưu `ProductEmbedding.vector` dạng `Json`, và deploy production vẫn cần migration/versioning, observability, authz/rate limit và storage ảnh chuẩn hơn.
+Dự án đã đủ rõ để chạy local/dev bằng một Docker Compose cho hạ tầng: PostgreSQL, Redis, Qdrant và nginx. Search Agent hiện đã query Qdrant bằng embedding thật cho nhánh semantic thay vì heuristic text trong PostgreSQL. Tuy nhiên chưa nên gọi là production-ready hoàn toàn vì index Qdrant vẫn đang được upsert theo request, schema còn bảng `ProductEmbedding.vector` dạng `Json` kế thừa, và deploy production vẫn cần migration/versioning, observability, authz/rate limit và storage ảnh chuẩn hơn.
 
 ## Hạ tầng Docker
 
@@ -28,9 +28,9 @@ Khuyến nghị tiếp theo:
 Hiện trạng thực tế:
 
 - PostgreSQL đang là source of truth cho catalog/cart/user/memory.
-- `SearchAgentService` đang load product từ PostgreSQL rồi score exact/lexical/semantic heuristic trong memory.
-- Qdrant đã có trong Compose nhưng chưa được gọi trong runtime search.
-- `ProductEmbedding.vector` hiện là `Json`, chưa phải vector index production.
+- `SearchAgentService` vẫn load product metadata từ PostgreSQL để khóa fact, exact/filter/lexical.
+- Khi recall thấp và policy cho phép embedding, `SearchAgentService` tạo vector qua embedding API, upsert/query collection `products` trong Qdrant và chỉ lấy candidate id từ Qdrant.
+- `ProductEmbedding.vector` hiện là `Json` kế thừa, không còn là đường semantic fallback chính.
 
 Kiến trúc đúng cho production:
 
@@ -85,7 +85,7 @@ Dashboard nên tiếp tục bám nguyên tắc:
 | --- | --- | --- |
 | Runtime app | Dev/local tốt | Container hóa API/Web nếu cần deploy bằng Compose/Kubernetes |
 | Data | PostgreSQL schema khá đầy đủ | Migration versioned, backup/restore, retention |
-| Vector | Qdrant đã có hạ tầng | Ingest/query Qdrant thật, collection versioning |
+| Vector | Search Agent đã query Qdrant thật khi cần semantic recall | Tách job ingest/index, collection versioning, benchmark tải lớn |
 | Security | Có redaction và cookie session | Rate limit, CORS production, authz audit, secret manager |
 | Observability | Có logs và dashboard trace | Structured logs, metrics, alert, distributed trace |
 | Test | Có benchmark và evidence | Thêm integration test Qdrant, Docker smoke test, load test |
@@ -94,4 +94,4 @@ Dashboard nên tiếp tục bám nguyên tắc:
 
 - Giữ PostgreSQL làm database chính.
 - Dùng Qdrant cho vector search/RAG production target thay vì lưu vector search bằng `Json` trong PostgreSQL.
-- Không tuyên bố production-ready cho semantic search cho đến khi Qdrant ingest/query thật được triển khai và benchmark.
+- Không tuyên bố production-ready cho semantic search cho đến khi Qdrant có job ingest/index riêng, version collection và benchmark tải lớn.

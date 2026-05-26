@@ -2,7 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import type { Product } from '../../models/catalog.models.js';
 import type { SearchAgentCandidate, SearchAgentRequest, SearchAgentResult, SearchLane, SearchMatchType } from '../../models/agent-execution.models.js';
+import { ModelGatewayService } from '../model-gateway.service.js';
 import { PrismaService } from '../prisma.service.js';
+import { QdrantService } from '../qdrant.service.js';
 
 type SearchClient = {
   product: { findMany(args?: Record<string, unknown>): Promise<Array<Record<string, unknown>>>; findUnique(args: Record<string, unknown>): Promise<Record<string, unknown> | null> };
@@ -12,7 +14,11 @@ type SearchClient = {
 
 @Injectable()
 export class SearchAgentService {
-  constructor(@Inject(PrismaService) private readonly prisma: PrismaService | { client: SearchClient }) {}
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaService | { client: SearchClient },
+    private readonly modelGatewayService?: ModelGatewayService,
+    private readonly qdrantService?: QdrantService,
+  ) {}
 
   async runGoal(params: SearchAgentRequest): Promise<SearchAgentResult> {
     const limit = Math.max(1, Math.min(20, params.limit ?? 8));
@@ -35,14 +41,14 @@ export class SearchAgentService {
     let matchType: SearchMatchType = decideMatchType(candidates, exact.length > 0, usedLanes.has('filter'));
 
     if (shouldUseEmbeddingFallback(params, candidates, exact.length > 0)) {
-      const semantic = scoreSemantic(filtered, normalizedQuery);
-      if (semantic.length > 0) {
+      try {
+        const semantic = await this.searchQdrant(filtered, normalizedQuery, limit);
         usedLanes.add('embedding');
         candidates = mergeCandidates([...candidates, ...semantic]).slice(0, limit);
         matchType = exact.length > 0 ? matchType : 'semantic_fallback';
         issues.push({
-          code: 'semantic_fallback_used',
-          message: 'No exact or strong lexical product match was found; semantic fallback returned related candidates.',
+          code: 'qdrant_embedding_used',
+          message: 'No exact or strong lexical product match was found; Qdrant embedding search returned related candidates.',
           recoverable: true,
         });
         if (isSpecificQuery(normalizedQuery)) {
@@ -52,6 +58,12 @@ export class SearchAgentService {
             recoverable: true,
           });
         }
+      } catch (error) {
+        issues.push({
+          code: 'qdrant_embedding_failed',
+          message: error instanceof Error ? error.message : 'Qdrant embedding search failed.',
+          recoverable: true,
+        });
       }
     }
 
@@ -132,6 +144,29 @@ export class SearchAgentService {
   private client(): SearchClient {
     return this.prisma.client as unknown as SearchClient;
   }
+
+  private async searchQdrant(products: Product[], normalizedQuery: string, limit: number): Promise<SearchAgentCandidate[]> {
+    if (!this.modelGatewayService || !this.qdrantService) throw new Error('Qdrant embedding search is not configured.');
+    if (!normalizedQuery || products.length === 0) return [];
+    const productTexts = products.map(productVectorText);
+    const vectors = await this.modelGatewayService.embed([normalizedQuery, ...productTexts]);
+    const queryVector = vectors[0];
+    const productVectors = vectors.slice(1);
+    if (!queryVector?.length) throw new Error('Embedding service returned an empty query vector.');
+    await this.qdrantService.ensureCollection('products', queryVector.length);
+    await this.qdrantService.upsert('products', products.map((product, index) => ({
+      id: pointIdFromProductId(product.id),
+      vector: productVectors[index] ?? queryVector,
+      payload: { productId: product.id, title: product.title, category: product.category, brand: product.brand },
+    })));
+    const byId = new Map(products.map((product) => [product.id, product]));
+    const hits = await this.qdrantService.search('products', queryVector, limit);
+    return hits.flatMap((hit) => {
+      const product = byId.get(hit.productId);
+      if (!product) return [];
+      return [candidate(product, Math.round(hit.score * 100), Math.min(0.86, Math.max(0.45, hit.score)), ['qdrant_vector'], [`qdrant:score=${hit.score.toFixed(4)}`])];
+    });
+  }
 }
 
 function applyHardFilters(products: Product[], filters: SearchAgentRequest['filters']): Product[] {
@@ -170,22 +205,6 @@ function scoreLexical(products: Product[], normalizedQuery: string): SearchAgent
     })
     .filter((item) => item.score >= 8)
     .map((item) => candidate(item.product, item.score, Math.min(0.92, 0.45 + item.score / 60), item.matchedFields, [`lexical:tokens=${item.score}`]));
-}
-
-function scoreSemantic(products: Product[], normalizedQuery: string): SearchAgentCandidate[] {
-  const expanded = expandSemanticTokens(queryTokens(normalizedQuery));
-  if (expanded.length === 0) return [];
-  return products
-    .map((product) => {
-      const text = Object.values(productFields(product)).join(' ');
-      const hits = expanded.filter((token) => text.includes(token)).length;
-      const categoryAffinity = semanticCategoryBoost(product, normalizedQuery);
-      const score = hits * 5 + categoryAffinity;
-      return { product, score };
-    })
-    .filter((item) => item.score >= 10)
-    .sort((left, right) => right.score - left.score || left.product.price - right.product.price)
-    .map((item) => candidate(item.product, item.score, Math.min(0.74, 0.35 + item.score / 80), ['semantic_text'], [`embedding_fallback:semantic_score=${item.score}`]));
 }
 
 function mergeCandidates(candidates: SearchAgentCandidate[]): SearchAgentCandidate[] {
@@ -293,25 +312,23 @@ function productFields(product: Product): Record<string, string> {
   };
 }
 
-function semanticCategoryBoost(product: Product, normalizedQuery: string): number {
-  const category = normalize(product.category);
-  if (/(loc|khong khi|bui|pm2|phong ngu|phong khach)/.test(stripVietnamese(normalizedQuery)) && /(loc|dien gia dung)/.test(stripVietnamese(category))) return 12;
-  if (/(nau|chien|bep|noi|com|xay)/.test(stripVietnamese(normalizedQuery)) && /(bep|kitchen)/.test(stripVietnamese(category))) return 12;
-  if (/(lau|hut bui|ve sinh|robot)/.test(stripVietnamese(normalizedQuery)) && /(ve sinh|clean)/.test(stripVietnamese(category))) return 12;
-  return 0;
+function productVectorText(product: Product): string {
+  return [
+    product.title,
+    product.brand,
+    product.category,
+    product.description,
+    Object.entries(product.attributes).map(([key, value]) => `${key}: ${value}`).join('; '),
+  ].filter(Boolean).join('\n');
 }
 
-function expandSemanticTokens(tokens: string[]): string[] {
-  const synonyms: Record<string, string[]> = {
-    sach: ['loc', 'bui', 'hepa'],
-    bui: ['loc', 'hepa', 'pm2'],
-    thoang: ['loc', 'khong', 'khi'],
-    nau: ['bep', 'noi', 'chien'],
-    chien: ['noi', 'bep'],
-    don: ['ve', 'sinh', 'hut', 'bui'],
-    lau: ['mop', 'sweep', 've', 'sinh'],
-  };
-  return [...new Set(tokens.flatMap((token) => [token, ...(synonyms[token] ?? [])]))];
+function pointIdFromProductId(productId: string): number {
+  let hash = 2166136261;
+  for (const char of productId) {
+    hash ^= char.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
 }
 
 function queryTokens(value: string): string[] {

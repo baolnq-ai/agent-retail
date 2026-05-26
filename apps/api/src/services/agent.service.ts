@@ -9,6 +9,7 @@ import type { Cart } from '../models/commerce.models.js';
 import { ChatMemoryService, type ChatMemoryContext } from './chat-memory.service.js';
 import { KnowledgeService } from './knowledge.service.js';
 import { ModelGatewayService } from './model-gateway.service.js';
+import { PromptSettingsService } from './prompt-settings.service.js';
 import { AgentTraceService } from './agent-trace.service.js';
 import type { AgentPipelineEvent, AgentQualityGateResult, CartToolResult, MemoryAgentResult, ProductManagerResult, RecommendationAgentResult, UserAnalysis } from '../models/agent-execution.models.js';
 import type { PipelineV2Agent } from '../models/agent-pipeline-v2.models.js';
@@ -68,6 +69,7 @@ export class AgentService {
     private readonly salesEvaluatorAgentService: SalesEvaluatorAgentService,
     private readonly userAnalysisAgentService: UserAnalysisAgentService,
     private readonly cartSqlRagAgentService: CartSqlRagAgentService,
+    private readonly promptSettingsService: PromptSettingsService,
   ) {}
 
   async chat(request: AgentChatRequest): Promise<AgentChatResponse> {
@@ -384,7 +386,7 @@ export class AgentService {
       messages: [
         {
           role: 'system',
-          content: [
+          content: await this.promptSettingsService.getContent('sales-system') || [
             'Bạn là nhân viên tư vấn bán hàng tiếng Việt cho website RetailHome.',
             'Chỉ dùng catalog/chính sách/giỏ hàng được cung cấp. Không bịa thông tin ngoài context.',
             'Không hiển thị mã sản phẩm nội bộ, không nhắc PRODUCT ID, không trả markdown phức tạp.',
