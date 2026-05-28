@@ -1,7 +1,7 @@
 # Plan: docs-readme-sync-and-release-push
 
 - Created: 2026-05-28 10:00
-- Updated: 2026-05-28 10:45
+- Updated: 2026-05-28 10:55
 - Status: closed
 - Related log: logs/implementation/docs-readme-sync-and-release-push-20260528.md
 - Related doc: docs/task/docs-readme-sync-and-release-push-20260528.md
@@ -31,7 +31,7 @@
 | 2 | Viết lại README và index hiện tại bằng tiếng Việt sạch | done | README/docs/logs/plans đã cập nhật |
 | 3 | Thêm doc/log/plan cho lượt đồng bộ | done | File task/log/plan mới |
 | 4 | Chạy validation và kiểm tra secret cơ bản | done | Compose config, typecheck, bash syntax, mojibake/secret scan |
-| 5 | Commit và push | pending | Hash commit sau push |
+| 5 | Commit và push | done | `cfb62f8` đã push lên `origin/main` |
 
 ## Verification
 
@@ -47,4 +47,4 @@
 - README là docs hub đúng trạng thái Docker/source hiện tại.
 - Docs/logs/plans index có liên kết tới task Docker, benchmark, evidence mới.
 - `.env` thật không bị stage.
-- Commit/push lên `origin/main` thành công.
+- Commit/push lên `origin/main` thành công: `cfb62f8`.

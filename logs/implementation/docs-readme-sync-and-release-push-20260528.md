@@ -1,7 +1,7 @@
 # Log đồng bộ README/docs/logs/plans và push release
 
 - Ngày: 2026-05-28
-- Trạng thái: verifying trước khi commit/push
+- Trạng thái: completed
 - Plan: [../../plans/plan-docs-readme-sync-and-release-push-20260528-v1.md](../../plans/plan-docs-readme-sync-and-release-push-20260528-v1.md)
 - Doc: [../../docs/task/docs-readme-sync-and-release-push-20260528.md](../../docs/task/docs-readme-sync-and-release-push-20260528.md)
 
@@ -16,6 +16,7 @@ Làm sạch README và các index docs/logs/plans theo skill trong `.codex`, b�
 - Thêm doc/log/plan cho lượt đồng bộ tài liệu và push này.
 - Giữ phân biệt rõ root `docker-compose.yml` full Docker và `infra/docker/docker-compose.yml` dev infra.
 - Giữ note không commit `.env` thật, token hoặc secret.
+- Commit và push lên `origin/main`: `cfb62f8`.
 
 ## Verify đã chạy
 
