@@ -7,6 +7,7 @@
 
 | Log | Nội dung |
 | --- | --- |
+| [readme-banner-ci-polish-20260528.md](readme-banner-ci-polish-20260528.md) | Làm lại banner GIF, polish README và sửa CI |
 | [docs-readme-sync-and-release-push-20260528.md](docs-readme-sync-and-release-push-20260528.md) | Đồng bộ README/docs/logs/plans và push GitHub |
 | [docker-hub-multiarch-compose-20260528.md](docker-hub-multiarch-compose-20260528.md) | Đóng gói Docker Hub multi-arch và Compose một file |
 | [setup-linux-tmux-port-cleanup-20260527.md](setup-linux-tmux-port-cleanup-20260527.md) | Setup Linux/tmux, port 6800-6850 và cleanup source |

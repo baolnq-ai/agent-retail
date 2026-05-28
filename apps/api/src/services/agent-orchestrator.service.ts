@@ -45,6 +45,7 @@ export function detectSalesIntent(message: string): SalesAgentIntent {
   const asciiMessage = stripVietnameseTone(normalizedMessage);
   if (isAmbiguousNoise(asciiMessage) && !isNoisyShoppingNeed(asciiMessage)) return 'smalltalk';
   if (isUnsafeOrOutOfScopeInstruction(asciiMessage)) return 'smalltalk';
+  if (/san pham\s+(nay|do|hien tai)?.*bao hanh|bao hanh.*san pham\s+(nay|do|hien tai)?/.test(asciiMessage)) return 'smalltalk';
   if (isPolicySupportRequest(asciiMessage)) return 'policy';
   if (isCartClearRequest(asciiMessage)) return 'cart_action';
   if (isCartStatusRequest(asciiMessage)) return 'cart_status';
@@ -59,7 +60,6 @@ export function detectSalesIntent(message: string): SalesAgentIntent {
   if (/tang so luong|giam so luong|them so luong|mon vua them|san pham vua them|vua them len/.test(asciiMessage)) return 'cart_action';
   if (/doi tra|hoan tien|bao hanh|van chuyen|chinh sach|phi giao|giao hang|ngoai noi thanh|noi thanh/.test(asciiMessage) && !/san pham|may|robot|camera|den|quat|loc|bep|mua|tu van/.test(asciiMessage)) return 'policy';
   if (/prod_[a-z0-9_]+/.test(asciiMessage)) return 'product_detail';
-  if (/san pham\s+(nay|do|hien tai)?.*bao hanh|bao hanh.*san pham\s+(nay|do|hien tai)?/.test(asciiMessage)) return 'smalltalk';
   if (/(cai|san pham|mon).*(dau tien|thu hai|thu ba|o tren).*(co can|hub|rieng|bao hanh|thong so|chi tiet)/.test(asciiMessage)) return 'product_detail';
   if (/(cai|san pham|mon).*(re nhat|dat nhat|nay|do|o tren|trong cac mon).*(nhuoc diem|uu diem|co tot|co on|phu hop|dung duoc|thong so|chi tiet)|(?:nhuoc diem|uu diem|co tot|co on|phu hop|dung duoc).*(cai|san pham|mon).*(re nhat|dat nhat|nay|do|o tren|trong cac mon)/.test(asciiMessage)) return 'product_detail';
   if (/(may|noi|robot|camera|den|quat|bep|thiet bi|hut bui|loc|cam bien|bao dong|smart home|ban chai|cham soc ca nhan|lam mat).*(co phu hop|phu hop .* khong|co on khong|co du|dung duoc|nhuoc diem|uu diem)/.test(asciiMessage)) return 'product_detail';

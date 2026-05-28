@@ -76,7 +76,7 @@ function buildRuleAnalysis(params: { message: string; pendingPlan?: PendingCartP
     const detectedIntent = detectSalesIntent(params.message);
     const isDiscoveryRequest = isProductDiscoveryRequest(normalizedMessage);
     const cartOperation = detectedIntent === 'cart_status' || detectedIntent === 'policy' || detectedIntent === 'compare' || detectedIntent === 'smalltalk' || isDiscoveryRequest ? undefined : detectCartOperation(normalizedMessage, references);
-    const canUseAlternativeIntent = detectedIntent !== 'policy' && detectedIntent !== 'cart_status' && detectedIntent !== 'smalltalk';
+    const canUseAlternativeIntent = detectedIntent !== 'policy' && detectedIntent !== 'cart_status';
     const intent = cartOperation ? 'cart_action' : references.anotherOption && canUseAlternativeIntent ? 'recommend' : detectedIntent === 'smalltalk' && isProductDiscoveryRequest(normalizedMessage) ? 'recommend' : detectedIntent;
     const retrievalMode = detectRetrievalMode(intent, references, params.memoryInvestigation, cartOperation);
     const analysis = baseAnalysis(intent, cartOperation ? 0.9 : 0.78, retrievalMode, shouldShowProducts(intent, retrievalMode, cartOperation));

@@ -1,39 +1,65 @@
 <div align="center">
 
-![RetailHome Agent Dashboard](apps/web/public/banner.gif)
+<img src="apps/web/public/banner.gif" alt="RetailHome AI Agent dashboard trace" width="100%" />
 
 # RetailHome AI Agent
 
-Trợ lý bán hàng retail chạy bằng Next.js, NestJS, PostgreSQL, Redis, Qdrant, pipeline nhiều agent, dashboard trace và nginx tunnel entry.
+Trợ lý bán hàng retail dùng pipeline nhiều agent, trace dashboard, Qdrant search và Docker Compose full stack.
 
-![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)
-![pnpm](https://img.shields.io/badge/pnpm-10.20.0-F69220?logo=pnpm&logoColor=white)
-![Next.js](https://img.shields.io/badge/Frontend-Next.js-000000?logo=next.js&logoColor=white)
-![NestJS](https://img.shields.io/badge/Backend-NestJS-E0234E?logo=nestjs&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-multi--arch%20compose-2496ED?logo=docker&logoColor=white)
+[![CI](https://img.shields.io/github/actions/workflow/status/baolnq-ai/agent-retail/ci.yml?branch=main&style=for-the-badge&label=CI&logo=github)](https://github.com/baolnq-ai/agent-retail/actions/workflows/ci.yml)
+![Docker](https://img.shields.io/badge/Docker-multi--arch-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=next.js&logoColor=white)
+![NestJS](https://img.shields.io/badge/NestJS-11-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)
+![Qdrant](https://img.shields.io/badge/Qdrant-vector%20search-DC244C?style=for-the-badge)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-pgvector-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 
-[Chạy nhanh](#chạy-nhanh-bằng-docker) · [Docker Hub](#docker-hub--multi-arch) · [Port](#port-mặc-định) · [Kiến trúc](#kiến-trúc) · [API](#api-chính) · [Test](#test-và-benchmark) · [Tài liệu](#tài-liệu-liên-quan)
+<strong>
+<a href="#chạy-nhanh-bằng-docker">Chạy nhanh</a>
+ · <a href="#docker-hub--multi-arch">Docker Hub</a>
+ · <a href="#port-mặc-định">Port</a>
+ · <a href="#kiến-trúc">Kiến trúc</a>
+ · <a href="#api-chính">API</a>
+ · <a href="#test-và-benchmark">Test</a>
+ · <a href="#tài-liệu-liên-quan">Tài liệu</a>
+</strong>
 
 </div>
 
-- Cập nhật: 2026-05-28
-- Phiên bản image: `v0.1.0-20260528`
-- Docker Hub: `baonguyen3568/ai-agent-retail`
-- Port runtime: `6800-6850`
+<br />
+
+<table>
+  <tr>
+    <td><strong>Cập nhật</strong></td>
+    <td>2026-05-28</td>
+    <td><strong>Docker image</strong></td>
+    <td><code>v0.1.0-20260528</code></td>
+  </tr>
+  <tr>
+    <td><strong>Docker Hub</strong></td>
+    <td><code>baonguyen3568/ai-agent-retail</code></td>
+    <td><strong>Runtime ports</strong></td>
+    <td><code>6800-6850</code></td>
+  </tr>
+</table>
 
 ## Tổng Quan
 
 Repo này là hệ thống retail chatbot có web storefront, chat widget, giỏ hàng theo tài khoản, backend API, bộ nhớ hội thoại, pipeline agent và dashboard quan sát flow. Trạng thái hiện tại ưu tiên ba cách vận hành rõ ràng: chạy full Docker bằng một compose file ở root, chạy source local bằng script, và tunnel toàn bộ qua một cổng nginx.
 
-| Phần | Công nghệ | Vai trò |
-| --- | --- | --- |
-| Frontend | Next.js 16, React 19 | Trang mua sắm, chat widget, tài khoản, giỏ hàng, dashboard agent |
-| Backend | NestJS 11, Fastify, Prisma | API sản phẩm, auth, cart/order/payment mock, model gateway, agent pipeline |
-| Database chính | PostgreSQL 16 + pgvector | Catalog, user, cart, memory, audit, dữ liệu test |
-| Vector DB | Qdrant | Vector search/RAG cho product/doc chunks |
-| Cache | Redis 7 | Runtime cache/session phụ trợ |
-| Proxy | nginx | Một cổng vào cho web và API cùng origin |
-| Model | API ngoài | vLLM/chat model, embedding, rerank qua HTTP |
+<table>
+  <tr>
+    <th>Frontend</th>
+    <th>Backend</th>
+    <th>Data & Search</th>
+    <th>Runtime</th>
+  </tr>
+  <tr>
+    <td>Next.js 16<br />React 19<br />Dashboard agent</td>
+    <td>NestJS 11<br />Fastify<br />Prisma</td>
+    <td>PostgreSQL + pgvector<br />Qdrant<br />Redis</td>
+    <td>nginx tunnel<br />vLLM API<br />Embedding/Rerank API</td>
+  </tr>
+</table>
 
 Search Agent dùng embedding API và Qdrant cho nhánh semantic khi exact/lexical search không đủ recall. PostgreSQL vẫn là nguồn fact chính cho giá, tồn kho, catalog, user, cart và memory.
 
@@ -41,19 +67,39 @@ Search Agent dùng embedding API và Qdrant cho nhánh semantic khi exact/lexica
 
 Đây là đường chạy gọn nhất sau khi pull repo. Cần Docker, `.env` tạo từ `.env.example`, và root `docker-compose.yml`.
 
+<table>
+  <tr>
+    <th>1. Chuẩn bị env</th>
+    <th>2. Pull image</th>
+    <th>3. Chạy stack</th>
+  </tr>
+  <tr>
+    <td><code>cp .env.example .env</code></td>
+    <td><code>docker compose pull</code></td>
+    <td><code>docker compose up -d</code></td>
+  </tr>
+</table>
+
 ```bash
 cp .env.example .env
 docker compose pull
 docker compose up -d
 ```
 
-Mở nhanh:
+Mở nhanh sau khi stack healthy:
 
-| Mục | URL |
-| --- | --- |
-| Web/API qua nginx | `http://127.0.0.1:6820` |
-| Dashboard agent | `http://127.0.0.1:6820/agent-dashboard` |
-| API health | `http://127.0.0.1:6820/health` |
+<table>
+  <tr>
+    <th>Web/API qua nginx</th>
+    <th>Dashboard agent</th>
+    <th>API health</th>
+  </tr>
+  <tr>
+    <td><code>http://127.0.0.1:6820</code></td>
+    <td><code>http://127.0.0.1:6820/agent-dashboard</code></td>
+    <td><code>http://127.0.0.1:6820/health</code></td>
+  </tr>
+</table>
 
 Root `docker-compose.yml` là bản full Docker 100%, có đủ backend, frontend, PostgreSQL, Redis, Qdrant và nginx. File `infra/docker/docker-compose.yml` chỉ dùng cho chế độ dev source, nơi API/Web chạy từ source còn Docker chỉ chạy hạ tầng phụ trợ.
 

@@ -7,6 +7,7 @@
 
 | Thời gian | Status | Log | Plan | Evidence |
 | --- | --- | --- | --- | --- |
+| 2026-05-28 | completed | [implementation/readme-banner-ci-polish-20260528.md](implementation/readme-banner-ci-polish-20260528.md) | - | [../apps/web/public/banner.gif](../apps/web/public/banner.gif) |
 | 2026-05-28 | closed | [implementation/docs-readme-sync-and-release-push-20260528.md](implementation/docs-readme-sync-and-release-push-20260528.md) | [../plans/plan-docs-readme-sync-and-release-push-20260528-v1.md](../plans/plan-docs-readme-sync-and-release-push-20260528-v1.md) | README/docs/logs/plans index |
 | 2026-05-28 | completed | [implementation/docker-hub-multiarch-compose-20260528.md](implementation/docker-hub-multiarch-compose-20260528.md) | [../plans/CURRENT.md](../plans/CURRENT.md) | [../test/docker-full-compose-evidence-2026-05-28](../test/docker-full-compose-evidence-2026-05-28/README.md) |
 | 2026-05-27 | in_progress | [implementation/benmark-100-pipeline-audit-20260527.md](implementation/benmark-100-pipeline-audit-20260527.md) | [../plans/running/plan-benmark-100-pipeline-audit-20260527-v1.md](../plans/running/plan-benmark-100-pipeline-audit-20260527-v1.md) | [../test/benmark-100](../test/benmark-100/) |
