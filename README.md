@@ -42,6 +42,44 @@ Trợ lý bán hàng retail dùng pipeline nhiều agent, trace dashboard, Qdran
   </tr>
 </table>
 
+## AI Runtime Console
+
+<table>
+  <tr>
+    <td width="64%">
+      <img src="docs/assets/readme/agent-flow-live.gif" alt="Agent dashboard live flow animation" width="100%" />
+    </td>
+    <td width="36%">
+      <h3>Agent Ops</h3>
+      <p>Dashboard trace đọc trực tiếp flow sau mỗi lượt chat: task, memory, search, recommendation, RAG, cart, guardrail và phản hồi cuối.</p>
+      <table>
+        <tr><td><strong>Pipeline</strong></td><td><code>multi-agent</code></td></tr>
+        <tr><td><strong>Vector</strong></td><td><code>Qdrant + embedding</code></td></tr>
+        <tr><td><strong>Memory</strong></td><td><code>PostgreSQL</code></td></tr>
+        <tr><td><strong>Entry</strong></td><td><code>nginx :6820</code></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <th>Agent graph</th>
+    <th>Prompt studio</th>
+    <th>Docker proof</th>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/readme/dashboard-cluster.png" alt="Agent graph cluster layout" width="100%" /></td>
+    <td><img src="docs/assets/readme/prompt-studio.png" alt="Prompt settings dashboard" width="100%" /></td>
+    <td><img src="docs/assets/readme/docker-dashboard.png" alt="Docker compose dashboard evidence" width="100%" /></td>
+  </tr>
+  <tr>
+    <td>Canvas gom agent, history riêng, tool riêng và flow trả về.</td>
+    <td>Prompt lưu DB, chỉnh trực tiếp từ dashboard.</td>
+    <td>Root Compose chạy web, API, DB, Redis, Qdrant, nginx.</td>
+  </tr>
+</table>
+
 ## Tổng Quan
 
 Repo này là hệ thống retail chatbot có web storefront, chat widget, giỏ hàng theo tài khoản, backend API, bộ nhớ hội thoại, pipeline agent và dashboard quan sát flow. Trạng thái hiện tại ưu tiên ba cách vận hành rõ ràng: chạy full Docker bằng một compose file ở root, chạy source local bằng script, và tunnel toàn bộ qua một cổng nginx.
@@ -62,6 +100,38 @@ Repo này là hệ thống retail chatbot có web storefront, chat widget, giỏ
 </table>
 
 Search Agent dùng embedding API và Qdrant cho nhánh semantic khi exact/lexical search không đủ recall. PostgreSQL vẫn là nguồn fact chính cho giá, tồn kho, catalog, user, cart và memory.
+
+## Giao Diện Và Evidence
+
+<table>
+  <tr>
+    <th>Storefront</th>
+    <th>Product grid</th>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/readme/storefront-home.png" alt="Retail storefront home" width="100%" /></td>
+    <td><img src="docs/assets/readme/product-grid.png" alt="Retail product grid" width="100%" /></td>
+  </tr>
+  <tr>
+    <td>Trang mua sắm, chat entry, brand assets và metadata production.</td>
+    <td>Catalog thật, giá/tồn kho từ backend, dùng làm nguồn fact cho agent.</td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <th>Dashboard tabs</th>
+    <th>Prompt DB</th>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/readme/dashboard-tabs.png" alt="Dashboard tabs split between flow and prompt" width="100%" /></td>
+    <td><img src="docs/assets/readme/prompt-studio.png" alt="Prompt database editor" width="100%" /></td>
+  </tr>
+  <tr>
+    <td>Flow canvas và prompt editor tách tab, không dồn thông tin làm rối dashboard.</td>
+    <td>Nhiều agent prompt được seed và đọc từ PostgreSQL qua API prompt settings.</td>
+  </tr>
+</table>
 
 ## Chạy Nhanh Bằng Docker
 
