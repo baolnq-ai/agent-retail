@@ -1,35 +1,35 @@
 # Current Project Work Index
 
-- Updated: 2026-05-25 12:50 +07:00
-- Purpose: quick answer for "what was worked on last, what is active, and where is the evidence?"
+- Cập nhật: 2026-05-28 10:30 +07:00
+- Mục đích: trả lời nhanh việc mới nhất là gì, việc nào còn mở và evidence nằm ở đâu.
 
 ## Active Work
 
-| Status | Item | Owner Area | Plan | Log | Evidence |
+| Status | Item | Khu vực | Plan | Log | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| none | No open plan in `plans/running/` | project | - | - | - |
+| in_progress | Benchmark 100 câu và audit pipeline/cart/history | Agent pipeline | [running/plan-benmark-100-pipeline-audit-20260527-v1.md](running/plan-benmark-100-pipeline-audit-20260527-v1.md) | [../logs/implementation/benmark-100-pipeline-audit-20260527.md](../logs/implementation/benmark-100-pipeline-audit-20260527.md) | [../test/benmark-100](../test/benmark-100/) |
+| in_progress | Dashboard icon/legend/density follow-up | Frontend dashboard | [running/plan-agent-dashboard-icon-legend-density-20260526-v1.md](running/plan-agent-dashboard-icon-legend-density-20260526-v1.md) | [../logs/implementation/agent-dashboard-icon-legend-density-20260526-v1.md](../logs/implementation/agent-dashboard-icon-legend-density-20260526-v1.md) | [../test/agent-dashboard-icon-legend-density-evidence-2026-05-26](../test/agent-dashboard-icon-legend-density-evidence-2026-05-26/README.md) |
+| in_progress | nginx/dev compose follow-up | Platform | [running/plan-nginx-tunnel-compose-readme-sync-20260526-v1.md](running/plan-nginx-tunnel-compose-readme-sync-20260526-v1.md) | [../logs/implementation/nginx-tunnel-compose-20260526-v1.md](../logs/implementation/nginx-tunnel-compose-20260526-v1.md) | [../docs/task/nginx-tunnel-compose-20260526-v1.md](../docs/task/nginx-tunnel-compose-20260526-v1.md) |
 
 ## Latest Closed Work
 
-| Closed Time | Status | Item | Area | Plan | Log | Evidence |
+| Thời gian | Status | Item | Khu vực | Plan | Log | Evidence |
 | --- | --- | --- | --- | --- | --- | --- |
-| 2026-05-25 12:50 | closed | Dashboard continuous flow animation cleanup | Frontend dashboard | [frontend/dashboard-flow-continuous-animation.md](frontend/dashboard-flow-continuous-animation.md) | [logs/planning/dashboard-flow-continuous-animation.md](../logs/planning/dashboard-flow-continuous-animation.md) | [test/dashboard-flow-continuous-evidence-2026-05-25](../test/dashboard-flow-continuous-evidence-2026-05-25/README.md) |
-| 2026-05-25 11:19 | closed | Real catalog data and retail web redesign | Frontend + API catalog | [frontend/real-catalog-web-redesign.md](frontend/real-catalog-web-redesign.md) | [logs/planning/real-catalog-web-redesign.md](../logs/planning/real-catalog-web-redesign.md) | [test/real-catalog-web-redesign-evidence-2026-05-25](../test/real-catalog-web-redesign-evidence-2026-05-25/README.md) |
-| 2026-05-25 10:28 | closed | 100-question retail chatbot benchmark | Agent pipeline | [agent-pipeline/retail-chatbot-100q-agent-benchmark.md](agent-pipeline/retail-chatbot-100q-agent-benchmark.md) | [logs/planning/retail-chatbot-100q-agent-benchmark.md](../logs/planning/retail-chatbot-100q-agent-benchmark.md) | [test/retail-chatbot-100q-agent-evidence-2026-05-25](../test/retail-chatbot-100q-agent-evidence-2026-05-25/README.md) |
-| 2026-05-25 09:25 | closed | 30-question chatbot benchmark and dashboard fix | Agent pipeline + frontend | [agent-pipeline/retail-chatbot-30q-benchmark-and-dashboard-fix.md](agent-pipeline/retail-chatbot-30q-benchmark-and-dashboard-fix.md) | [logs/planning/retail-chatbot-30q-benchmark-and-dashboard-fix.md](../logs/planning/retail-chatbot-30q-benchmark-and-dashboard-fix.md) | [test/retail-chatbot-30q-benchmark-evidence-2026-05-25](../test/retail-chatbot-30q-benchmark-evidence-2026-05-25/README.md) |
-| 2026-05-25 08:34 | closed | Dashboard/chatbot QA redesign | Frontend + QA | [frontend/dashboard-chatbot-qa-redesign.md](frontend/dashboard-chatbot-qa-redesign.md) | [logs/planning/dashboard-chatbot-qa-redesign.md](../logs/planning/dashboard-chatbot-qa-redesign.md) | [test/dashboard-chatbot-qa-evidence-2026-05-25](../test/dashboard-chatbot-qa-evidence-2026-05-25/README.md) |
+| 2026-05-28 | closed | Đồng bộ README/docs/logs/plans và push release | Docs/Release | [plan-docs-readme-sync-and-release-push-20260528-v1.md](plan-docs-readme-sync-and-release-push-20260528-v1.md) | [../logs/implementation/docs-readme-sync-and-release-push-20260528.md](../logs/implementation/docs-readme-sync-and-release-push-20260528.md) | README/docs/logs/plans index |
+| 2026-05-28 | completed | Docker Hub multi-arch và root Compose full stack | Platform/Docker | [plan-docs-readme-sync-and-release-push-20260528-v1.md](plan-docs-readme-sync-and-release-push-20260528-v1.md) | [../logs/implementation/docker-hub-multiarch-compose-20260528.md](../logs/implementation/docker-hub-multiarch-compose-20260528.md) | [../test/docker-full-compose-evidence-2026-05-28](../test/docker-full-compose-evidence-2026-05-28/README.md) |
+| 2026-05-27 | completed | Setup Linux/tmux, port 6800-6850 và cleanup source | Platform | [../docs/task/setup-linux-tmux-port-cleanup-20260527.md](../docs/task/setup-linux-tmux-port-cleanup-20260527.md) | [../logs/implementation/setup-linux-tmux-port-cleanup-20260527.md](../logs/implementation/setup-linux-tmux-port-cleanup-20260527.md) | README/setup scripts |
+| 2026-05-26 | completed | Branding, logo, dashboard prompt DB | Frontend/API | [plan-frontend-branding-dashboard-prompt-20260526-v1.md](plan-frontend-branding-dashboard-prompt-20260526-v1.md) | [../logs/implementation/frontend-branding-dashboard-prompt-20260526.md](../logs/implementation/frontend-branding-dashboard-prompt-20260526.md) | [../test/frontend-branding-dashboard-prompt-evidence-2026-05-26](../test/frontend-branding-dashboard-prompt-evidence-2026-05-26/) |
 
-## How To Read This Repo
+## Cách Đọc Repo
 
-1. Start here for status: `plans/CURRENT.md`.
-2. Read `plans/README.md` for the folder map.
-3. Read `docs/CURRENT.md` for canonical docs and latest evidence.
-4. Read `logs/CURRENT.md` for the latest human-written session logs.
-5. Use `test/*evidence*/README.md` only when you need proof screenshots, reports, or UI artifacts.
+1. Bắt đầu từ `README.md` để chạy Docker/source và xem port.
+2. Mở `plans/CURRENT.md` để biết việc mới nhất.
+3. Mở `docs/CURRENT.md` để tìm tài liệu canonical và evidence mới.
+4. Mở `logs/CURRENT.md` để xem log human-written mới nhất.
+5. Chỉ đọc `test/*evidence*/README.md` khi cần bằng chứng screenshot/report.
 
-## Rules Going Forward
+## Quy Tắc Đi Tiếp
 
-- Put in-progress work in `plans/running/`.
-- When done, close the plan and move it to `plans/frontend/`, `plans/backend/`, `plans/agent-pipeline/`, or `plans/platform/`.
-- Every closed plan should have a matching human log in `logs/planning/` and evidence path when UI/benchmark/runtime proof exists.
-- Update this file after each substantial task.
+- Việc đang làm đặt trong `plans/running/`.
+- Việc xong phải có doc/log/evidence liên kết.
+- Sau task lớn, cập nhật `README.md`, `docs/CURRENT.md`, `logs/CURRENT.md`, `plans/CURRENT.md`.

@@ -4,6 +4,7 @@ import { dirname, join } from 'node:path';
 export interface EnvironmentConfig {
   apiPort: number;
   nodeEnv: string;
+  corsOrigins: string[];
   chatModelBaseUrl: string;
   chatModelId: string;
   embedRerankBaseUrl: string;
@@ -13,6 +14,7 @@ export function loadEnvironment(env: NodeJS.ProcessEnv = readRuntimeEnvironment(
   return {
     apiPort: readPort(env.API_PORT ?? '3001'),
     nodeEnv: env.NODE_ENV ?? 'development',
+    corsOrigins: readCorsOrigins(env.CORS_ORIGINS),
     chatModelBaseUrl: readUrl(readModelBaseUrl(env.CHAT_MODEL_BASE_URL), 'CHAT_MODEL_BASE_URL'),
     chatModelId: readNonEmpty(readModelId(env.CHAT_MODEL_ID), 'CHAT_MODEL_ID'),
     embedRerankBaseUrl: readUrl(readEmbedRerankBaseUrl(env.EMBED_RERANK_BASE_URL), 'EMBED_RERANK_BASE_URL'),
@@ -83,6 +85,21 @@ function readModelId(value: string | undefined): string {
 function readEmbedRerankBaseUrl(value: string | undefined): string {
   if (!value || /^http:\/\/(localhost|127\.0\.0\.1):8006$/.test(value)) return 'https://replace-with-your-embed-rerank-gateway.example.invalid';
   return value;
+}
+
+function readCorsOrigins(value: string | undefined): string[] {
+  const fallback = [
+    'http://127.0.0.1:6800',
+    'http://localhost:6800',
+    'http://127.0.0.1:6820',
+    'http://localhost:6820',
+  ];
+  if (!value?.trim()) return fallback;
+
+  return value
+    .split(',')
+    .map((origin) => origin.trim().replace(/\/$/, ''))
+    .filter(Boolean);
 }
 
 function readPort(value: string): number {

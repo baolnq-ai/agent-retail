@@ -25,7 +25,7 @@ test('agent chat uses real LLM, embedding, rerank, DB catalog, and cart context'
     await waitForHealth(`${baseUrl}/health`);
     const response = await postJson(`${baseUrl}/api/v1/chat`, {
       cartId: `agent-runtime-${Date.now()}`,
-      message: 'Tôi cần máy lọc không khí cho phòng ngủ 25m2 dưới 4 triệu, có đổi trả không?',
+      message: 'TÃ´i cáº§n mÃ¡y lá»c khÃ´ng khÃ­ cho phÃ²ng ngá»§ 25m2 dÆ°á»›i 4 triá»‡u, cÃ³ Ä‘á»•i tráº£ khÃ´ng?',
     });
 
     assert.equal(typeof response.messageId, 'string');
@@ -47,7 +47,7 @@ test('agent chat uses real LLM, embedding, rerank, DB catalog, and cart context'
 
     const budgetResponse = await postJson(`${baseUrl}/api/v1/chat`, {
       cartId: `agent-budget-${Date.now()}`,
-      message: 'Tư vấn 1 sản phẩm dưới 2tr',
+      message: 'TÆ° váº¥n 1 sáº£n pháº©m dÆ°á»›i 2tr',
     });
     const budgetProductBlock = budgetResponse.blocks.find((block) => block.type === 'product_list');
     assert.equal(budgetProductBlock.items.length, 1);
@@ -57,19 +57,19 @@ test('agent chat uses real LLM, embedding, rerank, DB catalog, and cart context'
     const user = await postJsonWithCookie(`${baseUrl}/api/v1/auth/register`, { name: `agent_cart_${suffix}`, password: `StrongPass_${suffix}` });
     await postJsonWithCookie(`${baseUrl}/api/v1/cart/current/items`, { productId: budgetProductBlock.items[0].id, quantity: 1 }, user.cookie);
 
-    const clearResponse = await postJsonWithCookie(`${baseUrl}/api/v1/chat`, { message: 'xoá hết sản phẩm trong giỏ' }, user.cookie);
+    const clearResponse = await postJsonWithCookie(`${baseUrl}/api/v1/chat`, { message: 'xoÃ¡ háº¿t sáº£n pháº©m trong giá»' }, user.cookie);
     const cartBlock = clearResponse.body.blocks.find((block) => block.type === 'cart_summary');
     assert.equal(cartBlock.cart.items.length, 0);
     assert.equal(cartBlock.cart.grandTotal, 0);
     const clearTextBlock = clearResponse.body.blocks.find((block) => block.type === 'text');
-    assert.match(clearTextBlock.content, /Đã xoá toàn bộ/);
+    assert.match(clearTextBlock.content, /ÄÃ£ xoÃ¡ toÃ n bá»™/);
 
     const currentCart = await getJson(`${baseUrl}/api/v1/cart/current`, user.cookie);
     assert.equal(currentCart.items.length, 0);
 
-    const guestClearResponse = await postJson(`${baseUrl}/api/v1/chat`, { message: 'xoá hết sản phẩm trong giỏ' });
+    const guestClearResponse = await postJson(`${baseUrl}/api/v1/chat`, { message: 'xoÃ¡ háº¿t sáº£n pháº©m trong giá»' });
     const guestTextBlock = guestClearResponse.blocks.find((block) => block.type === 'text');
-    assert.match(guestTextBlock.content, /cần đăng nhập/);
+    assert.match(guestTextBlock.content, /cáº§n Ä‘Äƒng nháº­p/);
   } finally {
     child.kill('SIGTERM');
   }

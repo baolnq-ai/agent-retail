@@ -1,6 +1,6 @@
 # Index Log
 
-- Cập nhật: 2026-05-26
+- Cập nhật: 2026-05-28
 - Phạm vi: log human-written và log runtime của dự án RetailHome AI Agent.
 
 ## Nên Đọc Trước
@@ -9,13 +9,15 @@
 | --- | --- |
 | [CURRENT.md](CURRENT.md) | Log mới nhất và liên kết plan/evidence |
 | [../plans/CURRENT.md](../plans/CURRENT.md) | Trạng thái plan |
-| [../README.md](../README.md) | Cách chạy, port, nginx tunnel, test |
+| [../README.md](../README.md) | Cách chạy, Docker, port, nginx tunnel, test |
 
 ## Nhóm Log
 
 | Path | Nội dung | Quy tắc |
 | --- | --- | --- |
 | `logs/implementation/*.md` | Log triển khai code/UI/runtime | Ghi file đổi, quyết định, verify |
+| `logs/implementation/docker-hub-multiarch-compose-20260528.md` | Log đóng gói Docker Hub multi-arch | Theo dõi build/push container và Compose root |
+| `logs/implementation/docs-readme-sync-and-release-push-20260528.md` | Log đồng bộ README/docs/logs/plans trước push | Ghi validation và commit/push |
 | `logs/documentation/*.md` | Log tài liệu, format, README | Link về doc/plan liên quan |
 | `logs/security/*.md` | Log audit security/production readiness | Ghi finding, risk và khuyến nghị |
 | `logs/planning/agent-pipeline/` | Log planning agent pipeline | Giữ theo từng agent/phase |
@@ -28,6 +30,4 @@
 
 - Viết tiếng Việt có dấu.
 - Ghi thời gian, mục tiêu, file đã sửa, command verify, kết quả và rủi ro còn lại.
-- Không paste output dài nếu không cần thiết.
 - Không ghi password, cookie, token, private API key hoặc nội dung `.env`.
-- Task lớn phải có log riêng trong đúng thư mục.

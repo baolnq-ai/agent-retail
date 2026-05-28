@@ -77,6 +77,19 @@ Remove-Item (Join-Path $RootDir 'logs\runtime\backend\api.pid'), (Join-Path $Roo
 Remove-Item (Join-Path $RootDir 'apps\web\.next\dev\lock'), (Join-Path $RootDir 'apps\web\.next\dev\server') -Recurse -Force -ErrorAction SilentlyContinue
 Write-Ok 'Removed provider runtime PID files and stale web locks'
 
+Write-Step 'Remove temporary workspace junk'
+Get-CimInstance Win32_Process | Where-Object {
+  $_.CommandLine -and $_.CommandLine.Contains($RootDir) -and $_.CommandLine -match '\\.tmp-chrome-'
+} | ForEach-Object {
+  Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
+}
+Get-ChildItem -LiteralPath $RootDir -Force | Where-Object {
+  $_.Name -eq '.tmp' -or $_.Name -like '.tmp-*' -or $_.Name -eq 'test-results'
+} | ForEach-Object {
+  Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction SilentlyContinue
+}
+Write-Ok 'Removed root-level temporary folders/files only; .codex/skills and evidence folders are kept'
+
 Write-Host ''
 Write-Host 'Clean complete'
 Write-Host "Compose project: $composeProjectName"

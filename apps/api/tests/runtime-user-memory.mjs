@@ -44,7 +44,7 @@ test('authenticated users get separate carts and persisted chat memory', async (
     const cartB = await getJson(`${baseUrl}/api/v1/cart/current`, userB.cookie);
     assert.equal(cartB.items.some((item) => item.productId === 'prod_air_clean_p35'), false);
 
-    const chat = await postJson(`${baseUrl}/api/v1/chat`, { message: 'Tư vấn 1 sản phẩm dưới 2tr' }, userA.cookie);
+    const chat = await postJson(`${baseUrl}/api/v1/chat`, { message: 'TÆ° váº¥n 1 sáº£n pháº©m dÆ°á»›i 2tr' }, userA.cookie);
     assert.equal(typeof chat.body.messageId, 'string');
 
     const memoryRows = await countMemoryRows(userA.body.user.id);

@@ -1,22 +1,22 @@
 # Planning Log - AI Agent Retail Assistant
 
-- 2026-05-14 10:56:16 +07:00 | Đọc quy tắc `plan-skill` và xác nhận yêu cầu tạo file plan trong `plans`.
-- 2026-05-14 10:56:16 +07:00 | Kiểm tra workspace, xác nhận các skill hiện có gồm backend, frontend, documentation, logging, push-code.
-- 2026-05-14 10:56:16 +07:00 | Phát hiện `testing-skill` chưa tồn tại trong repo, đánh dấu là gap cần xử lý trước giai đoạn code.
-- 2026-05-14 10:56:16 +07:00 | Chốt hướng giải pháp ban đầu: modular monolith + LLM + Retrieval + Tool Calling + payment adapter backend.
-- 2026-05-14 10:56:16 +07:00 | Tạo plan chi tiết, tài liệu tóm tắt và file log cho task lập kế hoạch.
-- 2026-05-14 10:56:16 +07:00 | Chưa thực hiện push code vì task hiện tại là lập plan, chưa đến bước implementation/review đầy đủ.
-- 2026-05-14 | Rà soát lại plan/doc/log theo yêu cầu mới: tập trung vào chatbot agent retail production-grade, không host model trong source.
-- 2026-05-14 | Viết lại `plans/archive/initial-roadmap/ai-agent-retail-assistant.md` thành bản production-grade: backend/frontend đầy đủ, ModelGateway, model external cần dùng, bảo mật, hiệu năng, reliability, observability, testing, CI/CD và backlog ưu tiên.
-- 2026-05-14 | Cập nhật `docs/reports/ai-agent-retail-assistant-plan-summary.md` để phản ánh định hướng production mới.
-- 2026-05-14 | Đọc `C:\code\my source\AI-Agent-retail\.claude\skills\plan-skill\SKILL.md`; xác nhận workflow bắt buộc: mỗi task cần plan trong `plans`, có mục tiêu/bước/thời gian/tài nguyên/skill, phase phải test/document/log trước khi sang phase sau.
-- 2026-05-14 | Kiểm tra chat model server `https://replace-with-your-vllm-gateway.example.invalid`: `GET /v1/models` trả model `google/gemma-4-E4B-it`, context `128000`; `POST /v1/chat/completions` hoạt động.
-- 2026-05-14 | Kiểm tra embedding/rerank server `https://replace-with-your-embed-rerank-gateway.example.invalid`: `GET /health` OK, OpenAPI có `/api/v1/embed` và `/api/v1/rerank`; cả hai endpoint hoạt động với dữ liệu tiếng Việt.
-- 2026-05-14 | Ghi nhận rủi ro encoding: response tiếng Việt qua PowerShell bị mojibake, cần verify UTF-8 end-to-end khi implement bằng Node/browser.
-- 2026-05-14 | Research frontend/UI direction bằng nguồn chính thức: Next.js docs, shadcn/ui docs, Radix Themes docs, Motion docs, Baymard checkout usability, WAI accessibility principles.
-- 2026-05-14 | Tạo `plans/archive/initial-roadmap/master-implementation-roadmap.md` làm plan tổng theo phase cho repo target `https://github.com/baolnq-ai/agent-retail.git`.
-- 2026-05-14 | Tạo `plans/platform/model-integration.md` mô tả chi tiết ModelGateway, endpoint model, smoke test, timeout/retry/fallback, eval.
-- 2026-05-14 | Tạo `plans/backend/architecture-data.md` mô tả backend modules, PostgreSQL/pgvector/Redis/object storage, schema, API, tool registry, sample data.
-- 2026-05-14 | Tạo `plans/frontend/uiux-dashboard.md` mô tả customer chat UI, commerce blocks, ops console, dashboard, theme, font, animation, accessibility, performance.
-- 2026-05-14 | Tạo `plans/platform/production-hardening.md` mô tả security, performance, observability, testing, CI/CD và release checklist.
-- 2026-05-14 | Cập nhật `docs/reports/ai-agent-retail-assistant-plan-summary.md` với danh sách plan mới, kết quả kiểm tra model server, stack và các điểm cần chốt trước khi code.
+- 2026-05-14 10:56:16 +07:00 | Äá»c quy táº¯c `plan-skill` vÃ  xÃ¡c nháº­n yÃªu cáº§u táº¡o file plan trong `plans`.
+- 2026-05-14 10:56:16 +07:00 | Kiá»ƒm tra workspace, xÃ¡c nháº­n cÃ¡c skill hiá»‡n cÃ³ gá»“m backend, frontend, documentation, logging, push-code.
+- 2026-05-14 10:56:16 +07:00 | PhÃ¡t hiá»‡n `testing-skill` chÆ°a tá»“n táº¡i trong repo, Ä‘Ã¡nh dáº¥u lÃ  gap cáº§n xá»­ lÃ½ trÆ°á»›c giai Ä‘oáº¡n code.
+- 2026-05-14 10:56:16 +07:00 | Chá»‘t hÆ°á»›ng giáº£i phÃ¡p ban Ä‘áº§u: modular monolith + LLM + Retrieval + Tool Calling + payment adapter backend.
+- 2026-05-14 10:56:16 +07:00 | Táº¡o plan chi tiáº¿t, tÃ i liá»‡u tÃ³m táº¯t vÃ  file log cho task láº­p káº¿ hoáº¡ch.
+- 2026-05-14 10:56:16 +07:00 | ChÆ°a thá»±c hiá»‡n push code vÃ¬ task hiá»‡n táº¡i lÃ  láº­p plan, chÆ°a Ä‘áº¿n bÆ°á»›c implementation/review Ä‘áº§y Ä‘á»§.
+- 2026-05-14 | RÃ  soÃ¡t láº¡i plan/doc/log theo yÃªu cáº§u má»›i: táº­p trung vÃ o chatbot agent retail production-grade, khÃ´ng host model trong source.
+- 2026-05-14 | Viáº¿t láº¡i `plans/archive/initial-roadmap/ai-agent-retail-assistant.md` thÃ nh báº£n production-grade: backend/frontend Ä‘áº§y Ä‘á»§, ModelGateway, model external cáº§n dÃ¹ng, báº£o máº­t, hiá»‡u nÄƒng, reliability, observability, testing, CI/CD vÃ  backlog Æ°u tiÃªn.
+- 2026-05-14 | Cáº­p nháº­t `docs/reports/ai-agent-retail-assistant-plan-summary.md` Ä‘á»ƒ pháº£n Ã¡nh Ä‘á»‹nh hÆ°á»›ng production má»›i.
+- 2026-05-14 | Äá»c `C:\code\my source\AI-Agent-retail\.claude\skills\plan-skill\SKILL.md`; xÃ¡c nháº­n workflow báº¯t buá»™c: má»—i task cáº§n plan trong `plans`, cÃ³ má»¥c tiÃªu/bÆ°á»›c/thá»i gian/tÃ i nguyÃªn/skill, phase pháº£i test/document/log trÆ°á»›c khi sang phase sau.
+- 2026-05-14 | Kiá»ƒm tra chat model server `https://replace-with-your-vllm-gateway.example.invalid`: `GET /v1/models` tráº£ model `google/gemma-4-E4B-it`, context `128000`; `POST /v1/chat/completions` hoáº¡t Ä‘á»™ng.
+- 2026-05-14 | Kiá»ƒm tra embedding/rerank server `https://replace-with-your-embed-rerank-gateway.example.invalid`: `GET /health` OK, OpenAPI cÃ³ `/api/v1/embed` vÃ  `/api/v1/rerank`; cáº£ hai endpoint hoáº¡t Ä‘á»™ng vá»›i dá»¯ liá»‡u tiáº¿ng Viá»‡t.
+- 2026-05-14 | Ghi nháº­n rá»§i ro encoding: response tiáº¿ng Viá»‡t qua PowerShell bá»‹ mojibake, cáº§n verify UTF-8 end-to-end khi implement báº±ng Node/browser.
+- 2026-05-14 | Research frontend/UI direction báº±ng nguá»“n chÃ­nh thá»©c: Next.js docs, shadcn/ui docs, Radix Themes docs, Motion docs, Baymard checkout usability, WAI accessibility principles.
+- 2026-05-14 | Táº¡o `plans/archive/initial-roadmap/master-implementation-roadmap.md` lÃ m plan tá»•ng theo phase cho repo target `https://github.com/baolnq-ai/agent-retail.git`.
+- 2026-05-14 | Táº¡o `plans/platform/model-integration.md` mÃ´ táº£ chi tiáº¿t ModelGateway, endpoint model, smoke test, timeout/retry/fallback, eval.
+- 2026-05-14 | Táº¡o `plans/backend/architecture-data.md` mÃ´ táº£ backend modules, PostgreSQL/pgvector/Redis/object storage, schema, API, tool registry, sample data.
+- 2026-05-14 | Táº¡o `plans/frontend/uiux-dashboard.md` mÃ´ táº£ customer chat UI, commerce blocks, ops console, dashboard, theme, font, animation, accessibility, performance.
+- 2026-05-14 | Táº¡o `plans/platform/production-hardening.md` mÃ´ táº£ security, performance, observability, testing, CI/CD vÃ  release checklist.
+- 2026-05-14 | Cáº­p nháº­t `docs/reports/ai-agent-retail-assistant-plan-summary.md` vá»›i danh sÃ¡ch plan má»›i, káº¿t quáº£ kiá»ƒm tra model server, stack vÃ  cÃ¡c Ä‘iá»ƒm cáº§n chá»‘t trÆ°á»›c khi code.

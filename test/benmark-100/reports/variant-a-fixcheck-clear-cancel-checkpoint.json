@@ -1,0 +1,216 @@
+{
+  "generatedAt": "2026-05-27T02:23:55.293Z",
+  "authGroups": [
+    [
+      "auth-cart-direct",
+      "retail_session=t1txSwneLsaKv6O-oJXVz3c0UJcS1Ek1cbuorHnPuG0; HttpOnly; SameSite=Lax; Path=/; Max-Age=604800"
+    ]
+  ],
+  "groupState": [
+    [
+      "auth-cart-direct",
+      {
+        "lastIntent": "cart_action",
+        "lastProductIds": [],
+        "lastCartProductIds": [],
+        "cartItemCount": 0,
+        "cartGrandTotal": 0
+      }
+    ]
+  ],
+  "results": [
+    {
+      "id": "A049",
+      "group": "auth-cart-direct",
+      "mode": "auth",
+      "category": "cart_action",
+      "prompt": "Xóa hết giỏ hàng hiện tại.",
+      "grade": "fail",
+      "score": 80,
+      "elapsedMs": 1054,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_action",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Đã xoá toàn bộ sản phẩm trong giỏ hàng.",
+      "textPreview": "Đã xoá toàn bộ sản phẩm trong giỏ hàng.",
+      "productIds": [],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpnfx4mq000050ulf9tjx233-1779848630543",
+        "version": 2,
+        "status": "active",
+        "items": [],
+        "subtotal": 0,
+        "grandTotal": 0
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 61,
+        "playbackCount": 61,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:skipped",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:lookup:completed",
+          "cart-manager-agent:plan:completed",
+          "cart-manager-agent:execute:completed",
+          "cart-manager-agent:verify:completed",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [
+          {
+            "tool": "cart.clear",
+            "status": "completed",
+            "productIds": [],
+            "cartVersionBefore": 1,
+            "cartVersionAfter": 2,
+            "result": "Đã xoá toàn bộ sản phẩm trong giỏ hàng."
+          }
+        ],
+        "cartActionType": "clear",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 0,
+          "rollingSummaryLength": 0,
+          "recentRecommendationIds": [],
+          "preferenceKeys": []
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [],
+          "selectedProductIds": [],
+          "contextDocumentCount": 0,
+          "rerankTopScores": []
+        },
+        "errors": []
+      },
+      "issues": [
+        {
+          "severity": "fail",
+          "code": "cart_operation_without_completed_or_pending_tool"
+        }
+      ]
+    },
+    {
+      "id": "A050",
+      "group": "auth-cart-direct",
+      "mode": "auth",
+      "category": "confirm_pending",
+      "prompt": "Hủy thao tác đó.",
+      "grade": "fail",
+      "score": 74,
+      "elapsedMs": 832,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_action",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Chào bạn, tôi thấy giỏ hàng của bạn hiện tại đang trống rồi ạ. Bạn muốn tôi hỗ trợ bạn tìm kiếm hay xem các sản phẩm nào khác không?",
+      "textPreview": "Chào bạn, tôi thấy giỏ hàng của bạn hiện tại đang trống rồi ạ. Bạn muốn tôi hỗ trợ bạn tìm kiếm hay xem các sản phẩm nào khác không?",
+      "productIds": [],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpnfx4mq000050ulf9tjx233-1779848630543",
+        "version": 2,
+        "status": "active",
+        "items": [],
+        "subtotal": 0,
+        "grandTotal": 0
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 32,
+        "edgeCount": 58,
+        "playbackCount": 58,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:skipped",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 2,
+          "rollingSummaryLength": 80,
+          "recentRecommendationIds": [],
+          "preferenceKeys": [
+            "rolling_summary",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent",
+            "agent_history:user-analysis-agent",
+            "agent_history:memory-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [],
+          "selectedProductIds": [],
+          "contextDocumentCount": 0,
+          "rerankTopScores": []
+        },
+        "errors": []
+      },
+      "issues": [
+        {
+          "severity": "warn",
+          "code": "cart_operation_trace_review:cancel_pending:none"
+        },
+        {
+          "severity": "fail",
+          "code": "cart_operation_without_completed_or_pending_tool"
+        }
+      ]
+    }
+  ]
+}

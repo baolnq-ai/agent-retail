@@ -28,7 +28,8 @@ export class MemoryAgentService {
     const seedNodes = buildSeedNodes(source.messages, source.preferences, lastMetadata, normalizedMessage);
     const visitedNodes = expandMemoryNodes(seedNodes, normalizedMessage, maxDepth, maxNodes);
     const referencedProducts = uniqueStrings(visitedNodes.flatMap((node) => node.productIds ?? []));
-    const referenceProductIds = resolvedReference ? uniqueStrings([...lastSelectedProductIds, ...referencedProducts]) : [];
+    const cartReferenceProductIds = isLastCartItemReference(normalizedMessage) ? lastCartActionProductIds : [];
+    const referenceProductIds = resolvedReference ? uniqueStrings([...cartReferenceProductIds, ...lastSelectedProductIds, ...referencedProducts]) : [];
     const summary = readString(source.preferences.find((preference) => preference.key === 'rolling_summary')?.value);
 
     return {
@@ -123,16 +124,24 @@ function emptyInvestigation(requiresHistory: boolean): MemoryInvestigationResult
 }
 
 function requiresHistoryLookup(normalizedMessage: string): boolean {
+  if (/(vua them|mon vua them|san pham vua them|o tren|de dung nhat|con lai)/.test(stripVietnameseTone(normalizedMessage))) return true;
   return /(sản phẩm mới|mẫu mới|cái mới|vừa gợi ý|vừa đề xuất|vừa rồi|thêm hết|tất cả|mấy cái đó|các cái đó|sản phẩm khác|mẫu khác|cái khác|nó|đó|này|thêm máy|thêm nồi|thêm robot|thêm camera|thêm đèn|thêm quạt|thêm bếp|thêm lọc)/.test(normalizedMessage);
 }
 
 function detectResolvedReference(normalizedMessage: string): MemoryInvestigationResult['resolvedReference'] | undefined {
+  const asciiMessage = stripVietnameseTone(normalizedMessage);
+  if (/vua them|mon vua them|san pham vua them|con lai/.test(asciiMessage)) return 'previous_product';
+  if (/o tren|de dung nhat/.test(asciiMessage)) return 'last_recommendation';
   if (/thêm hết|tất cả|cả \d|mấy cái đó|các cái đó/.test(normalizedMessage)) return 'all_last_recommendations';
   if (/sản phẩm khác|mẫu khác|cái khác|khác/.test(normalizedMessage)) return 'another_option';
   if (/sản phẩm mới|mẫu mới|cái mới/.test(normalizedMessage)) return 'new_product';
   if (/vừa gợi ý|vừa đề xuất|vừa rồi|thêm máy|thêm nồi|thêm robot|thêm camera|thêm đèn|thêm quạt|thêm bếp|thêm lọc/.test(normalizedMessage)) return 'last_recommendation';
   if (/nó|đó|này/.test(normalizedMessage)) return 'previous_product';
   return undefined;
+}
+
+function isLastCartItemReference(normalizedMessage: string): boolean {
+  return /(vua them|mon vua them|san pham vua them|con lai)/.test(stripVietnameseTone(normalizedMessage));
 }
 
 function readAssistantMetadata(value: unknown): AgentChatResponse | undefined {
@@ -184,4 +193,17 @@ function stringifyValue(value: unknown): string {
 
 function normalize(value: string): string {
   return value.toLocaleLowerCase('vi-VN').replace(/\s+/g, ' ').trim();
+}
+
+function stripVietnameseTone(value: string): string {
+  return value
+    .toLocaleLowerCase('vi-VN')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'd')
+    .replace(/Ä‘/g, 'd')
+    .replace(/Ä/g, 'd')
+    .replace(/\s+/g, ' ')
+    .trim();
 }

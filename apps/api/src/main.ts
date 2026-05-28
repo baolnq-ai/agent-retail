@@ -11,7 +11,7 @@ const app = await NestFactory.create<NestFastifyApplication>(AppModule, new Fast
 });
 
 app.enableCors({
-  origin: ['http://127.0.0.1:7000', 'http://localhost:7000'],
+  origin: environment.corsOrigins,
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['content-type', 'idempotency-key', 'x-correlation-id'],
   credentials: true,

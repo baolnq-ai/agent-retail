@@ -22,10 +22,10 @@ AI-Agent-retail/
 
 | Area | Implementation |
 | --- | --- |
-| API | NestJS 11 on Fastify, default local port `7010` |
-| Web | Next.js 16 App Router, default local port `7000` |
-| Database | PostgreSQL via Prisma, local Docker port `55432` |
-| Cache | Redis via local Docker port `56379` |
+| API | NestJS 11 on Fastify, default local port `6810` |
+| Web | Next.js 16 App Router, default local port `6800` |
+| Database | PostgreSQL via Prisma, local Docker port `6832` |
+| Cache | Redis via local Docker port `6839` |
 | Chat model | OpenAI-compatible `/v1/chat/completions` runtime setting |
 | Model listing | OpenAI-compatible `/v1/models` runtime ping |
 | Embedding/rerank | Custom base URL with `/api/v1/embed`, `/api/v1/rerank`, `/health` |

@@ -1,0 +1,1168 @@
+{
+  "generatedAt": "2026-05-27T05:00:23.886Z",
+  "suite": "benmark-100-pipeline-audit",
+  "apiBaseUrl": "http://127.0.0.1:7010",
+  "casesPath": "C:\\code\\my source\\AI-Agent-retail\\test\\benmark-100\\cases\\variant-a.json",
+  "runId": "variant-a-utf8-history-76-85-v5",
+  "delayMs": 3000,
+  "requestTimeoutMs": 90000,
+  "total": 10,
+  "pass": 8,
+  "warn": 2,
+  "fail": 0,
+  "inProgress": false,
+  "avgLatencyMs": 3680,
+  "p95LatencyMs": 6192,
+  "topIssueCodes": [
+    {
+      "code": "intent_review:recommend:expected_compare",
+      "count": 2
+    }
+  ],
+  "results": [
+    {
+      "id": "A076",
+      "group": "auth-history-3",
+      "mode": "auth",
+      "category": "product",
+      "prompt": "Gợi ý 3 thiết bị smart home dễ lắp cho người mới, ưu tiên an toàn cửa ra vào.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 6192,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "recommend",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Chào bạn, hiện tại tôi chỉ có thông tin về Máy xay sinh tố Philips HR2051/00. Bạn có muốn tôi tìm kiếm thêm các sản phẩm khác hoặc điều chỉnh tiêu chí tìm kiếm không ạ?",
+      "textPreview": "Chào bạn, hiện tại tôi chỉ có thông tin về Máy xay sinh tố Philips HR2051/00. Bạn có muốn tôi tìm kiếm thêm các sản phẩm khác hoặc điều chỉnh tiêu chí tìm kiếm không ạ?",
+      "productIds": [
+        "prod_blender_02"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpnlh3dt0000z4ulcb34unda-1779857960142",
+        "version": 1,
+        "status": "active",
+        "items": [],
+        "subtotal": 0,
+        "grandTotal": 0
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 63,
+        "playbackCount": 63,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 0,
+          "rollingSummaryLength": 0,
+          "recentRecommendationIds": [],
+          "preferenceKeys": []
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_blender_02",
+            "prod_smart_07",
+            "prod_blender_09",
+            "prod_chefmax_af55",
+            "prod_air_03",
+            "prod_kitchen_12",
+            "prod_kitchen_10",
+            "prod_smart_13"
+          ],
+          "selectedProductIds": [
+            "prod_blender_02"
+          ],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            -1.835938
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A077",
+      "group": "auth-history-3",
+      "mode": "auth",
+      "category": "history_followup",
+      "prompt": "Cái thứ ba ở trên có cần hub riêng không?",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 2339,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "product_detail",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Bạn có thể cho mình biết bạn đang hỏi về sản phẩm nào được không ạ?",
+      "textPreview": "Bạn có thể cho mình biết bạn đang hỏi về sản phẩm nào được không ạ?",
+      "productIds": [
+        "prod_climate_09"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpnlh3dt0000z4ulcb34unda-1779857960142",
+        "version": 1,
+        "status": "active",
+        "items": [],
+        "subtotal": 0,
+        "grandTotal": 0
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 63,
+        "playbackCount": 63,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 2,
+          "rollingSummaryLength": 260,
+          "recentRecommendationIds": [
+            "prod_blender_02"
+          ],
+          "preferenceKeys": [
+            "rolling_summary",
+            "recent_recommendations",
+            "recent_categories",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_climate_09",
+            "prod_care_12",
+            "prod_care_14",
+            "prod_clean_04",
+            "prod_care_01",
+            "prod_smart_07",
+            "prod_smart_08",
+            "prod_smart_09"
+          ],
+          "selectedProductIds": [
+            "prod_climate_09"
+          ],
+          "contextDocumentCount": 3,
+          "rerankTopScores": [
+            -4.035156,
+            -4.082031,
+            -6.265625
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A078",
+      "group": "auth-history-3",
+      "mode": "auth",
+      "category": "history_followup",
+      "prompt": "Nếu tôi không rành công nghệ thì nên chọn cái nào trong ba món đó?",
+      "grade": "warn",
+      "score": 94,
+      "elapsedMs": 5411,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "recommend",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Chào bạn, nếu bạn không rành về công nghệ thì tôi gợi ý bạn nên chọn những sản phẩm có tính năng đơn giản và dễ sử dụng. Trong ba chiếc nồi chiên không dầu này, bạn có thể tham khảo Nồi chiên không dầu AVA 5.5 lít 55K07A vì nó có thiết kế đơn giản, dễ làm quen.\nBạn muốn tôi so sánh chi tiết hơn về các tính năng của Nồi chiên không dầu AVA 5.5 lít 55K07A, Nồi chiên không dầu Sunhouse 6 lít SHD4026 hay Nồi chiên không dầu Kangaroo 5.2 lít KG55AF1 không ạ?",
+      "textPreview": "Chào bạn, nếu bạn không rành về công nghệ thì tôi gợi ý bạn nên chọn những sản phẩm có tính năng đơn giản và dễ sử dụng. Trong ba chiếc nồi chiên không dầu này, bạn có thể tham khảo Nồi chiên không dầu AVA 5.5 lít 55K07A vì nó có thiết kế đơn giản, dễ làm quen.\nBạn muốn tôi so sánh chi tiết hơn về các tính năng của Nồi chiên không dầu AVA 5.5 lít 55K07A, Nồi chiên không dầu Sunhouse 6 lít SHD4026 hay Nồi chiên không dầu Kangaroo 5.2 lít KG55AF1 không ạ?",
+      "productIds": [
+        "prod_chefmax_af55",
+        "prod_kitchen_03",
+        "prod_kitchen_07"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpnlh3dt0000z4ulcb34unda-1779857960142",
+        "version": 1,
+        "status": "active",
+        "items": [],
+        "subtotal": 0,
+        "grandTotal": 0
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 63,
+        "playbackCount": 63,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 4,
+          "rollingSummaryLength": 384,
+          "recentRecommendationIds": [
+            "prod_climate_09",
+            "prod_care_12",
+            "prod_care_14"
+          ],
+          "preferenceKeys": [
+            "rolling_summary",
+            "recent_recommendations",
+            "recent_categories",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_chefmax_af55",
+            "prod_kitchen_03",
+            "prod_kitchen_07",
+            "prod_kitchen_08",
+            "prod_kitchen_06",
+            "prod_kitchen_13",
+            "prod_kitchen_04",
+            "prod_smart_04"
+          ],
+          "selectedProductIds": [
+            "prod_chefmax_af55",
+            "prod_kitchen_03",
+            "prod_kitchen_07"
+          ],
+          "contextDocumentCount": 3,
+          "rerankTopScores": [
+            0.687988,
+            0.486572,
+            -0.05249
+          ]
+        },
+        "errors": []
+      },
+      "issues": [
+        {
+          "severity": "warn",
+          "code": "intent_review:recommend:expected_compare"
+        }
+      ]
+    },
+    {
+      "id": "A079",
+      "group": "auth-history-3",
+      "mode": "auth",
+      "category": "history_cart",
+      "prompt": "Thêm lựa chọn dễ dùng nhất vào giỏ.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 1239,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_action",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Đã thêm 1 × Nồi chiên không dầu AVA 5.5 lít 55K07A vào giỏ hàng.\nTôi đã thêm Nồi chiên không dầu AVA 5.5 lít 55K07A vào giỏ hàng của bạn rồi ạ. Bạn có muốn tôi hỗ trợ thêm thông tin gì về sản phẩm này hay muốn xem các sản phẩm khác không?",
+      "textPreview": "Đã thêm 1 × Nồi chiên không dầu AVA 5.5 lít 55K07A vào giỏ hàng.\nTôi đã thêm Nồi chiên không dầu AVA 5.5 lít 55K07A vào giỏ hàng của bạn rồi ạ. Bạn có muốn tôi hỗ trợ thêm thông tin gì về sản phẩm này hay muốn xem các sản phẩm khác không?",
+      "productIds": [
+        "prod_chefmax_af55"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpnlh3dt0000z4ulcb34unda-1779857960142",
+        "version": 2,
+        "status": "active",
+        "items": [
+          {
+            "productId": "prod_chefmax_af55",
+            "quantity": 1,
+            "unitPrice": 1490000,
+            "lineTotal": 1490000
+          }
+        ],
+        "subtotal": 1490000,
+        "grandTotal": 1490000
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 34,
+        "edgeCount": 66,
+        "playbackCount": 66,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:lookup:completed",
+          "cart-manager-agent:plan:completed",
+          "cart-manager-agent:execute:completed",
+          "cart-manager-agent:verify:completed",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [
+          {
+            "tool": "cart.add",
+            "status": "completed",
+            "productIds": [
+              "prod_chefmax_af55"
+            ],
+            "beforeQuantity": 0,
+            "afterQuantity": 1,
+            "cartVersionBefore": 1,
+            "cartVersionAfter": 2,
+            "result": "Đã thêm 1 × Nồi chiên không dầu AVA 5.5 lít 55K07A vào giỏ hàng."
+          }
+        ],
+        "cartActionType": "add",
+        "cartResolvedProductIds": [
+          "prod_chefmax_af55"
+        ],
+        "memory": {
+          "recentTurnCount": 6,
+          "rollingSummaryLength": 923,
+          "recentRecommendationIds": [
+            "prod_chefmax_af55",
+            "prod_kitchen_03",
+            "prod_kitchen_07"
+          ],
+          "preferenceKeys": [
+            "rolling_summary",
+            "recent_recommendations",
+            "recent_categories",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_chefmax_af55",
+            "prod_kitchen_03",
+            "prod_kitchen_07"
+          ],
+          "selectedProductIds": [
+            "prod_chefmax_af55"
+          ],
+          "contextDocumentCount": 0,
+          "rerankTopScores": []
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A080",
+      "group": "auth-history-3",
+      "mode": "auth",
+      "category": "cart_status",
+      "prompt": "Kiểm tra lại món vừa thêm trong giỏ và nói vì sao nó hợp tôi.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 2128,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_status",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Chào bạn, trong giỏ hàng của bạn hiện có Nồi chiên không dầu AVA 5.5 lít 55K07A. Sản phẩm này rất phù hợp vì nó có thiết kế đơn giản, dễ làm quen, rất tiện lợi cho những người mới sử dụng. Bạn cần tôi hỗ trợ thêm thông tin gì về sản phẩm này không ạ?",
+      "textPreview": "Chào bạn, trong giỏ hàng của bạn hiện có Nồi chiên không dầu AVA 5.5 lít 55K07A. Sản phẩm này rất phù hợp vì nó có thiết kế đơn giản, dễ làm quen, rất tiện lợi cho những người mới sử dụng. Bạn cần tôi hỗ trợ thêm thông tin gì về sản phẩm này không ạ?",
+      "productIds": [],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpnlh3dt0000z4ulcb34unda-1779857960142",
+        "version": 2,
+        "status": "active",
+        "items": [
+          {
+            "productId": "prod_chefmax_af55",
+            "quantity": 1,
+            "unitPrice": 1490000,
+            "lineTotal": 1490000
+          }
+        ],
+        "subtotal": 1490000,
+        "grandTotal": 1490000
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "rag-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 63,
+        "playbackCount": 63,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 6,
+          "rollingSummaryLength": 1212,
+          "recentRecommendationIds": [],
+          "preferenceKeys": [
+            "rolling_summary",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent",
+            "agent_history:user-analysis-agent",
+            "agent_history:memory-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_chefmax_af55"
+          ],
+          "selectedProductIds": [],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            0.842773
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A081",
+      "group": "auth-history-4",
+      "mode": "auth",
+      "category": "product",
+      "prompt": "Tìm 3 sản phẩm chăm sóc cá nhân làm quà cho bố mẹ, không quá khó dùng.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 4118,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "recommend",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Chào bạn, để tìm quà tặng chăm sóc cá nhân cho bố mẹ mà không quá phức tạp, tôi gợi ý bạn tham khảo các sản phẩm sau nhé:\nMáy đo huyết áp Omron HEM-7121\nBạn xem các sản phẩm này để tham khảo thêm nha!",
+      "textPreview": "Chào bạn, để tìm quà tặng chăm sóc cá nhân cho bố mẹ mà không quá phức tạp, tôi gợi ý bạn tham khảo các sản phẩm sau nhé:\nMáy đo huyết áp Omron HEM-7121\nBạn xem các sản phẩm này để tham khảo thêm nha!",
+      "productIds": [
+        "prod_air_05",
+        "prod_care_13",
+        "prod_air_10"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpnlhscs0023z4ulsmh644up-1779857992452",
+        "version": 1,
+        "status": "active",
+        "items": [],
+        "subtotal": 0,
+        "grandTotal": 0
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 63,
+        "playbackCount": 63,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 0,
+          "rollingSummaryLength": 0,
+          "recentRecommendationIds": [],
+          "preferenceKeys": []
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_air_05",
+            "prod_care_13",
+            "prod_air_10",
+            "prod_care_12",
+            "prod_care_14",
+            "prod_care_10",
+            "prod_care_01",
+            "prod_kitchen_08"
+          ],
+          "selectedProductIds": [
+            "prod_air_05",
+            "prod_care_13",
+            "prod_air_10"
+          ],
+          "contextDocumentCount": 3,
+          "rerankTopScores": [
+            0.051514,
+            -0.71875,
+            -0.841309
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A082",
+      "group": "auth-history-4",
+      "mode": "auth",
+      "category": "history_followup",
+      "prompt": "Sản phẩm nào trong đó phù hợp người lớn tuổi nhất?",
+      "grade": "warn",
+      "score": 94,
+      "elapsedMs": 4046,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "recommend",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Mình đang giữ lại Nồi chiên không dầu Kangaroo 8 lít KG8AF1A trong khung gợi ý vì sản phẩm này khớp nhất với dữ liệu hiện có. Bạn có thể xem thông tin trên thẻ hoặc nói thêm tiêu chí để mình lọc lại chính xác hơn.",
+      "textPreview": "Mình đang giữ lại Nồi chiên không dầu Kangaroo 8 lít KG8AF1A trong khung gợi ý vì sản phẩm này khớp nhất với dữ liệu hiện có. Bạn có thể xem thông tin trên thẻ hoặc nói thêm tiêu chí để mình lọc lại chính xác hơn.",
+      "productIds": [
+        "prod_kitchen_12"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpnlhscs0023z4ulsmh644up-1779857992452",
+        "version": 1,
+        "status": "active",
+        "items": [],
+        "subtotal": 0,
+        "grandTotal": 0
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 63,
+        "playbackCount": 63,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 2,
+          "rollingSummaryLength": 285,
+          "recentRecommendationIds": [
+            "prod_air_05",
+            "prod_care_13",
+            "prod_air_10"
+          ],
+          "preferenceKeys": [
+            "rolling_summary",
+            "recent_recommendations",
+            "recent_categories",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_kitchen_12",
+            "prod_smart_01",
+            "prod_care_14",
+            "prod_smart_03",
+            "prod_smart_07",
+            "prod_blender_09",
+            "prod_smart_12",
+            "prod_chefmax_af55"
+          ],
+          "selectedProductIds": [
+            "prod_kitchen_12"
+          ],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            -2.689453
+          ]
+        },
+        "errors": []
+      },
+      "issues": [
+        {
+          "severity": "warn",
+          "code": "intent_review:recommend:expected_compare"
+        }
+      ]
+    },
+    {
+      "id": "A083",
+      "group": "auth-history-4",
+      "mode": "auth",
+      "category": "history_cart",
+      "prompt": "Thêm sản phẩm phù hợp người lớn tuổi nhất vào giỏ.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 4084,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_action",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Mình đang giữ lại Nồi chiên không dầu Kangaroo 8 lít KG8AF1A trong khung gợi ý vì sản phẩm này khớp nhất với dữ liệu hiện có. Bạn có thể xem thông tin trên thẻ hoặc nói thêm tiêu chí để mình lọc lại chính xác hơn.",
+      "textPreview": "Mình đang giữ lại Nồi chiên không dầu Kangaroo 8 lít KG8AF1A trong khung gợi ý vì sản phẩm này khớp nhất với dữ liệu hiện có. Bạn có thể xem thông tin trên thẻ hoặc nói thêm tiêu chí để mình lọc lại chính xác hơn.",
+      "productIds": [
+        "prod_kitchen_12"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpnlhscs0023z4ulsmh644up-1779857992452",
+        "version": 2,
+        "status": "active",
+        "items": [
+          {
+            "productId": "prod_kitchen_12",
+            "quantity": 1,
+            "unitPrice": 1790000,
+            "lineTotal": 1790000
+          }
+        ],
+        "subtotal": 1790000,
+        "grandTotal": 1790000
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 35,
+        "edgeCount": 71,
+        "playbackCount": 71,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:lookup:completed",
+          "cart-manager-agent:plan:completed",
+          "cart-manager-agent:execute:completed",
+          "cart-manager-agent:verify:completed",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [
+          {
+            "tool": "cart.add",
+            "status": "completed",
+            "productIds": [
+              "prod_kitchen_12"
+            ],
+            "beforeQuantity": 0,
+            "afterQuantity": 1,
+            "cartVersionBefore": 1,
+            "cartVersionAfter": 2,
+            "result": "Đã thêm 1 × Nồi chiên không dầu Kangaroo 8 lít KG8AF1A vào giỏ hàng."
+          }
+        ],
+        "cartActionType": "add",
+        "cartResolvedProductIds": [
+          "prod_kitchen_12"
+        ],
+        "memory": {
+          "recentTurnCount": 4,
+          "rollingSummaryLength": 564,
+          "recentRecommendationIds": [
+            "prod_kitchen_12"
+          ],
+          "preferenceKeys": [
+            "rolling_summary",
+            "recent_recommendations",
+            "recent_categories",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_kitchen_12"
+          ],
+          "selectedProductIds": [
+            "prod_kitchen_12"
+          ],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            1.358398
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A084",
+      "group": "auth-history-4",
+      "mode": "auth",
+      "category": "history_followup",
+      "prompt": "Có món nào khác cùng mục đích nhưng rẻ hơn món vừa thêm không?",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 2504,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "recommend",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Chào bạn, tôi hiểu bạn muốn tìm sản phẩm tương tự nhưng có giá tốt hơn món vừa thêm vào giỏ hàng. Hiện tại, tôi đang có gợi ý là Lò chiên không dầu Hawonkoo 18 lít AFH-180-GR với giá 2.890.000 đồng. Bạn có muốn tôi so sánh sản phẩm này với các lựa chọn khác trong cùng danh mục không?",
+      "textPreview": "Chào bạn, tôi hiểu bạn muốn tìm sản phẩm tương tự nhưng có giá tốt hơn món vừa thêm vào giỏ hàng. Hiện tại, tôi đang có gợi ý là Lò chiên không dầu Hawonkoo 18 lít AFH-180-GR với giá 2.890.000 đồng. Bạn có muốn tôi so sánh sản phẩm này với các lựa chọn khác trong cùng danh mục không?",
+      "productIds": [
+        "prod_kitchen_04"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpnlhscs0023z4ulsmh644up-1779857992452",
+        "version": 2,
+        "status": "active",
+        "items": [
+          {
+            "productId": "prod_kitchen_12",
+            "quantity": 1,
+            "unitPrice": 1790000,
+            "lineTotal": 1790000
+          }
+        ],
+        "subtotal": 1790000,
+        "grandTotal": 1790000
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 34,
+        "edgeCount": 68,
+        "playbackCount": 68,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 6,
+          "rollingSummaryLength": 843,
+          "recentRecommendationIds": [
+            "prod_kitchen_12"
+          ],
+          "preferenceKeys": [
+            "rolling_summary",
+            "recent_recommendations",
+            "recent_categories",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_kitchen_04",
+            "prod_kitchen_08",
+            "prod_climate_03",
+            "prod_air_09",
+            "prod_clean_14",
+            "prod_care_12",
+            "prod_smart_05",
+            "prod_care_05"
+          ],
+          "selectedProductIds": [
+            "prod_kitchen_04"
+          ],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            -1.703125
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A085",
+      "group": "auth-history-4",
+      "mode": "auth",
+      "category": "cart_action",
+      "prompt": "Xóa món vừa thêm khỏi giỏ vì tôi muốn cân nhắc thêm.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 4735,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_action",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Đã xoá Lò chiên không dầu Hawonkoo 18 lít AFH-180-GR khỏi giỏ hàng.\nTôi đã xóa Lò chiên không dầu Hawonkoo 18 lít AFH-180-GR khỏi giỏ hàng giúp bạn. Bạn muốn xem thêm sản phẩm nào khác không ạ?",
+      "textPreview": "Đã xoá Lò chiên không dầu Hawonkoo 18 lít AFH-180-GR khỏi giỏ hàng.\nTôi đã xóa Lò chiên không dầu Hawonkoo 18 lít AFH-180-GR khỏi giỏ hàng giúp bạn. Bạn muốn xem thêm sản phẩm nào khác không ạ?",
+      "productIds": [
+        "prod_kitchen_04"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpnlhscs0023z4ulsmh644up-1779857992452",
+        "version": 3,
+        "status": "active",
+        "items": [
+          {
+            "productId": "prod_kitchen_12",
+            "quantity": 1,
+            "unitPrice": 1790000,
+            "lineTotal": 1790000
+          }
+        ],
+        "subtotal": 1790000,
+        "grandTotal": 1790000
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 35,
+        "edgeCount": 71,
+        "playbackCount": 71,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:lookup:completed",
+          "cart-manager-agent:plan:completed",
+          "cart-manager-agent:execute:completed",
+          "cart-manager-agent:verify:completed",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [
+          {
+            "tool": "cart.remove",
+            "status": "completed",
+            "productIds": [
+              "prod_kitchen_04"
+            ],
+            "beforeQuantity": 0,
+            "afterQuantity": 0,
+            "cartVersionBefore": 2,
+            "cartVersionAfter": 3,
+            "result": "Đã xoá Lò chiên không dầu Hawonkoo 18 lít AFH-180-GR khỏi giỏ hàng."
+          }
+        ],
+        "cartActionType": "remove",
+        "cartResolvedProductIds": [
+          "prod_kitchen_04"
+        ],
+        "memory": {
+          "recentTurnCount": 6,
+          "rollingSummaryLength": 1205,
+          "recentRecommendationIds": [
+            "prod_kitchen_04"
+          ],
+          "preferenceKeys": [
+            "rolling_summary",
+            "recent_recommendations",
+            "recent_categories",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_kitchen_04",
+            "prod_kitchen_12",
+            "prod_air_05",
+            "prod_care_13",
+            "prod_air_10"
+          ],
+          "selectedProductIds": [
+            "prod_kitchen_04"
+          ],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            1.583008
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    }
+  ]
+}

@@ -55,7 +55,8 @@ export class AgentController {
 
 function writeStreamCorsHeaders(reply: FastifyReply, statusCode: number, headers: Record<string, string> = {}) {
   const origin = reply.request.headers.origin;
-  const allowedOrigin = origin === 'http://127.0.0.1:7000' || origin === 'http://localhost:7000' ? origin : 'http://127.0.0.1:7000';
+  const allowedOrigins = readCorsOrigins();
+  const allowedOrigin = origin && allowedOrigins.includes(origin.replace(/\/$/, '')) ? origin : allowedOrigins[0];
   reply.raw.writeHead(statusCode, {
     'access-control-allow-origin': allowedOrigin,
     'access-control-allow-credentials': 'true',
@@ -64,4 +65,12 @@ function writeStreamCorsHeaders(reply: FastifyReply, statusCode: number, headers
     vary: 'Origin',
     ...headers,
   });
+}
+
+function readCorsOrigins(): string[] {
+  const fallback = 'http://127.0.0.1:6800,http://localhost:6800,http://127.0.0.1:6820,http://localhost:6820';
+  return (process.env.CORS_ORIGINS ?? fallback)
+    .split(',')
+    .map((origin) => origin.trim().replace(/\/$/, ''))
+    .filter(Boolean);
 }

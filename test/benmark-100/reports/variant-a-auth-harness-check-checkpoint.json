@@ -1,0 +1,366 @@
+{
+  "generatedAt": "2026-05-27T00:56:05.253Z",
+  "authGroups": [
+    [
+      "auth-history-1",
+      "retail_session=u6cpj5zl5Oh51aswMvWsjSmQ_yk9VUMHq37ump5pk-k; HttpOnly; SameSite=Lax; Path=/; Max-Age=604800"
+    ]
+  ],
+  "groupState": [
+    [
+      "auth-history-1",
+      {
+        "lastIntent": "cart_action",
+        "lastProductIds": [
+          "prod_care_06"
+        ],
+        "lastCartProductIds": [
+          "prod_care_06"
+        ],
+        "cartItemCount": 1,
+        "cartGrandTotal": 990000
+      }
+    ]
+  ],
+  "results": [
+    {
+      "id": "A021",
+      "group": "auth-history-1",
+      "mode": "auth",
+      "category": "product",
+      "prompt": "Tư vấn 3 máy lọc không khí cho phòng ngủ 20m2, ưu tiên êm và dễ thay màng.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 4439,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "recommend",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Mình đang giữ lại Máy lọc không khí Levoit Core 200S 26W trong khung gợi ý vì sản phẩm này khớp nhất với dữ liệu hiện có. Bạn có thể xem thông tin trên thẻ hoặc nói thêm tiêu chí để mình lọc lại chính xác hơn.",
+      "textPreview": "Mình đang giữ lại Máy lọc không khí Levoit Core 200S 26W trong khung gợi ý vì sản phẩm này khớp nhất với dữ liệu hiện có. Bạn có thể xem thông tin trên thẻ hoặc nói thêm tiêu chí để mình lọc lại chính xác hơn.",
+      "productIds": [
+        "prod_air_16"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpncs1y9003mi4ultuabfub1-1779843355125",
+        "version": 1,
+        "status": "active",
+        "items": [],
+        "subtotal": 0,
+        "grandTotal": 0
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 63,
+        "playbackCount": 63,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 0,
+          "rollingSummaryLength": 0,
+          "recentRecommendationIds": [],
+          "preferenceKeys": []
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_air_16",
+            "prod_air_10",
+            "prod_fresh_home_mini_20",
+            "prod_air_03",
+            "prod_air_clean_p35",
+            "prod_air_04",
+            "prod_air_06",
+            "prod_air_07"
+          ],
+          "selectedProductIds": [
+            "prod_air_16"
+          ],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            2.076172
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A022",
+      "group": "auth-history-1",
+      "mode": "auth",
+      "category": "history_compare",
+      "prompt": "So sánh hai sản phẩm đầu tiên ở trên, nói ngắn gọn cái nào hợp phòng ngủ hơn.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 2225,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "compare",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Mình đang hiển thị 2 lựa chọn phù hợp trong khung gợi ý: Camera IP Ezviz C6N và Máy sấy tóc Xiaomi Mijia H300. Bạn có thể bấm qua từng thẻ để xem nhanh, hoặc nói thêm ngân sách/kích thước/phòng dùng để mình lọc tiếp.",
+      "textPreview": "Mình đang hiển thị 2 lựa chọn phù hợp trong khung gợi ý: Camera IP Ezviz C6N và Máy sấy tóc Xiaomi Mijia H300. Bạn có thể bấm qua từng thẻ để xem nhanh, hoặc nói thêm ngân sách/kích thước/phòng dùng để mình lọc tiếp.",
+      "productIds": [
+        "prod_smart_05",
+        "prod_care_05"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpncs1y9003mi4ultuabfub1-1779843355125",
+        "version": 1,
+        "status": "active",
+        "items": [],
+        "subtotal": 0,
+        "grandTotal": 0
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 63,
+        "playbackCount": 63,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 2,
+          "rollingSummaryLength": 298,
+          "recentRecommendationIds": [
+            "prod_air_16"
+          ],
+          "preferenceKeys": [
+            "rolling_summary",
+            "recent_recommendations",
+            "recent_categories",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_smart_05",
+            "prod_care_05",
+            "prod_fresh_home_mini_20",
+            "prod_care_07",
+            "prod_air_03",
+            "prod_kitchen_06",
+            "prod_climate_13",
+            "prod_care_04"
+          ],
+          "selectedProductIds": [
+            "prod_smart_05",
+            "prod_care_05"
+          ],
+          "contextDocumentCount": 2,
+          "rerankTopScores": [
+            1.717773,
+            1.097656
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A023",
+      "group": "auth-history-1",
+      "mode": "auth",
+      "category": "history_cart",
+      "prompt": "Thêm cái thứ hai vào giỏ hàng giúp tôi.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 1830,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_action",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Đã thêm 1 × Bàn chải điện Oral-B Pro 1 vào giỏ hàng.\nMình đã thêm Bàn chải điện Oral-B Pro 1 vào giỏ hàng của bạn rồi nhé. Bạn cần mình hỗ trợ thêm về sản phẩm nào khác không?",
+      "textPreview": "Đã thêm 1 × Bàn chải điện Oral-B Pro 1 vào giỏ hàng.\nMình đã thêm Bàn chải điện Oral-B Pro 1 vào giỏ hàng của bạn rồi nhé. Bạn cần mình hỗ trợ thêm về sản phẩm nào khác không?",
+      "productIds": [
+        "prod_care_06"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpncs1y9003mi4ultuabfub1-1779843355125",
+        "version": 2,
+        "status": "active",
+        "items": [
+          {
+            "productId": "prod_care_06",
+            "quantity": 1,
+            "unitPrice": 990000,
+            "lineTotal": 990000
+          }
+        ],
+        "subtotal": 990000,
+        "grandTotal": 990000
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 35,
+        "edgeCount": 71,
+        "playbackCount": 71,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:lookup:completed",
+          "cart-manager-agent:plan:completed",
+          "cart-manager-agent:execute:completed",
+          "cart-manager-agent:verify:completed",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [
+          {
+            "tool": "cart.add",
+            "status": "completed",
+            "productIds": [
+              "prod_care_06"
+            ],
+            "beforeQuantity": 0,
+            "afterQuantity": 1,
+            "cartVersionBefore": 1,
+            "cartVersionAfter": 2,
+            "result": "Đã thêm 1 × Bàn chải điện Oral-B Pro 1 vào giỏ hàng."
+          }
+        ],
+        "cartActionType": "add",
+        "cartResolvedProductIds": [
+          "prod_care_06"
+        ],
+        "memory": {
+          "recentTurnCount": 4,
+          "rollingSummaryLength": 607,
+          "recentRecommendationIds": [
+            "prod_smart_05",
+            "prod_care_05"
+          ],
+          "preferenceKeys": [
+            "rolling_summary",
+            "recent_recommendations",
+            "recent_categories",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_care_08",
+            "prod_care_06",
+            "prod_care_07",
+            "prod_smart_13",
+            "prod_care_04",
+            "prod_care_09",
+            "prod_smart_01",
+            "prod_blender_04"
+          ],
+          "selectedProductIds": [
+            "prod_care_06"
+          ],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            2.298828
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    }
+  ]
+}

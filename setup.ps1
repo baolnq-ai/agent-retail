@@ -7,8 +7,8 @@ $RuntimeLogDir = Join-Path $LogRoot 'runtime'
 $ApiLogDir = Join-Path $RuntimeLogDir 'backend'
 $WebLogDir = Join-Path $RuntimeLogDir 'frontend'
 $SetupLog = Join-Path $SetupLogDir ("setup-{0}.log" -f (Get-Date -Format 'yyyyMMdd-HHmmss'))
-$ApiLog = Join-Path $ApiLogDir 'api-7010.log'
-$WebLog = Join-Path $WebLogDir 'web-7000.log'
+$ApiLog = Join-Path $ApiLogDir 'api-6810.log'
+$WebLog = Join-Path $WebLogDir 'web-6800.log'
 $EnvFile = Join-Path $RootDir '.env'
 $EnvExample = Join-Path $RootDir '.env.example'
 $TerminalMode = if ($env:SETUP_TERMINAL_MODE) { $env:SETUP_TERMINAL_MODE.ToLowerInvariant() } else { 'window' }
@@ -118,13 +118,13 @@ function Import-EnvFile {
     }
   }
 
-  if (-not $env:API_PORT) { $env:API_PORT = '7010' }
-  if (-not $env:WEB_PORT) { $env:WEB_PORT = '7000' }
-  if (-not $env:NGINX_PORT) { $env:NGINX_PORT = '7080' }
-  if (-not $env:POSTGRES_PORT) { $env:POSTGRES_PORT = '55432' }
-  if (-not $env:REDIS_PORT) { $env:REDIS_PORT = '56379' }
-  if (-not $env:QDRANT_PORT) { $env:QDRANT_PORT = '6333' }
-  if (-not $env:QDRANT_GRPC_PORT) { $env:QDRANT_GRPC_PORT = '6334' }
+  if (-not $env:API_PORT) { $env:API_PORT = '6810' }
+  if (-not $env:WEB_PORT) { $env:WEB_PORT = '6800' }
+  if (-not $env:NGINX_PORT) { $env:NGINX_PORT = '6820' }
+  if (-not $env:POSTGRES_PORT) { $env:POSTGRES_PORT = '6832' }
+  if (-not $env:REDIS_PORT) { $env:REDIS_PORT = '6839' }
+  if (-not $env:QDRANT_PORT) { $env:QDRANT_PORT = '6833' }
+  if (-not $env:QDRANT_GRPC_PORT) { $env:QDRANT_GRPC_PORT = '6834' }
   if (-not $env:COMPOSE_PROJECT_NAME) { $env:COMPOSE_PROJECT_NAME = 'retail_agent_provider' }
   if (-not $env:DATABASE_URL) { $env:DATABASE_URL = 'postgresql://retail:retail_password@localhost:' + $env:POSTGRES_PORT + '/retail_agent?schema=public' }
   if (-not $env:REDIS_URL) { $env:REDIS_URL = 'redis://localhost:' + $env:REDIS_PORT }

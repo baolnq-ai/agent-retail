@@ -55,7 +55,7 @@ function classifyAmbiguity(message: string, hint: HistoryAgentRequest['ambiguity
   if (ordinalPhrase) return { phrase: ordinalPhrase.phrase, type: 'ordinal', confidence: 0.86 };
   if (/(vua de xuat|vua goi y|san pham vua|mau vua)/.test(normalized)) return { phrase: 'vua de xuat', type: 'previous_recommendation', confidence: 0.9 };
   if (/(vua tim|ket qua tim|tim luc nay)/.test(normalized)) return { phrase: 'vua tim', type: 'previous_search', confidence: 0.86 };
-  if (/(trong gio|gio hang|da them|moi them)/.test(normalized) && /(cai do|san pham do|no|mau do)/.test(normalized)) return { phrase: 'cart reference', type: 'cart_item', confidence: 0.82 };
+  if (/(trong gio|gio hang|da them|moi them|vua them|mon vua them|san pham vua them|con lai)/.test(normalized) && /(cai do|san pham do|no|mau do|mon|san pham|con lai|vua them)/.test(normalized)) return { phrase: 'cart reference', type: 'cart_item', confidence: 0.82 };
   if (/(cai do|cai nay|mau do|san pham do|no|hang do|loai do|vay)/.test(normalized)) return { phrase: 'pronoun reference', type: 'pronoun', confidence: 0.78 };
   return { phrase: undefined, type: 'general_context', confidence: 0.45 };
 }

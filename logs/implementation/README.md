@@ -1,22 +1,22 @@
-# Implementation log index
+# Implementation Log Index
 
-- Updated: 2026-05-18
-- Scope: concise human-written task logs.
+- Cập nhật: 2026-05-28
+- Phạm vi: log triển khai code/UI/runtime của dự án.
 
-## Current logs
+## Log Hiện Tại
 
-- [`2026-05-18-docs-ci-readme-log.md`](2026-05-18-docs-ci-readme-log.md) — documentation, logs, README, banner, CI/CD, and push workflow standardization.
+| Log | Nội dung |
+| --- | --- |
+| [docs-readme-sync-and-release-push-20260528.md](docs-readme-sync-and-release-push-20260528.md) | Đồng bộ README/docs/logs/plans và push GitHub |
+| [docker-hub-multiarch-compose-20260528.md](docker-hub-multiarch-compose-20260528.md) | Đóng gói Docker Hub multi-arch và Compose một file |
+| [setup-linux-tmux-port-cleanup-20260527.md](setup-linux-tmux-port-cleanup-20260527.md) | Setup Linux/tmux, port 6800-6850 và cleanup source |
+| [benmark-100-pipeline-audit-20260527.md](benmark-100-pipeline-audit-20260527.md) | Benchmark 100 câu, pipeline/cart/history |
+| [frontend-branding-dashboard-prompt-20260526.md](frontend-branding-dashboard-prompt-20260526.md) | Branding, dashboard, prompt settings |
 
-## Historical logs
+## Log Lịch Sử
 
-Older phase logs in this folder document previous implementation milestones. Treat them as history; use `docs/` for current operating instructions.
+Các log phase cũ trong folder này ghi lại mốc triển khai trước đó. Dùng `docs/`, `plans/CURRENT.md` và README gốc làm hướng dẫn vận hành hiện tại.
 
-## Logging format
+## Format
 
-Each new markdown log should include:
-
-1. date/time;
-2. task scope;
-3. important changes;
-4. verification commands/results;
-5. follow-up items if any.
+Mỗi log mới nên có ngày, phạm vi, file đã sửa, command verify, kết quả và rủi ro còn lại. Không ghi secret hoặc nội dung `.env`.

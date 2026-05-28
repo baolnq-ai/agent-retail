@@ -6,13 +6,13 @@
 
 ## Mục Tiêu
 
-Thêm một entry nginx chạy bằng Docker Compose để người dùng tunnel dự án qua một cổng duy nhất. Cổng mặc định là `7080`.
+Thêm một entry nginx chạy bằng Docker Compose để người dùng tunnel dự án qua một cổng duy nhất. Cổng mặc định hiện tại là `6820`.
 
 ## Thay Đổi
 
 - Thêm service `nginx` vào `infra/docker/docker-compose.yml`.
 - Thêm file cấu hình `infra/docker/nginx/default.conf.template`.
-- Thêm biến `NGINX_PORT=7080` vào `.env.example`.
+- Thêm biến `NGINX_PORT=6820` vào `.env.example`.
 - Cập nhật `setup.sh` và `setup.ps1` để:
   - chạy PostgreSQL, Redis và nginx bằng Docker Compose;
   - kiểm tra `http://127.0.0.1:${NGINX_PORT}/nginx-health`;
@@ -40,6 +40,6 @@ Thêm một entry nginx chạy bằng Docker Compose để người dùng tunnel
 
 ## Ghi Chú
 
-- Tunnel nên trỏ vào `http://127.0.0.1:7080`.
+- Tunnel nên trỏ vào `http://127.0.0.1:6820`.
 - Nếu chạy `SKIP_DOCKER=1`, browser sẽ gọi API trực tiếp qua `API_PORT` vì nginx không chạy.
 - `stop` và `clean` dùng cùng Docker Compose project nên nginx được tắt/xóa cùng PostgreSQL và Redis.

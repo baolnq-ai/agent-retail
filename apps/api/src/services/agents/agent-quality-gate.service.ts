@@ -3,12 +3,14 @@ import type { AgentTraceAgent } from '../../models/agent.models.js';
 import type { AgentQualityGateResult } from '../../models/agent-execution.models.js';
 import { AgentHistoryService } from '../agent-history.service.js';
 import { ModelGatewayService } from '../model-gateway.service.js';
+import { PromptSettingsService } from '../prompt-settings.service.js';
 
 @Injectable()
 export class AgentQualityGateService {
   constructor(
     private readonly modelGatewayService: ModelGatewayService,
     private readonly agentHistoryService: AgentHistoryService,
+    private readonly promptSettingsService: PromptSettingsService,
   ) {}
 
   async evaluate(params: {
@@ -39,7 +41,7 @@ export class AgentQualityGateService {
         maxTokens: 320,
         temperature: 0,
         messages: [
-          { role: 'system', content: 'Bạn là agent-quality-gate. Trả JSON thuần, không markdown. Đánh giá output của agent theo contract, chỉ rõ sai ở đâu và hướng sửa. Nếu thiếu căn cứ hoặc ngoài phạm vi retail thì yêu cầu clarify/refuse thay vì cho đoán.' },
+          { role: 'system', content: await this.promptSettingsService.getContent('quality-gate-system') || 'Bạn là agent-quality-gate. Trả JSON thuần, không markdown. Đánh giá output của agent theo contract, chỉ rõ sai ở đâu và hướng sửa. Nếu thiếu căn cứ hoặc ngoài phạm vi retail thì yêu cầu clarify/refuse thay vì cho đoán.' },
           { role: 'user', content: buildGatePrompt(params, history.summary) },
         ],
       });

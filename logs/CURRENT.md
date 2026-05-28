@@ -1,27 +1,27 @@
 # Current Log Index
 
-- Updated: 2026-05-25 12:50 +07:00
-- Purpose: quick map of latest human logs versus generated runtime logs.
+- Cập nhật: 2026-05-28 10:30 +07:00
+- Mục đích: map nhanh log human-written mới nhất và log runtime/generated.
 
 ## Latest Human Logs
 
-| Time | Status | Log | Related Plan | Evidence |
+| Thời gian | Status | Log | Plan | Evidence |
 | --- | --- | --- | --- | --- |
-| 2026-05-25 11:59 | closed | [planning/repository-doc-log-plan-index.md](planning/repository-doc-log-plan-index.md) | [../plans/platform/repository-doc-log-plan-index.md](../plans/platform/repository-doc-log-plan-index.md) | README/CURRENT indexes |
-| 2026-05-25 12:50 | closed | [planning/dashboard-flow-continuous-animation.md](planning/dashboard-flow-continuous-animation.md) | [../plans/frontend/dashboard-flow-continuous-animation.md](../plans/frontend/dashboard-flow-continuous-animation.md) | [../test/dashboard-flow-continuous-evidence-2026-05-25](../test/dashboard-flow-continuous-evidence-2026-05-25/README.md) |
-| 2026-05-25 11:19 | closed | [planning/real-catalog-web-redesign.md](planning/real-catalog-web-redesign.md) | [../plans/frontend/real-catalog-web-redesign.md](../plans/frontend/real-catalog-web-redesign.md) | [../test/real-catalog-web-redesign-evidence-2026-05-25](../test/real-catalog-web-redesign-evidence-2026-05-25/README.md) |
-| 2026-05-25 10:28 | closed | [planning/retail-chatbot-100q-agent-benchmark.md](planning/retail-chatbot-100q-agent-benchmark.md) | [../plans/agent-pipeline/retail-chatbot-100q-agent-benchmark.md](../plans/agent-pipeline/retail-chatbot-100q-agent-benchmark.md) | [../test/retail-chatbot-100q-agent-evidence-2026-05-25](../test/retail-chatbot-100q-agent-evidence-2026-05-25/README.md) |
+| 2026-05-28 | closed | [implementation/docs-readme-sync-and-release-push-20260528.md](implementation/docs-readme-sync-and-release-push-20260528.md) | [../plans/plan-docs-readme-sync-and-release-push-20260528-v1.md](../plans/plan-docs-readme-sync-and-release-push-20260528-v1.md) | README/docs/logs/plans index |
+| 2026-05-28 | completed | [implementation/docker-hub-multiarch-compose-20260528.md](implementation/docker-hub-multiarch-compose-20260528.md) | [../plans/CURRENT.md](../plans/CURRENT.md) | [../test/docker-full-compose-evidence-2026-05-28](../test/docker-full-compose-evidence-2026-05-28/README.md) |
+| 2026-05-27 | in_progress | [implementation/benmark-100-pipeline-audit-20260527.md](implementation/benmark-100-pipeline-audit-20260527.md) | [../plans/running/plan-benmark-100-pipeline-audit-20260527-v1.md](../plans/running/plan-benmark-100-pipeline-audit-20260527-v1.md) | [../test/benmark-100](../test/benmark-100/) |
+| 2026-05-26 | completed | [implementation/frontend-branding-dashboard-prompt-20260526.md](implementation/frontend-branding-dashboard-prompt-20260526.md) | [../plans/plan-frontend-branding-dashboard-prompt-20260526-v1.md](../plans/plan-frontend-branding-dashboard-prompt-20260526-v1.md) | [../test/frontend-branding-dashboard-prompt-evidence-2026-05-26](../test/frontend-branding-dashboard-prompt-evidence-2026-05-26/) |
 
 ## Generated Logs
 
-| Folder | Meaning | Read When |
+| Folder | Ý nghĩa | Khi đọc |
 | --- | --- | --- |
-| `runtime/backend/` | API process output | Debugging running API |
-| `runtime/frontend/` | Web process output | Debugging running frontend |
-| `setup/` | Setup/stop script logs | Debugging local environment |
+| `runtime/backend/` | Output process API | Debug API đang chạy |
+| `runtime/frontend/` | Output process web | Debug frontend đang chạy |
+| `setup/` | Log setup/stop script sinh ra | Debug môi trường local |
 
-## Maintenance Rule
+## Quy Tắc Bảo Trì
 
-- Human decisions go in `logs/planning/*.md` or `logs/implementation/*.md`.
-- Runtime `.log` files are evidence for debugging, not the project status source of truth.
-- Update this file after each substantial task.
+- Quyết định của người làm đi vào `logs/planning/*.md` hoặc `logs/implementation/*.md`.
+- Runtime `.log` chỉ là artifact debug, không phải source of truth của dự án.
+- Cập nhật file này sau mỗi task đáng kể.

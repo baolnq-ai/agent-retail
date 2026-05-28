@@ -1,18 +1,18 @@
 # Plan Model Integration - Retail Agent
 
-- Ngày cập nhật: 2026-05-14
+- NgÃ y cáº­p nháº­t: 2026-05-14
 - Task name: `model-integration`
-- Trạng thái: plan con, thực hiện sau backend foundation
+- Tráº¡ng thÃ¡i: plan con, thá»±c hiá»‡n sau backend foundation
 
-## 1. Mục tiêu
+## 1. Má»¥c tiÃªu
 
-Tích hợp chat model, embedding và rerank server nội bộ qua một `ModelGateway` duy nhất, có timeout, retry có kiểm soát, circuit breaker, observability, fallback và evaluation.
+TÃ­ch há»£p chat model, embedding vÃ  rerank server ná»™i bá»™ qua má»™t `ModelGateway` duy nháº¥t, cÃ³ timeout, retry cÃ³ kiá»ƒm soÃ¡t, circuit breaker, observability, fallback vÃ  evaluation.
 
 ## 2. Dependencies
 
-- Phụ thuộc: `plans/archive/initial-roadmap/master-implementation-roadmap.md` Phase 1 Backend foundation.
+- Phá»¥ thuá»™c: `plans/archive/initial-roadmap/master-implementation-roadmap.md` Phase 1 Backend foundation.
 - Block cho: agent orchestration, search vector/rerank, AI evaluation.
-- Không được gọi direct model URL ngoài module `model-gateway`.
+- KhÃ´ng Ä‘Æ°á»£c gá»i direct model URL ngoÃ i module `model-gateway`.
 
 ## 3. Required resources / prerequisites
 
@@ -23,9 +23,9 @@ Tích hợp chat model, embedding và rerank server nội bộ qua một `ModelG
 - Health: `GET /health`.
 - Embedding: `POST /api/v1/embed`.
 - Rerank: `POST /api/v1/rerank`.
-- Backend config/env system đã có.
-- Test runner đã có.
-- Nếu `testing-skill` chưa tồn tại, dùng checklist testing trong plan này.
+- Backend config/env system Ä‘Ã£ cÃ³.
+- Test runner Ä‘Ã£ cÃ³.
+- Náº¿u `testing-skill` chÆ°a tá»“n táº¡i, dÃ¹ng checklist testing trong plan nÃ y.
 
 ## 4. ModelGateway contract
 
@@ -42,37 +42,37 @@ interface ModelGateway {
 
 MVP behavior:
 
-- `chat()` dùng `google/gemma-4-E4B-it`.
-- `classifyIntent()` dùng chat model với structured JSON prompt trước.
-- `embed()` dùng `/api/v1/embed`.
-- `rerank()` dùng `/api/v1/rerank`.
-- `moderate()` dùng rule-based trước, model classifier sau nếu cần.
-- `summarizeConversation()` dùng chat model với token budget thấp.
+- `chat()` dÃ¹ng `google/gemma-4-E4B-it`.
+- `classifyIntent()` dÃ¹ng chat model vá»›i structured JSON prompt trÆ°á»›c.
+- `embed()` dÃ¹ng `/api/v1/embed`.
+- `rerank()` dÃ¹ng `/api/v1/rerank`.
+- `moderate()` dÃ¹ng rule-based trÆ°á»›c, model classifier sau náº¿u cáº§n.
+- `summarizeConversation()` dÃ¹ng chat model vá»›i token budget tháº¥p.
 
 ## 5. Timeout, retry, fallback
 
-- Chat timeout: 20-45s, chỉ retry nếu chưa stream token nào.
-- Embedding timeout: 10-15s, retry 1 lần cho network transient.
-- Rerank timeout: 5-10s, retry 1 lần cho network transient.
-- Không retry blind với mutation.
-- Chat server lỗi nhiều: fallback deterministic answer hoặc handoff.
-- Rerank lỗi: fallback keyword/vector score.
-- Embedding lỗi: fallback keyword search.
+- Chat timeout: 20-45s, chá»‰ retry náº¿u chÆ°a stream token nÃ o.
+- Embedding timeout: 10-15s, retry 1 láº§n cho network transient.
+- Rerank timeout: 5-10s, retry 1 láº§n cho network transient.
+- KhÃ´ng retry blind vá»›i mutation.
+- Chat server lá»—i nhiá»u: fallback deterministic answer hoáº·c handoff.
+- Rerank lá»—i: fallback keyword/vector score.
+- Embedding lá»—i: fallback keyword search.
 
-## 6. Prompt và output policy
+## 6. Prompt vÃ  output policy
 
-- Prompt phải có metadata: `promptName`, `version`, `modelId`.
-- Response model phải validate schema trước khi dùng để gọi tool/action.
-- Không đưa secret, system internals, raw SQL, payment data vào prompt.
-- Redact PII trước khi gửi model nếu policy yêu cầu.
-- Model không quyết định giá, tồn kho, payment, order state.
+- Prompt pháº£i cÃ³ metadata: `promptName`, `version`, `modelId`.
+- Response model pháº£i validate schema trÆ°á»›c khi dÃ¹ng Ä‘á»ƒ gá»i tool/action.
+- KhÃ´ng Ä‘Æ°a secret, system internals, raw SQL, payment data vÃ o prompt.
+- Redact PII trÆ°á»›c khi gá»­i model náº¿u policy yÃªu cáº§u.
+- Model khÃ´ng quyáº¿t Ä‘á»‹nh giÃ¡, tá»“n kho, payment, order state.
 
 ## 7. Tool calling strategy
 
-Cần test thực tế `google/gemma-4-E4B-it` qua vLLM có hỗ trợ tool/function calling chuẩn OpenAI không.
+Cáº§n test thá»±c táº¿ `google/gemma-4-E4B-it` qua vLLM cÃ³ há»— trá»£ tool/function calling chuáº©n OpenAI khÃ´ng.
 
-- Nếu ổn định: dùng native tool calling, validate `tool_calls` theo schema.
-- Nếu không ổn định: dùng strict JSON action protocol.
+- Náº¿u á»•n Ä‘á»‹nh: dÃ¹ng native tool calling, validate `tool_calls` theo schema.
+- Náº¿u khÃ´ng á»•n Ä‘á»‹nh: dÃ¹ng strict JSON action protocol.
 
 ```json
 {
@@ -82,107 +82,107 @@ Cần test thực tế `google/gemma-4-E4B-it` qua vLLM có hỗ trợ tool/func
 }
 ```
 
-Parse bằng JSON schema nghiêm ngặt. Nếu parse fail thì hỏi lại, retry có giới hạn hoặc handoff.
+Parse báº±ng JSON schema nghiÃªm ngáº·t. Náº¿u parse fail thÃ¬ há»i láº¡i, retry cÃ³ giá»›i háº¡n hoáº·c handoff.
 
-## 8. Phase thực hiện
+## 8. Phase thá»±c hiá»‡n
 
 ### Phase 1. Model smoke tests trong code
 
-- Thời gian: 0.5 ngày.
+- Thá»i gian: 0.5 ngÃ y.
 - Dependencies: backend config/test runner.
-- Skills cần đọc trước: `backend-skill`, `logging-skill`, `testing-skill` nếu tồn tại.
+- Skills cáº§n Ä‘á»c trÆ°á»›c: `backend-skill`, `logging-skill`, `testing-skill` náº¿u tá»“n táº¡i.
 - Implementation:
-  - Thêm env `CHAT_MODEL_BASE_URL`, `CHAT_MODEL_ID`, `EMBED_RERANK_BASE_URL`.
-  - Viết health client cho chat/embed/rerank.
-  - Viết smoke test chat/embed/rerank.
-- Testing bắt buộc:
+  - ThÃªm env `CHAT_MODEL_BASE_URL`, `CHAT_MODEL_ID`, `EMBED_RERANK_BASE_URL`.
+  - Viáº¿t health client cho chat/embed/rerank.
+  - Viáº¿t smoke test chat/embed/rerank.
+- Testing báº¯t buá»™c:
   - Server reachable.
-  - Response schema đúng.
-  - UTF-8 tiếng Việt đúng qua Node client.
-- Documentation bắt buộc:
-  - Ghi env vars và endpoint contract.
-- Logging bắt buộc:
-  - Log kết quả smoke, latency, lỗi nếu có.
+  - Response schema Ä‘Ãºng.
+  - UTF-8 tiáº¿ng Viá»‡t Ä‘Ãºng qua Node client.
+- Documentation báº¯t buá»™c:
+  - Ghi env vars vÃ  endpoint contract.
+- Logging báº¯t buá»™c:
+  - Log káº¿t quáº£ smoke, latency, lá»—i náº¿u cÃ³.
 - Pass criteria:
-  - Test tự động xác nhận 3 capability hoạt động.
+  - Test tá»± Ä‘á»™ng xÃ¡c nháº­n 3 capability hoáº¡t Ä‘á»™ng.
 
 ### Phase 2. Gateway abstraction
 
-- Thời gian: 0.5-1 ngày.
+- Thá»i gian: 0.5-1 ngÃ y.
 - Dependencies: Phase 1.
-- Skills cần đọc trước: `backend-skill`, `logging-skill`, `testing-skill` nếu tồn tại.
+- Skills cáº§n Ä‘á»c trÆ°á»›c: `backend-skill`, `logging-skill`, `testing-skill` náº¿u tá»“n táº¡i.
 - Implementation:
   - Implement interfaces.
   - Add timeout/retry/circuit breaker.
   - Add request id/token usage logs.
-  - Chuẩn hoá error mapping.
-- Testing bắt buộc:
+  - Chuáº©n hoÃ¡ error mapping.
+- Testing báº¯t buá»™c:
   - Unit test timeout/retry/fallback.
   - Contract test direct gateway methods.
-- Documentation bắt buộc:
-  - Document gateway behavior và fallback matrix.
-- Logging bắt buộc:
-  - Log model provider, model id, latency, error code, token usage nếu có.
+- Documentation báº¯t buá»™c:
+  - Document gateway behavior vÃ  fallback matrix.
+- Logging báº¯t buá»™c:
+  - Log model provider, model id, latency, error code, token usage náº¿u cÃ³.
 - Pass criteria:
-  - Service dùng gateway, không gọi direct URL ngoài module.
+  - Service dÃ¹ng gateway, khÃ´ng gá»i direct URL ngoÃ i module.
 
 ### Phase 3. Agent integration
 
-- Thời gian: 1 ngày.
-- Dependencies: Phase 2, tool registry cơ bản.
-- Skills cần đọc trước: `backend-skill`, `logging-skill`, `testing-skill` nếu tồn tại.
+- Thá»i gian: 1 ngÃ y.
+- Dependencies: Phase 2, tool registry cÆ¡ báº£n.
+- Skills cáº§n Ä‘á»c trÆ°á»›c: `backend-skill`, `logging-skill`, `testing-skill` náº¿u tá»“n táº¡i.
 - Implementation:
   - Intent classifier.
   - Tool decision structured output.
   - Prompt templates versioned.
   - Confirmation policy hook cho sensitive action.
-- Testing bắt buộc:
-  - Conversation tests chọn đúng tool.
+- Testing báº¯t buá»™c:
+  - Conversation tests chá»n Ä‘Ãºng tool.
   - JSON validity tests.
-  - Sensitive actions không chạy nếu chưa confirm.
-- Documentation bắt buộc:
+  - Sensitive actions khÃ´ng cháº¡y náº¿u chÆ°a confirm.
+- Documentation báº¯t buá»™c:
   - Document prompt names, output schema, confirmation rules.
-- Logging bắt buộc:
+- Logging báº¯t buá»™c:
   - Log eval cases pass/fail.
 - Pass criteria:
-  - Agent chọn đúng tool ở bộ test mẫu và không mutate khi chưa confirm.
+  - Agent chá»n Ä‘Ãºng tool á»Ÿ bá»™ test máº«u vÃ  khÃ´ng mutate khi chÆ°a confirm.
 
-### Phase 4. Eval và tuning
+### Phase 4. Eval vÃ  tuning
 
-- Thời gian: 1-2 ngày.
+- Thá»i gian: 1-2 ngÃ y.
 - Dependencies: Phase 3.
-- Skills cần đọc trước: `backend-skill`, `logging-skill`, `testing-skill` nếu tồn tại.
+- Skills cáº§n Ä‘á»c trÆ°á»›c: `backend-skill`, `logging-skill`, `testing-skill` náº¿u tá»“n táº¡i.
 - Implementation:
-  - Dataset hội thoại mẫu.
+  - Dataset há»™i thoáº¡i máº«u.
   - Regression runner.
   - Latency/token report.
-- Testing bắt buộc:
-  - 50 câu intent classification.
-  - 50 câu product advice/search.
-  - 30 câu policy QA.
-  - 30 câu cart/order action.
-  - 20 câu prompt injection/red-team.
-  - 20 câu tiếng Việt có dấu, slang, typo.
-- Documentation bắt buộc:
-  - Document eval dataset và threshold.
-- Logging bắt buộc:
+- Testing báº¯t buá»™c:
+  - 50 cÃ¢u intent classification.
+  - 50 cÃ¢u product advice/search.
+  - 30 cÃ¢u policy QA.
+  - 30 cÃ¢u cart/order action.
+  - 20 cÃ¢u prompt injection/red-team.
+  - 20 cÃ¢u tiáº¿ng Viá»‡t cÃ³ dáº¥u, slang, typo.
+- Documentation báº¯t buá»™c:
+  - Document eval dataset vÃ  threshold.
+- Logging báº¯t buá»™c:
   - Log accuracy, hallucination, latency p50/p95, UTF-8 result.
 - Pass criteria:
-  - Đạt threshold đã chốt trước khi dùng trong flow chính.
+  - Äáº¡t threshold Ä‘Ã£ chá»‘t trÆ°á»›c khi dÃ¹ng trong flow chÃ­nh.
 
 ## 9. Definition of Done
 
-- Gateway gọi được chat/embed/rerank.
-- Timeout/retry/fallback có test.
-- Prompt/output schema có version và validation.
+- Gateway gá»i Ä‘Æ°á»£c chat/embed/rerank.
+- Timeout/retry/fallback cÃ³ test.
+- Prompt/output schema cÃ³ version vÃ  validation.
 - UTF-8 verified qua Node/browser.
-- Eval dataset chạy được và report có lưu log.
-- Không có direct model URL rải rác ngoài gateway.
-- Documentation và logging được cập nhật.
+- Eval dataset cháº¡y Ä‘Æ°á»£c vÃ  report cÃ³ lÆ°u log.
+- KhÃ´ng cÃ³ direct model URL ráº£i rÃ¡c ngoÃ i gateway.
+- Documentation vÃ  logging Ä‘Æ°á»£c cáº­p nháº­t.
 
-## 10. Rủi ro
+## 10. Rá»§i ro
 
-- Tool calling native không ổn định -> dùng strict JSON action protocol.
-- Tiếng Việt bị encoding lỗi -> verify bằng Node/browser, không dựa vào PowerShell console.
+- Tool calling native khÃ´ng á»•n Ä‘á»‹nh -> dÃ¹ng strict JSON action protocol.
+- Tiáº¿ng Viá»‡t bá»‹ encoding lá»—i -> verify báº±ng Node/browser, khÃ´ng dá»±a vÃ o PowerShell console.
 - Latency cao -> intent routing, cache, deterministic shortcut.
-- Server nội bộ downtime -> health check, circuit breaker, handoff.
+- Server ná»™i bá»™ downtime -> health check, circuit breaker, handoff.

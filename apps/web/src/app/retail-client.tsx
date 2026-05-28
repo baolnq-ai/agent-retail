@@ -96,7 +96,7 @@ export function RetailChatWidget({ apiBaseUrl, initialProducts, authUser, cart, 
     {
       id: 'welcome-assistant',
       role: 'assistant',
-      content: 'Chào bạn, mình là trợ lý mua sắm RetailHome. Mình có thể tư vấn sản phẩm, chính sách và thao tác giỏ hàng khi bạn đã đăng nhập.',
+      content: 'Chào bạn, mình là trợ lý NTC AI Retail. Mình có thể tư vấn sản phẩm, kiểm tra chính sách và thao tác giỏ hàng khi bạn đã đăng nhập.',
       products: initialProducts.slice(0, 1),
       quickReplies: initialQuickReplies,
     },

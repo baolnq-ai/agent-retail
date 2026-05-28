@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { resolveBrowserApiBaseUrl } from './browser-api-base-url.js';
 import { RetailChatWidget, type AuthUser, type Cart, type Product } from './retail-client.js';
 
-const configuredApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:7010';
+const configuredApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:6820';
 const emptyCart: Cart = { id: 'account-required', version: 0, items: [], subtotal: 0, grandTotal: 0, status: 'active' };
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -97,7 +97,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="app-shell">
       <header className="commerce-header">
-        <a className="commerce-brand" href="/" aria-label="RetailHome"><span>RH</span><strong>RetailHome</strong></a>
+        <a className="commerce-brand" href="/" aria-label="NTC AI Retail Agent">
+          <img className="commerce-brand-logo" src="/logo.png" alt="" width="42" height="42" />
+          <strong>NTC AI Retail</strong>
+        </a>
         <nav className="commerce-nav" aria-label="Điều hướng chính">
           <a href="/products">Sản phẩm</a>
           <a href="/cart">Giỏ hàng{authUser ? <em>{cart.items.length}</em> : null}</a>

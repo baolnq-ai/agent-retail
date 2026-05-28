@@ -1,36 +1,36 @@
 # Current Documentation Index
 
-- Updated: 2026-05-25 12:50 +07:00
-- Purpose: quick map of current docs versus historical notes.
+- Cập nhật: 2026-05-28 10:30 +07:00
+- Mục đích: map nhanh tài liệu hiện tại và evidence mới nhất.
 
-## Read First
+## Đọc Trước
 
-| Need | File | Notes |
+| Nhu cầu | File | Ghi chú |
 | --- | --- | --- |
-| Current work status | [../plans/CURRENT.md](../plans/CURRENT.md) | Fastest way to see latest closed and active work |
-| Project architecture | [core/architecture.md](core/architecture.md) | Canonical system overview |
-| Local run and ports | [core/operations.md](core/operations.md) | Setup, stop, runtime log locations |
-| Developer workflow | [core/development.md](core/development.md) | Scripts and test workflow |
-| Agent pipeline docs | [agent-pipeline/README.md](agent-pipeline/README.md) | Current agent pipeline documentation |
+| Trạng thái việc hiện tại | [../plans/CURRENT.md](../plans/CURRENT.md) | Xem plan vừa đóng, việc còn mở và evidence |
+| Hướng dẫn chạy dự án | [../README.md](../README.md) | Docker/source, port, API, test |
+| Kiến trúc hệ thống | [core/architecture.md](core/architecture.md) | Tổng quan service, persistence, agent runtime |
+| Vận hành local | [core/operations.md](core/operations.md) | Setup, stop, clean, runtime log |
+| Agent pipeline | [agent-pipeline/README.md](agent-pipeline/README.md) | Tài liệu pipeline agent |
 
-## Latest Evidence Packages
+## Evidence Mới Nhất
 
-| Time | Evidence | What It Proves |
+| Thời gian | Evidence | Nội dung chứng minh |
 | --- | --- | --- |
-| 2026-05-25 12:50 | [dashboard-flow-continuous-evidence-2026-05-25](../test/dashboard-flow-continuous-evidence-2026-05-25/README.md) | Dashboard particle-only animation, two-color edge semantics, hidden SVG paths, motion-frame proof |
-| 2026-05-25 11:09 | [real-catalog-web-redesign-evidence-2026-05-25](../test/real-catalog-web-redesign-evidence-2026-05-25/README.md) | 100 real products, retail UI, dark/light, responsive screenshots |
-| 2026-05-25 10:16 | [retail-chatbot-100q-agent-evidence-2026-05-25](../test/retail-chatbot-100q-agent-evidence-2026-05-25/README.md) | 100-question chatbot benchmark and frontend/dashboard checks |
-| 2026-05-25 09:24 | [retail-chatbot-30q-benchmark-evidence-2026-05-25](../test/retail-chatbot-30q-benchmark-evidence-2026-05-25/README.md) | 30-question benchmark and dashboard/chat status proof |
+| 2026-05-28 | [docker-full-compose-evidence-2026-05-28](../test/docker-full-compose-evidence-2026-05-28/README.md) | Root Docker Compose chạy full stack từ Docker Hub, API/Web/dashboard/cart hoạt động |
+| 2026-05-27 | [benmark-100](../test/benmark-100/) | Benchmark chatbot 100 câu, kiểm tra pipeline/cart/history |
+| 2026-05-26 | [dashboard-line-animation-evidence-2026-05-26](../test/dashboard-line-animation-evidence-2026-05-26/README.md) | Dashboard animation line/hạt và kiểm tra video/screenshot |
+| 2026-05-26 | [agent-dashboard-icon-legend-density-evidence-2026-05-26](../test/agent-dashboard-icon-legend-density-evidence-2026-05-26/README.md) | Dashboard icon, legend, mật độ node và flow |
 
-## Historical Docs
+## Tài Liệu Lịch Sử
 
-| Folder | Meaning |
+| Folder | Ý nghĩa |
 | --- | --- |
-| `implementation/` | Phase-by-phase implementation notes, mostly historical |
-| `reports/` | Audit/readiness reports and plan summaries |
-| `agent-pipeline/legacy/` | Legacy sales-pipeline notes kept for reference |
+| `implementation/` | Ghi chú triển khai theo phase, một phần là lịch sử |
+| `reports/` | Báo cáo audit, readiness, summary |
+| `agent-pipeline/legacy/` | Ghi chú sales pipeline cũ để đối chiếu |
 
-## Maintenance Rule
+## Quy Tắc Bảo Trì
 
-- Update this file only when a new doc/evidence package becomes the latest source of truth.
-- Do not copy raw runtime logs into docs; link to logs/evidence instead.
+- Cập nhật file này khi có doc/evidence mới trở thành nguồn tham chiếu chính.
+- Không copy raw runtime log vào docs; chỉ link tới log/evidence cần đọc.

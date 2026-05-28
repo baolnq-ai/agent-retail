@@ -12,20 +12,26 @@ API_LOG=""
 WEB_LOG=""
 ENV_FILE="$ROOT_DIR/.env"
 ENV_EXAMPLE="$ROOT_DIR/.env.example"
-API_PORT="${API_PORT:-7010}"
-WEB_PORT="${WEB_PORT:-7000}"
-NGINX_PORT="${NGINX_PORT:-7080}"
-POSTGRES_PORT="${POSTGRES_PORT:-55432}"
-REDIS_PORT="${REDIS_PORT:-56379}"
-QDRANT_PORT="${QDRANT_PORT:-6333}"
-QDRANT_GRPC_PORT="${QDRANT_GRPC_PORT:-6334}"
-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-retail_agent_provider}"
+API_PORT="${API_PORT:-6810}"
+WEB_PORT="${WEB_PORT:-6800}"
+NGINX_PORT="${NGINX_PORT:-6820}"
+POSTGRES_PORT="${POSTGRES_PORT:-6832}"
+REDIS_PORT="${REDIS_PORT:-6839}"
+QDRANT_PORT="${QDRANT_PORT:-6833}"
+QDRANT_GRPC_PORT="${QDRANT_GRPC_PORT:-6834}"
+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-retail_agent_dev}"
+DOCKER_COMPOSE_PROJECT_NAME="${DOCKER_COMPOSE_PROJECT_NAME:-retail_agent_full}"
+DOCKER_IMAGE_REPO="${DOCKER_IMAGE_REPO:-baonguyen3568/ai-agent-retail}"
+IMAGE_TAG="${IMAGE_TAG:-v0.1.0-20260528}"
+SETUP_RUN_MODE="${SETUP_RUN_MODE:-}"
 LOG_RETENTION_DAYS="${LOG_RETENTION_DAYS:-7}"
 LOG_MAX_SIZE_MB="${LOG_MAX_SIZE_MB:-20}"
 RUN_TESTS="${RUN_TESTS:-0}"
 SKIP_DOCKER="${SKIP_DOCKER:-0}"
 SETUP_TERMINAL_MODE="${SETUP_TERMINAL_MODE:-auto}"
-TMUX_SESSION="${TMUX_SESSION:-retail-agent}"
+TMUX_SESSION="${TMUX_SESSION:-egnt-retail}"
+PORT_MIN=6800
+PORT_MAX=6850
 
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -83,6 +89,103 @@ command_exists() {
   command -v "$1" >/dev/null 2>&1
 }
 
+run_with_sudo() {
+  if [[ "$(id -u)" -eq 0 ]]; then
+    "$@"
+  elif command_exists sudo; then
+    sudo "$@"
+  else
+    return 1
+  fi
+}
+
+install_system_packages() {
+  local packages=("$@")
+  [[ "${#packages[@]}" -gt 0 ]] || return 0
+
+  if command_exists apt-get; then
+    run_with_sudo apt-get update >> "$SETUP_LOG" 2>&1 || return 1
+    run_with_sudo apt-get install -y "${packages[@]}" >> "$SETUP_LOG" 2>&1
+    return $?
+  fi
+  if command_exists dnf; then
+    run_with_sudo dnf install -y "${packages[@]}" >> "$SETUP_LOG" 2>&1
+    return $?
+  fi
+  if command_exists yum; then
+    run_with_sudo yum install -y "${packages[@]}" >> "$SETUP_LOG" 2>&1
+    return $?
+  fi
+  if command_exists pacman; then
+    run_with_sudo pacman -Sy --noconfirm "${packages[@]}" >> "$SETUP_LOG" 2>&1
+    return $?
+  fi
+  if command_exists apk; then
+    run_with_sudo apk add --no-cache "${packages[@]}" >> "$SETUP_LOG" 2>&1
+    return $?
+  fi
+  if command_exists brew; then
+    brew install "${packages[@]}" >> "$SETUP_LOG" 2>&1
+    return $?
+  fi
+  return 1
+}
+
+ensure_system_dependencies() {
+  step "Check Linux/macOS helper tools"
+
+  local missing=()
+  command_exists curl || missing+=(curl)
+  command_exists tmux || missing+=(tmux)
+  if ! command_exists nc; then
+    if command_exists apt-get || command_exists dnf || command_exists yum; then
+      missing+=(netcat-openbsd)
+    elif command_exists pacman; then
+      missing+=(gnu-netcat)
+    elif command_exists apk; then
+      missing+=(netcat-openbsd)
+    else
+      missing+=(netcat)
+    fi
+  fi
+  command_exists lsof || missing+=(lsof)
+
+  if [[ "${#missing[@]}" -gt 0 ]]; then
+    if install_system_packages "${missing[@]}"; then
+      ok "Installed missing helper tools: ${missing[*]}"
+    else
+      warn "Could not auto-install helper tools (${missing[*]}). Install them manually if port/tmux checks fail."
+    fi
+  else
+    ok "Helper tools are available"
+  fi
+
+  if ! command_exists docker; then
+    if [[ "$SKIP_DOCKER" != "1" ]]; then
+      if command_exists apt-get; then
+        if install_system_packages docker.io docker-compose-plugin; then
+          ok "Installed Docker packages from apt. If the daemon is not running, start Docker and rerun setup."
+        else
+          warn "Docker CLI not found and auto-install failed. Install Docker Engine/Desktop or run with SKIP_DOCKER=1."
+        fi
+      else
+        warn "Docker CLI not found. Install Docker Engine/Desktop or run with SKIP_DOCKER=1."
+      fi
+    fi
+  fi
+}
+
+validate_port_range() {
+  local name="$1"
+  local value="$2"
+  if ! [[ "$value" =~ ^[0-9]+$ ]]; then
+    fail "$name must be a number, got: $value"
+  fi
+  if (( value < PORT_MIN || value > PORT_MAX )); then
+    fail "$name=$value is outside the project port range ${PORT_MIN}-${PORT_MAX}"
+  fi
+}
+
 load_env_file() {
   local incoming_api_port="${API_PORT:-}"
   local incoming_web_port="${WEB_PORT:-}"
@@ -92,6 +195,11 @@ load_env_file() {
   local incoming_qdrant_port="${QDRANT_PORT:-}"
   local incoming_qdrant_grpc_port="${QDRANT_GRPC_PORT:-}"
   local incoming_compose_project_name="${COMPOSE_PROJECT_NAME:-}"
+  local incoming_docker_compose_project_name="${DOCKER_COMPOSE_PROJECT_NAME:-}"
+  local incoming_docker_image_repo="${DOCKER_IMAGE_REPO:-}"
+  local incoming_image_tag="${IMAGE_TAG:-}"
+  local incoming_setup_run_mode="${SETUP_RUN_MODE:-}"
+  local incoming_tmux_session="${TMUX_SESSION:-}"
   local incoming_database_url="${DATABASE_URL:-}"
   local incoming_chat_model_base_url="${CHAT_MODEL_BASE_URL:-}"
   local incoming_chat_model_id="${CHAT_MODEL_ID:-}"
@@ -120,14 +228,23 @@ load_env_file() {
   local loaded_chat_model_id="${CHAT_MODEL_ID:-}"
   local loaded_embed_rerank_base_url="${EMBED_RERANK_BASE_URL:-}"
 
-  export API_PORT="${incoming_api_port:-${API_PORT:-7010}}"
-  export WEB_PORT="${incoming_web_port:-${WEB_PORT:-7000}}"
-  export NGINX_PORT="${incoming_nginx_port:-${NGINX_PORT:-7080}}"
-  export POSTGRES_PORT="${incoming_postgres_port:-${POSTGRES_PORT:-55432}}"
-  export REDIS_PORT="${incoming_redis_port:-${REDIS_PORT:-56379}}"
-  export QDRANT_PORT="${incoming_qdrant_port:-${QDRANT_PORT:-6333}}"
-  export QDRANT_GRPC_PORT="${incoming_qdrant_grpc_port:-${QDRANT_GRPC_PORT:-6334}}"
-  export COMPOSE_PROJECT_NAME="${incoming_compose_project_name:-${COMPOSE_PROJECT_NAME:-retail_agent_provider}}"
+  export API_PORT="${incoming_api_port:-${API_PORT:-6810}}"
+  export WEB_PORT="${incoming_web_port:-${WEB_PORT:-6800}}"
+  export NGINX_PORT="${incoming_nginx_port:-${NGINX_PORT:-6820}}"
+  export POSTGRES_PORT="${incoming_postgres_port:-${POSTGRES_PORT:-6832}}"
+  export REDIS_PORT="${incoming_redis_port:-${REDIS_PORT:-6839}}"
+  export QDRANT_PORT="${incoming_qdrant_port:-${QDRANT_PORT:-6833}}"
+  export QDRANT_GRPC_PORT="${incoming_qdrant_grpc_port:-${QDRANT_GRPC_PORT:-6834}}"
+  export COMPOSE_PROJECT_NAME="${incoming_compose_project_name:-${COMPOSE_PROJECT_NAME:-retail_agent_dev}}"
+  export DOCKER_COMPOSE_PROJECT_NAME="${incoming_docker_compose_project_name:-${DOCKER_COMPOSE_PROJECT_NAME:-retail_agent_full}}"
+  export DOCKER_IMAGE_REPO="${incoming_docker_image_repo:-${DOCKER_IMAGE_REPO:-baonguyen3568/ai-agent-retail}}"
+  export IMAGE_TAG="${incoming_image_tag:-${IMAGE_TAG:-v0.1.0-20260528}}"
+  export SETUP_RUN_MODE="${incoming_setup_run_mode:-${SETUP_RUN_MODE:-}}"
+  export TMUX_SESSION="${incoming_tmux_session:-${TMUX_SESSION:-egnt-retail}}"
+  if [[ "$TMUX_SESSION" != *"egnt-retail"* ]]; then
+    warn "TMUX_SESSION must contain egnt-retail; using egnt-retail-${TMUX_SESSION}"
+    export TMUX_SESSION="egnt-retail-${TMUX_SESSION}"
+  fi
   export DATABASE_URL="${incoming_database_url:-${DATABASE_URL:-postgresql://retail:retail_password@localhost:${POSTGRES_PORT}/retail_agent?schema=public}}"
   if [[ "$incoming_chat_model_base_url" =~ ^http://(localhost|127\.0\.0\.1):8007$ ]]; then incoming_chat_model_base_url=""; fi
   if [[ "$incoming_chat_model_id" == "replace-with-your-chat-model-id" ]]; then incoming_chat_model_id=""; fi
@@ -145,6 +262,13 @@ load_env_file() {
   ok "Effective model config: CHAT_MODEL_BASE_URL=$CHAT_MODEL_BASE_URL; CHAT_MODEL_ID=$CHAT_MODEL_ID; EMBED_RERANK_BASE_URL=$EMBED_RERANK_BASE_URL"
   export REDIS_URL="${incoming_redis_url:-${REDIS_URL:-redis://localhost:${REDIS_PORT}}}"
   export QDRANT_URL="${incoming_qdrant_url:-${QDRANT_URL:-http://localhost:${QDRANT_PORT}}}"
+  validate_port_range API_PORT "$API_PORT"
+  validate_port_range WEB_PORT "$WEB_PORT"
+  validate_port_range NGINX_PORT "$NGINX_PORT"
+  validate_port_range POSTGRES_PORT "$POSTGRES_PORT"
+  validate_port_range REDIS_PORT "$REDIS_PORT"
+  validate_port_range QDRANT_PORT "$QDRANT_PORT"
+  validate_port_range QDRANT_GRPC_PORT "$QDRANT_GRPC_PORT"
   export API_BASE_URL="http://127.0.0.1:${API_PORT}"
   if [[ "$SKIP_DOCKER" == "1" ]]; then
     export NEXT_PUBLIC_API_BASE_URL="http://127.0.0.1:${API_PORT}"
@@ -168,7 +292,18 @@ cleanup_logs() {
 
 check_node() {
   step "Check Node.js, Corepack and pnpm"
-  command_exists node || fail "Node.js is required. Install Node.js 20+ first."
+  if ! command_exists node; then
+    warn "Node.js not found; trying to install nodejs/npm from system package manager."
+    install_system_packages nodejs npm || true
+  fi
+  command_exists node || fail "Node.js 20+ is required. Install Node.js 20+ first."
+
+  if ! command_exists corepack; then
+    warn "Corepack not found; trying npm install -g corepack."
+    if command_exists npm; then
+      run_with_sudo npm install -g corepack >> "$SETUP_LOG" 2>&1 || true
+    fi
+  fi
   command_exists corepack || fail "Corepack is required. Install a recent Node.js version with Corepack."
 
   local node_major
@@ -447,6 +582,71 @@ start_runtime() {
   esac
 }
 
+choose_setup_mode() {
+  if [[ -n "$SETUP_RUN_MODE" ]]; then
+    case "$SETUP_RUN_MODE" in
+      source|docker)
+        ok "Setup mode from environment: $SETUP_RUN_MODE"
+        return
+        ;;
+      *)
+        fail "SETUP_RUN_MODE must be source or docker, got: $SETUP_RUN_MODE"
+        ;;
+    esac
+  fi
+
+  if [[ -t 0 ]]; then
+    printf "\n${BOLD}Chọn chế độ chạy:${RESET}\n"
+    printf "  1) source - chạy API/Web từ source, Docker chỉ chạy Postgres/Redis/Qdrant/nginx dev\n"
+    printf "  2) docker - chạy 100%% bằng root docker-compose.yml gồm backend + frontend + hạ tầng\n"
+    printf "Nhập lựa chọn [1/source, 2/docker] (mặc định: source): "
+    local answer
+    read -r answer || answer=""
+    case "${answer:-source}" in
+      2|docker|Docker|DOCKER)
+        export SETUP_RUN_MODE="docker"
+        ;;
+      1|source|Source|SOURCE|"")
+        export SETUP_RUN_MODE="source"
+        ;;
+      *)
+        fail "Unknown setup choice: $answer"
+        ;;
+    esac
+  else
+    export SETUP_RUN_MODE="source"
+    warn "Non-interactive shell detected; defaulting setup mode to source. Use SETUP_RUN_MODE=docker ./setup.sh for full Docker runtime."
+  fi
+}
+
+start_docker_runtime() {
+  step "Start full Docker runtime from root docker-compose.yml"
+  command_exists docker || fail "Docker is required for SETUP_RUN_MODE=docker."
+
+  log "DOCKER_IMAGE_REPO=$DOCKER_IMAGE_REPO IMAGE_TAG=$IMAGE_TAG DOCKER_COMPOSE_PROJECT_NAME=$DOCKER_COMPOSE_PROJECT_NAME"
+
+  docker compose -p "$DOCKER_COMPOSE_PROJECT_NAME" -f "$ROOT_DIR/docker-compose.yml" pull >> "$SETUP_LOG" 2>&1
+  docker compose -p "$DOCKER_COMPOSE_PROJECT_NAME" -f "$ROOT_DIR/docker-compose.yml" up -d --remove-orphans >> "$SETUP_LOG" 2>&1
+  ok "Docker services requested from root docker-compose.yml"
+
+  wait_for_http "http://127.0.0.1:${NGINX_PORT}/nginx-health" "nginx" 120
+  wait_for_http "http://127.0.0.1:${NGINX_PORT}/health" "API health through nginx" 120
+  wait_for_http "http://127.0.0.1:${NGINX_PORT}/api/v1/products" "products API through nginx" 120
+  wait_for_http "http://127.0.0.1:${NGINX_PORT}/agent-dashboard" "web dashboard through nginx" 120
+
+  printf "\n${GREEN}${BOLD}Ready${RESET}\n"
+  printf "  Mode: docker\n"
+  printf "  Compose file: %s\n" "$ROOT_DIR/docker-compose.yml"
+  printf "  Compose project: %s\n" "$DOCKER_COMPOSE_PROJECT_NAME"
+  printf "  Image repo: %s\n" "$DOCKER_IMAGE_REPO"
+  printf "  Image tag: %s\n" "$IMAGE_TAG"
+  printf "  Web/API entry: http://127.0.0.1:%s\n" "$NGINX_PORT"
+  printf "  Agent dashboard: http://127.0.0.1:%s/agent-dashboard\n" "$NGINX_PORT"
+  printf "  API health: http://127.0.0.1:%s/health\n" "$NGINX_PORT"
+  printf "  Setup log: %s\n" "$SETUP_LOG"
+  printf "\n${GRAY}Stop later with: docker compose -p %s -f docker-compose.yml down${RESET}\n" "$DOCKER_COMPOSE_PROJECT_NAME"
+}
+
 main() {
   cd "$ROOT_DIR"
   if [[ "${SETUP_SKIP_STOP:-0}" != "1" && -x "$ROOT_DIR/stop.sh" ]]; then
@@ -454,7 +654,13 @@ main() {
   fi
   print_banner
   load_env_file
+  choose_setup_mode
   cleanup_logs
+  ensure_system_dependencies
+  if [[ "$SETUP_RUN_MODE" == "docker" ]]; then
+    start_docker_runtime
+    return
+  fi
   check_node
   check_python
   install_dependencies

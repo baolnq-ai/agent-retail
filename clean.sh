@@ -84,6 +84,13 @@ main() {
   rm -rf "$ROOT_DIR/apps/web/.next/dev/lock" "$ROOT_DIR/apps/web/.next/dev/server" >> "$CLEAN_LOG" 2>&1 || true
   ok "Removed provider runtime PID files and stale web locks"
 
+  step "Remove temporary workspace junk"
+  if command_exists pkill; then
+    pkill -f "$ROOT_DIR/.tmp-chrome-" >> "$CLEAN_LOG" 2>&1 || true
+  fi
+  find "$ROOT_DIR" -maxdepth 1 \( -name '.tmp' -o -name '.tmp-*' -o -name 'test-results' \) -print -exec rm -rf {} + >> "$CLEAN_LOG" 2>&1 || true
+  ok "Removed root-level temporary folders/files only; .codex/skills and evidence folders are kept"
+
   printf "\n${GREEN}${BOLD}Clean complete${RESET}\n"
   printf "  Compose project: %s\n" "$COMPOSE_PROJECT_NAME"
   printf "  Log: %s\n" "$CLEAN_LOG"

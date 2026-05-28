@@ -49,6 +49,11 @@ test('agent dashboard supports new pipeline agent and infrastructure node contra
   assert.match(dashboardSource, /createDashboardDenseDemoTrace/);
   assert.match(dashboardSource, /compactVisibleGraphNodes/);
   assert.match(dashboardSource, /selectVisibleGraphEdges/);
+  assert.match(dashboardSource, /avoidLineNodeCollisions/);
+  assert.match(dashboardSource, /nearestPointOnEdgeCurve/);
+  assert.match(dashboardSource, /edgeCollisionClearance/);
+  assert.match(dashboardSource, /bestCollisionAwareNodePosition/);
+  assert.match(dashboardSource, /routeEdgeControlAroundNodes/);
   assert.match(dashboardSource, /isAnswerPathEdge/);
   assert.match(dashboardSource, /grouped-runtime-nodes/);
 });

@@ -87,6 +87,27 @@ function Stop-RepoRuntimeProcesses {
   Write-Ok 'Stopped provider runtime processes scoped to this repo when present'
 }
 
+function Stop-ProjectPorts {
+  $ports = @(
+    $(if ($env:WEB_PORT) { $env:WEB_PORT } else { '6800' }),
+    $(if ($env:API_PORT) { $env:API_PORT } else { '6810' }),
+    $(if ($env:NGINX_PORT) { $env:NGINX_PORT } else { '6820' }),
+    $(if ($env:POSTGRES_PORT) { $env:POSTGRES_PORT } else { '6832' }),
+    $(if ($env:QDRANT_PORT) { $env:QDRANT_PORT } else { '6833' }),
+    $(if ($env:QDRANT_GRPC_PORT) { $env:QDRANT_GRPC_PORT } else { '6834' }),
+    $(if ($env:REDIS_PORT) { $env:REDIS_PORT } else { '6839' })
+  ) | Where-Object { $_ -match '^\d+$' } | Select-Object -Unique
+
+  foreach ($port in $ports) {
+    Get-NetTCPConnection -LocalPort ([int]$port) -State Listen -ErrorAction SilentlyContinue |
+      Select-Object -ExpandProperty OwningProcess -Unique |
+      ForEach-Object {
+        Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue
+        Write-Ok "Stopped process on project port ${port}: $_"
+      }
+  }
+}
+
 function Stop-ComposeServices {
   $composeProjectName = if ($env:COMPOSE_PROJECT_NAME) { $env:COMPOSE_PROJECT_NAME } else { 'retail_agent_provider' }
   $composeFile = Join-Path $RootDir 'infra\docker\docker-compose.yml'
@@ -120,6 +141,8 @@ Stop-PidFile (Join-Path $ApiLogDir 'api.pid') 'backend'
 Stop-PidFile (Join-Path $WebLogDir 'web.pid') 'frontend'
 Write-Step 'Stop repo-scoped runtime processes'
 Stop-RepoRuntimeProcesses
+Write-Step 'Clear project ports'
+Stop-ProjectPorts
 Write-Step 'Stop provider Docker services'
 Stop-ComposeServices
 Write-Step 'Clean provider web runtime locks'

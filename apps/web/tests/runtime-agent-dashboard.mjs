@@ -10,7 +10,7 @@ const port = 44100 + Math.floor(Math.random() * 1000);
 test('agent dashboard route responds in a production server', async () => {
   const child = spawn(process.execPath, [nextCli, 'start', '-H', '127.0.0.1', '-p', String(port)], {
     cwd: new URL('..', import.meta.url),
-    env: { ...process.env, PORT: String(port), NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:7010' },
+    env: { ...process.env, PORT: String(port), NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:6820' },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let exited = false;

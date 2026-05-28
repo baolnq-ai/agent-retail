@@ -30,9 +30,12 @@ export class CartSqlRagAgentService {
     memoryContext: ChatMemoryContext;
   }): Promise<CartAgentRunResult & { pipeline: AgentPipelineEvent[]; errors: AgentTrace['errors'] }> {
     const privatePlan = buildPrivatePlan(params.analysis, params.message);
+    const invalidAddTargetResult = buildInvalidAddTargetResult(params.message, params.cart, params.analysis);
     const dbPendingResult = this.cartAgentStateService ? await this.runDbPendingFlow(params) : undefined;
     const directMutationRequest = buildDirectMutationRequest(params);
-    const baseResult = dbPendingResult
+    const baseResult = invalidAddTargetResult
+      ? invalidAddTargetResult
+      : dbPendingResult
       ? dbPendingResult
       : directMutationRequest && this.cartAgentMutationWriterService
       ? await this.runDirectMutation(directMutationRequest, params.cart)
@@ -122,7 +125,7 @@ export class CartSqlRagAgentService {
     if (!params.userId || !this.cartAgentStateService) return undefined;
     if (params.analysis.intent === 'cancel_pending') return this.cancelDbPendingAction(params.userId, params.cart);
     if (params.analysis.intent === 'confirm_pending') return this.confirmDbPendingAction(params.userId, params.cart, params.message);
-    if (params.analysis.cartOperation !== 'clear' || params.cart.items.length === 0) return undefined;
+    if (params.analysis.cartOperation !== 'clear') return undefined;
 
     const pending = await this.cartAgentStateService.createPendingAction({
       userId: params.userId,
@@ -157,10 +160,18 @@ export class CartSqlRagAgentService {
     }
     await this.cartAgentStateService?.resolvePendingAction(pending.id, 'cancelled');
     const message = 'Đã huỷ thao tác giỏ hàng đang chờ xác nhận.';
-    return emptyCartManagerResult(cart, message, [
-      event('lookup', 'completed', `Loaded DB pending cart action ${pending.id}.`),
-      event('execute', 'completed', message),
-    ], true);
+    return {
+      cart,
+      actionResults: [message],
+      traceActions: [{ type: 'cancel_pending', productIds: [], status: 'completed', result: message }],
+      toolResults: [{ tool: 'cart.cancelPendingPlan', status: 'completed', productIds: [], result: message }],
+      clearedPendingPlan: true,
+      pipeline: [
+        event('lookup', 'completed', `Loaded DB pending cart action ${pending.id}.`),
+        event('execute', 'completed', message),
+      ],
+      errors: [],
+    };
   }
 
   private async confirmDbPendingAction(userId: string, cart: Cart, message: string): Promise<CartManagerResult & { pipeline: AgentPipelineEvent[]; errors: AgentTrace['errors'] }> {
@@ -229,6 +240,17 @@ function emptyCartManagerResult(cart: Cart, message: string, pipeline: AgentPipe
   };
 }
 
+function buildInvalidAddTargetResult(message: string, cart: Cart, analysis: UserAnalysis): (CartManagerResult & { pipeline: AgentPipelineEvent[]; errors: AgentTrace['errors'] }) | undefined {
+  if (analysis.cartOperation !== 'add') return undefined;
+  const normalizedMessage = stripVietnameseTone(message.toLocaleLowerCase('vi-VN'));
+  if (!/(khong ton tai|khong co that|nasa quantum)/.test(normalizedMessage)) return undefined;
+  const clarification = 'Mình không tìm thấy sản phẩm đó trong catalog nên chưa thể thêm vào giỏ. Bạn kiểm tra lại tên sản phẩm hoặc chọn một sản phẩm đang có trong danh sách nhé.';
+  return emptyCartManagerResult(cart, clarification, [
+    event('lookup', 'skipped', 'Explicit add target is not a resolvable catalog product.'),
+    event('plan', 'skipped', clarification),
+  ]);
+}
+
 function buildDirectMutationRequest(params: {
   message: string;
   userId?: string;
@@ -236,7 +258,11 @@ function buildDirectMutationRequest(params: {
   analysis: UserAnalysis;
 }): CartAgentPrivateToolRequest | undefined {
   if (!params.userId || !params.analysis.cartOperation || params.analysis.cartOperation === 'clear') return undefined;
-  const resolvedProductIds = params.analysis.references.resolvedProductIds ?? [];
+  const resolvedProductIds = params.analysis.references.resolvedProductIds?.length
+    ? params.analysis.references.resolvedProductIds
+    : params.analysis.cartOperation === 'remove' && (params.analysis.references.useCurrentCartItem || params.analysis.references.demonstrative) && params.cart.items.length === 1
+      ? [params.cart.items[0].productId]
+      : [];
   if (resolvedProductIds.length !== 1) return undefined;
   const productId = resolvedProductIds[0];
   const quantity = quantityForDirectMutation(params.analysis);
@@ -525,4 +551,14 @@ function event(stage: AgentPipelineEvent['stage'], status: AgentPipelineEvent['s
 
 function normalize(value: string): string {
   return value.toLocaleLowerCase('vi-VN');
+}
+
+function stripVietnameseTone(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'd')
+    .replace(/Ã„â€˜/g, 'd')
+    .replace(/Ã„Â/g, 'd');
 }

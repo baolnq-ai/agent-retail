@@ -303,7 +303,7 @@ function findBlock(response, type) {
 }
 
 function normalizeText(value) {
-  return value.toLocaleLowerCase('vi-VN').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd');
+  return value.toLocaleLowerCase('vi-VN').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/Ä‘/g, 'd');
 }
 
 async function postJson(url, body, cookie = '') {

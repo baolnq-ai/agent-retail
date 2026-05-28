@@ -1,0 +1,1116 @@
+{
+  "generatedAt": "2026-05-27T14:28:06.977Z",
+  "suite": "benmark-100-pipeline-audit",
+  "apiBaseUrl": "http://127.0.0.1:7010",
+  "casesPath": "C:\\code\\my source\\AI-Agent-retail\\test\\benmark-100\\cases\\variant-a.json",
+  "runId": "variant-a-target-41-50-invalid-add-v2",
+  "delayMs": 5000,
+  "requestTimeoutMs": 90000,
+  "total": 10,
+  "pass": 10,
+  "warn": 0,
+  "fail": 0,
+  "inProgress": false,
+  "avgLatencyMs": 3044,
+  "p95LatencyMs": 8458,
+  "topIssueCodes": [],
+  "results": [
+    {
+      "id": "A041",
+      "group": "auth-cart-direct",
+      "mode": "auth",
+      "category": "cart_action",
+      "prompt": "Thêm máy lọc không khí phù hợp phòng 25m2 dưới 4 triệu vào giỏ, nếu có nhiều lựa chọn thì chọn hợp lý nhất.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 4919,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_action",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Mình đang giữ lại Máy lọc không khí Xiaomi Smart Air Purifier 4 Lite EU (BHR5274GL) 33W trong khung gợi ý vì sản phẩm này khớp nhất với dữ liệu hiện có. Bạn có thể xem thông tin trên thẻ hoặc nói thêm tiêu chí để mình lọc lại chính xác hơn.",
+      "textPreview": "Mình đang giữ lại Máy lọc không khí Xiaomi Smart Air Purifier 4 Lite EU (BHR5274GL) 33W trong khung gợi ý vì sản phẩm này khớp nhất với dữ liệu hiện có. Bạn có thể xem thông tin trên thẻ hoặc nói thêm tiêu chí để mình lọc lại chính xác hơn.",
+      "productIds": [
+        "prod_air_clean_p35"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpo5qxn400007culabeq3v8t-1779892011553",
+        "version": 2,
+        "status": "active",
+        "items": [
+          {
+            "productId": "prod_air_clean_p35",
+            "quantity": 1,
+            "unitPrice": 2340000,
+            "lineTotal": 2340000
+          }
+        ],
+        "subtotal": 2340000,
+        "grandTotal": 2340000
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 35,
+        "edgeCount": 71,
+        "playbackCount": 71,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:skipped",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:lookup:completed",
+          "cart-manager-agent:plan:completed",
+          "cart-manager-agent:execute:completed",
+          "cart-manager-agent:verify:completed",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [
+          {
+            "tool": "cart.add",
+            "status": "completed",
+            "productIds": [
+              "prod_air_clean_p35"
+            ],
+            "beforeQuantity": 0,
+            "afterQuantity": 1,
+            "cartVersionBefore": 1,
+            "cartVersionAfter": 2,
+            "result": "Đã thêm 1 × Máy lọc không khí Xiaomi Smart Air Purifier 4 Lite EU (BHR5274GL) 33W vào giỏ hàng."
+          }
+        ],
+        "cartActionType": "add",
+        "cartResolvedProductIds": [
+          "prod_air_clean_p35"
+        ],
+        "memory": {
+          "recentTurnCount": 0,
+          "rollingSummaryLength": 0,
+          "recentRecommendationIds": [],
+          "preferenceKeys": []
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_air_clean_p35",
+            "prod_fresh_home_mini_20",
+            "prod_air_08",
+            "prod_air_03",
+            "prod_kitchen_06",
+            "prod_air_16",
+            "prod_air_04",
+            "prod_air_06"
+          ],
+          "selectedProductIds": [
+            "prod_air_clean_p35"
+          ],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            4.214844
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A042",
+      "group": "auth-cart-direct",
+      "mode": "auth",
+      "category": "cart_action",
+      "prompt": "Thêm thêm một sản phẩm làm mát dưới 2 triệu vào giỏ.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 3418,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_action",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Đã thêm 2 × Máy lọc không khí Xiaomi Smart Air Purifier 4 Lite EU (BHR5274GL) 33W vào giỏ hàng.\nMình đã thêm 2 sản phẩm Máy lọc không khí Xiaomi Smart Air Purifier 4 Lite EU (BHR5274GL) 33W vào giỏ hàng cho bạn rồi ạ. Bạn cần mình hỗ trợ thêm gì nữa không?",
+      "textPreview": "Đã thêm 2 × Máy lọc không khí Xiaomi Smart Air Purifier 4 Lite EU (BHR5274GL) 33W vào giỏ hàng.\nMình đã thêm 2 sản phẩm Máy lọc không khí Xiaomi Smart Air Purifier 4 Lite EU (BHR5274GL) 33W vào giỏ hàng cho bạn rồi ạ. Bạn cần mình hỗ trợ thêm gì nữa không?",
+      "productIds": [
+        "prod_air_clean_p35"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpo5qxn400007culabeq3v8t-1779892011553",
+        "version": 3,
+        "status": "active",
+        "items": [
+          {
+            "productId": "prod_air_clean_p35",
+            "quantity": 3,
+            "unitPrice": 2340000,
+            "lineTotal": 7020000
+          }
+        ],
+        "subtotal": 7020000,
+        "grandTotal": 7020000
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 35,
+        "edgeCount": 71,
+        "playbackCount": 71,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:lookup:completed",
+          "cart-manager-agent:plan:completed",
+          "cart-manager-agent:execute:completed",
+          "cart-manager-agent:verify:completed",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [
+          {
+            "tool": "cart.add",
+            "status": "completed",
+            "productIds": [
+              "prod_air_clean_p35"
+            ],
+            "beforeQuantity": 1,
+            "afterQuantity": 3,
+            "cartVersionBefore": 2,
+            "cartVersionAfter": 3,
+            "result": "Đã thêm 2 × Máy lọc không khí Xiaomi Smart Air Purifier 4 Lite EU (BHR5274GL) 33W vào giỏ hàng."
+          }
+        ],
+        "cartActionType": "add",
+        "cartResolvedProductIds": [
+          "prod_air_clean_p35"
+        ],
+        "memory": {
+          "recentTurnCount": 2,
+          "rollingSummaryLength": 362,
+          "recentRecommendationIds": [
+            "prod_air_clean_p35"
+          ],
+          "preferenceKeys": [
+            "rolling_summary",
+            "recent_recommendations",
+            "recent_categories",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_air_clean_p35"
+          ],
+          "selectedProductIds": [
+            "prod_air_clean_p35"
+          ],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            4.644531
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A043",
+      "group": "auth-cart-direct",
+      "mode": "auth",
+      "category": "cart_status",
+      "prompt": "Kiểm tra giỏ hàng và cho tôi biết có mấy dòng sản phẩm.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 1118,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_status",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Chào bạn, tôi đã kiểm tra giỏ hàng của bạn rồi ạ. Hiện tại giỏ hàng của bạn có tổng cộng 3 dòng sản phẩm. Bạn cần tôi hỗ trợ thêm thông tin gì về các sản phẩm này không?",
+      "textPreview": "Chào bạn, tôi đã kiểm tra giỏ hàng của bạn rồi ạ. Hiện tại giỏ hàng của bạn có tổng cộng 3 dòng sản phẩm. Bạn cần tôi hỗ trợ thêm thông tin gì về các sản phẩm này không?",
+      "productIds": [],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpo5qxn400007culabeq3v8t-1779892011553",
+        "version": 3,
+        "status": "active",
+        "items": [
+          {
+            "productId": "prod_air_clean_p35",
+            "quantity": 3,
+            "unitPrice": 2340000,
+            "lineTotal": 7020000
+          }
+        ],
+        "subtotal": 7020000,
+        "grandTotal": 7020000
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 32,
+        "edgeCount": 58,
+        "playbackCount": 58,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 4,
+          "rollingSummaryLength": 686,
+          "recentRecommendationIds": [
+            "prod_air_clean_p35"
+          ],
+          "preferenceKeys": [
+            "rolling_summary",
+            "recent_recommendations",
+            "recent_categories",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [],
+          "selectedProductIds": [],
+          "contextDocumentCount": 0,
+          "rerankTopScores": []
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A044",
+      "group": "auth-cart-direct",
+      "mode": "auth",
+      "category": "cart_action",
+      "prompt": "Tăng sản phẩm đầu tiên trong giỏ lên 3 cái.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 1287,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_action",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Đã cập nhật Máy lọc không khí Xiaomi Smart Air Purifier 4 Lite EU (BHR5274GL) 33W thành số lượng 3.\nChào bạn, tôi đã cập nhật số lượng Máy lọc không khí Xiaomi Smart Air Purifier 4 Lite EU (BHR5274GL) 33W trong giỏ hàng thành 3 sản phẩm rồi ạ. Bạn cần tôi hỗ trợ thêm thông tin gì về giỏ hàng hay các sản phẩm khác không?",
+      "textPreview": "Đã cập nhật Máy lọc không khí Xiaomi Smart Air Purifier 4 Lite EU (BHR5274GL) 33W thành số lượng 3.\nChào bạn, tôi đã cập nhật số lượng Máy lọc không khí Xiaomi Smart Air Purifier 4 Lite EU (BHR5274GL) 33W trong giỏ hàng thành 3 sản phẩm rồi ạ. Bạn cần tôi hỗ trợ thêm thông tin gì về giỏ hàng hay các sản phẩm khác không?",
+      "productIds": [],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpo5qxn400007culabeq3v8t-1779892011553",
+        "version": 4,
+        "status": "active",
+        "items": [
+          {
+            "productId": "prod_air_clean_p35",
+            "quantity": 3,
+            "unitPrice": 2340000,
+            "lineTotal": 7020000
+          }
+        ],
+        "subtotal": 7020000,
+        "grandTotal": 7020000
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 61,
+        "playbackCount": 61,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:lookup:completed",
+          "cart-manager-agent:plan:completed",
+          "cart-manager-agent:execute:completed",
+          "cart-manager-agent:verify:completed",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [
+          {
+            "tool": "cart.setQuantity",
+            "status": "completed",
+            "productIds": [
+              "prod_air_clean_p35"
+            ],
+            "beforeQuantity": 3,
+            "afterQuantity": 3,
+            "cartVersionBefore": 3,
+            "cartVersionAfter": 4,
+            "result": "Đã cập nhật Máy lọc không khí Xiaomi Smart Air Purifier 4 Lite EU (BHR5274GL) 33W thành số lượng 3."
+          }
+        ],
+        "cartActionType": "set_quantity",
+        "cartResolvedProductIds": [
+          "prod_air_clean_p35"
+        ],
+        "memory": {
+          "recentTurnCount": 6,
+          "rollingSummaryLength": 926,
+          "recentRecommendationIds": [],
+          "preferenceKeys": [
+            "rolling_summary",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent",
+            "agent_history:user-analysis-agent",
+            "agent_history:memory-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [],
+          "selectedProductIds": [],
+          "contextDocumentCount": 0,
+          "rerankTopScores": []
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A045",
+      "group": "auth-cart-direct",
+      "mode": "auth",
+      "category": "cart_action",
+      "prompt": "Xóa sản phẩm thứ hai khỏi giỏ.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 8458,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_action",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Đã xoá Máy lọc không khí Xiaomi Smart Air Purifier 4 Lite EU (BHR5274GL) 33W khỏi giỏ hàng.\nTôi đã xóa sản phẩm Máy lọc không khí Xiaomi Smart Air Purifier 4 Lite EU (BHR5274GL) 33W khỏi giỏ hàng của bạn rồi ạ. Giỏ hàng của bạn hiện đã trống. Bạn có muốn tôi tìm kiếm sản phẩm nào khác không?",
+      "textPreview": "Đã xoá Máy lọc không khí Xiaomi Smart Air Purifier 4 Lite EU (BHR5274GL) 33W khỏi giỏ hàng.\nTôi đã xóa sản phẩm Máy lọc không khí Xiaomi Smart Air Purifier 4 Lite EU (BHR5274GL) 33W khỏi giỏ hàng của bạn rồi ạ. Giỏ hàng của bạn hiện đã trống. Bạn có muốn tôi tìm kiếm sản phẩm nào khác không?",
+      "productIds": [
+        "prod_air_clean_p35"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpo5qxn400007culabeq3v8t-1779892011553",
+        "version": 5,
+        "status": "active",
+        "items": [],
+        "subtotal": 0,
+        "grandTotal": 0
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 34,
+        "edgeCount": 66,
+        "playbackCount": 66,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:lookup:completed",
+          "cart-manager-agent:plan:completed",
+          "cart-manager-agent:execute:completed",
+          "cart-manager-agent:verify:completed",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [
+          {
+            "tool": "cart.remove",
+            "status": "completed",
+            "productIds": [
+              "prod_air_clean_p35"
+            ],
+            "beforeQuantity": 3,
+            "afterQuantity": 0,
+            "cartVersionBefore": 4,
+            "cartVersionAfter": 5,
+            "result": "Đã xoá Máy lọc không khí Xiaomi Smart Air Purifier 4 Lite EU (BHR5274GL) 33W khỏi giỏ hàng."
+          }
+        ],
+        "cartActionType": "remove",
+        "cartResolvedProductIds": [
+          "prod_air_clean_p35"
+        ],
+        "memory": {
+          "recentTurnCount": 6,
+          "rollingSummaryLength": 1306,
+          "recentRecommendationIds": [],
+          "preferenceKeys": [
+            "rolling_summary",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent",
+            "agent_history:user-analysis-agent",
+            "agent_history:memory-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_air_clean_p35"
+          ],
+          "selectedProductIds": [
+            "prod_air_clean_p35"
+          ],
+          "contextDocumentCount": 0,
+          "rerankTopScores": []
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A046",
+      "group": "auth-cart-direct",
+      "mode": "auth",
+      "category": "cart_status",
+      "prompt": "Giỏ hàng sau khi xóa còn món nào và tổng tiền bao nhiêu?",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 1963,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_status",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Chào bạn, sau khi xóa sản phẩm, giỏ hàng của bạn hiện đã trống rồi ạ. Tổng tiền hiện tại là 0 đồng. Bạn có muốn tôi tìm kiếm sản phẩm nào khác cho bạn không?",
+      "textPreview": "Chào bạn, sau khi xóa sản phẩm, giỏ hàng của bạn hiện đã trống rồi ạ. Tổng tiền hiện tại là 0 đồng. Bạn có muốn tôi tìm kiếm sản phẩm nào khác cho bạn không?",
+      "productIds": [],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpo5qxn400007culabeq3v8t-1779892011553",
+        "version": 5,
+        "status": "active",
+        "items": [],
+        "subtotal": 0,
+        "grandTotal": 0
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 32,
+        "edgeCount": 58,
+        "playbackCount": 58,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 6,
+          "rollingSummaryLength": 1644,
+          "recentRecommendationIds": [],
+          "preferenceKeys": [
+            "rolling_summary",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent",
+            "agent_history:user-analysis-agent",
+            "agent_history:memory-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [],
+          "selectedProductIds": [],
+          "contextDocumentCount": 0,
+          "rerankTopScores": []
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A047",
+      "group": "auth-cart-direct",
+      "mode": "auth",
+      "category": "cart_action",
+      "prompt": "Giảm sản phẩm còn lại xuống 1 cái.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 3825,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_action",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Mình đã cập nhật số lượng sản phẩm trong giỏ hàng.\nTôi đã điều chỉnh số lượng sản phẩm còn lại trong giỏ hàng của bạn xuống còn 1 chiếc. Hiện tại, giỏ hàng của bạn chỉ còn Máy lọc không khí Xiaomi Smart Air Purifier 4 Lite EU (BHR5274GL) 33W. Bạn cần tôi hỗ trợ thêm về sản phẩm này hay có yêu cầu nào khác không ạ?",
+      "textPreview": "Mình đã cập nhật số lượng sản phẩm trong giỏ hàng.\nTôi đã điều chỉnh số lượng sản phẩm còn lại trong giỏ hàng của bạn xuống còn 1 chiếc. Hiện tại, giỏ hàng của bạn chỉ còn Máy lọc không khí Xiaomi Smart Air Purifier 4 Lite EU (BHR5274GL) 33W. Bạn cần tôi hỗ trợ thêm về sản phẩm này hay có yêu cầu nào khác không ạ?",
+      "productIds": [
+        "prod_air_clean_p35"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpo5qxn400007culabeq3v8t-1779892011553",
+        "version": 6,
+        "status": "active",
+        "items": [
+          {
+            "productId": "prod_air_clean_p35",
+            "quantity": 1,
+            "unitPrice": 2340000,
+            "lineTotal": 2340000
+          }
+        ],
+        "subtotal": 2340000,
+        "grandTotal": 2340000
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 35,
+        "edgeCount": 71,
+        "playbackCount": 71,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-agent:execute:completed",
+          "cart-agent:verify:completed",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [
+          {
+            "tool": "cart.setQuantity",
+            "status": "completed",
+            "productIds": [
+              "prod_air_clean_p35"
+            ],
+            "beforeQuantity": 0,
+            "afterQuantity": 1,
+            "cartVersionBefore": 5,
+            "cartVersionAfter": 6,
+            "result": "Set product prod_air_clean_p35 quantity to 1."
+          }
+        ],
+        "cartActionType": "cart.write.set_quantity",
+        "cartResolvedProductIds": [
+          "prod_air_clean_p35"
+        ],
+        "memory": {
+          "recentTurnCount": 6,
+          "rollingSummaryLength": 1873,
+          "recentRecommendationIds": [],
+          "preferenceKeys": [
+            "rolling_summary",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent",
+            "agent_history:user-analysis-agent",
+            "agent_history:memory-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_air_clean_p35"
+          ],
+          "selectedProductIds": [
+            "prod_air_clean_p35"
+          ],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            3.607422
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A048",
+      "group": "auth-cart-direct",
+      "mode": "auth",
+      "category": "cart_action",
+      "prompt": "Thêm sản phẩm không tồn tại tên NASA Quantum Z9 vào giỏ.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 2829,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_action",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Mình không tìm thấy sản phẩm đó trong catalog nên chưa thể thêm vào giỏ. Bạn kiểm tra lại tên sản phẩm hoặc chọn một sản phẩm đang có trong danh sách nhé.",
+      "textPreview": "Mình không tìm thấy sản phẩm đó trong catalog nên chưa thể thêm vào giỏ. Bạn kiểm tra lại tên sản phẩm hoặc chọn một sản phẩm đang có trong danh sách nhé.",
+      "productIds": [],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpo5qxn400007culabeq3v8t-1779892011553",
+        "version": 6,
+        "status": "active",
+        "items": [
+          {
+            "productId": "prod_air_clean_p35",
+            "quantity": 1,
+            "unitPrice": 2340000,
+            "lineTotal": 2340000
+          }
+        ],
+        "subtotal": 2340000,
+        "grandTotal": 2340000
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "rag-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 63,
+        "playbackCount": 63,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:skipped",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-agent:lookup:skipped",
+          "cart-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 6,
+          "rollingSummaryLength": 2238,
+          "recentRecommendationIds": [
+            "prod_air_clean_p35"
+          ],
+          "preferenceKeys": [
+            "rolling_summary",
+            "recent_recommendations",
+            "recent_categories",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_air_clean_p35"
+          ],
+          "selectedProductIds": [],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            -1.681641
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A049",
+      "group": "auth-cart-direct",
+      "mode": "auth",
+      "category": "cart_action",
+      "prompt": "Xóa hết giỏ hàng hiện tại.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 1215,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_action",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Mình sẽ xoá toàn bộ sản phẩm trong giỏ hàng. Trả lời \"Đúng\" để xác nhận hoặc \"Huỷ\" để bỏ qua.",
+      "textPreview": "Mình sẽ xoá toàn bộ sản phẩm trong giỏ hàng. Trả lời \"Đúng\" để xác nhận hoặc \"Huỷ\" để bỏ qua.",
+      "productIds": [],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpo5qxn400007culabeq3v8t-1779892011553",
+        "version": 6,
+        "status": "active",
+        "items": [
+          {
+            "productId": "prod_air_clean_p35",
+            "quantity": 1,
+            "unitPrice": 2340000,
+            "lineTotal": 2340000
+          }
+        ],
+        "subtotal": 2340000,
+        "grandTotal": 2340000
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 61,
+        "playbackCount": 61,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:skipped",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-agent:plan:completed",
+          "cart-agent:handoff:completed",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [
+          {
+            "tool": "cart.clear",
+            "status": "pending_confirmation",
+            "productIds": [],
+            "result": "Mình sẽ xoá toàn bộ sản phẩm trong giỏ hàng. Trả lời \"Đúng\" để xác nhận hoặc \"Huỷ\" để bỏ qua."
+          }
+        ],
+        "cartActionType": "clear",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 6,
+          "rollingSummaryLength": 2464,
+          "recentRecommendationIds": [
+            "prod_air_clean_p35"
+          ],
+          "preferenceKeys": [
+            "rolling_summary",
+            "recent_recommendations",
+            "recent_categories",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [],
+          "selectedProductIds": [],
+          "contextDocumentCount": 0,
+          "rerankTopScores": []
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A050",
+      "group": "auth-cart-direct",
+      "mode": "auth",
+      "category": "confirm_pending",
+      "prompt": "Hủy thao tác đó.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 1403,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_action",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Chào bạn, tôi đã hủy thao tác giỏ hàng đang chờ xác nhận theo yêu cầu của bạn rồi ạ. Hiện tại giỏ hàng của bạn đang trống. Bạn có muốn tôi hỗ trợ tìm kiếm sản phẩm nào khác không?",
+      "textPreview": "Chào bạn, tôi đã hủy thao tác giỏ hàng đang chờ xác nhận theo yêu cầu của bạn rồi ạ. Hiện tại giỏ hàng của bạn đang trống. Bạn có muốn tôi hỗ trợ tìm kiếm sản phẩm nào khác không?",
+      "productIds": [],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpo5qxn400007culabeq3v8t-1779892011553",
+        "version": 6,
+        "status": "active",
+        "items": [
+          {
+            "productId": "prod_air_clean_p35",
+            "quantity": 1,
+            "unitPrice": 2340000,
+            "lineTotal": 2340000
+          }
+        ],
+        "subtotal": 2340000,
+        "grandTotal": 2340000
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 61,
+        "playbackCount": 61,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-agent:lookup:completed",
+          "cart-agent:execute:completed",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [
+          {
+            "tool": "cart.cancelPendingPlan",
+            "status": "completed",
+            "productIds": [],
+            "result": "Đã huỷ thao tác giỏ hàng đang chờ xác nhận."
+          }
+        ],
+        "cartActionType": "cancel_pending",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 6,
+          "rollingSummaryLength": 2599,
+          "recentRecommendationIds": [],
+          "preferenceKeys": [
+            "rolling_summary",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent",
+            "agent_history:user-analysis-agent",
+            "agent_history:memory-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [],
+          "selectedProductIds": [],
+          "contextDocumentCount": 0,
+          "rerankTopScores": []
+        },
+        "errors": []
+      },
+      "issues": []
+    }
+  ]
+}

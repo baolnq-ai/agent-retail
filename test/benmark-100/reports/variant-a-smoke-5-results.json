@@ -1,0 +1,504 @@
+{
+  "generatedAt": "2026-05-27T00:43:32.578Z",
+  "suite": "benmark-100-pipeline-audit",
+  "apiBaseUrl": "http://127.0.0.1:7010",
+  "casesPath": "C:\\code\\my source\\AI-Agent-retail\\test\\benmark-100\\cases\\variant-a.json",
+  "runId": "variant-a-smoke-5",
+  "delayMs": 1500,
+  "requestTimeoutMs": 90000,
+  "total": 5,
+  "pass": 5,
+  "warn": 0,
+  "fail": 0,
+  "inProgress": false,
+  "avgLatencyMs": 3782,
+  "p95LatencyMs": 4412,
+  "topIssueCodes": [],
+  "results": [
+    {
+      "id": "A001",
+      "group": "guest-discovery",
+      "mode": "guest",
+      "category": "product",
+      "prompt": "Phòng ngủ 18m2 gần đường lớn, bụi mịn nhiều, cần máy lọc không khí êm dưới 4 triệu.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 4326,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "recommend",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Mình đang giữ lại Máy lọc không khí Levoit Core Mini 7W trong khung gợi ý vì sản phẩm này khớp nhất với dữ liệu hiện có. Bạn có thể xem thông tin trên thẻ hoặc nói thêm tiêu chí để mình lọc lại chính xác hơn.",
+      "textPreview": "Mình đang giữ lại Máy lọc không khí Levoit Core Mini 7W trong khung gợi ý vì sản phẩm này khớp nhất với dữ liệu hiện có. Bạn có thể xem thông tin trên thẻ hoặc nói thêm tiêu chí để mình lọc lại chính xác hơn.",
+      "productIds": [
+        "prod_fresh_home_mini_20"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "account-required",
+        "version": 0,
+        "items": [],
+        "subtotal": 0,
+        "grandTotal": 0,
+        "status": "active"
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 63,
+        "playbackCount": 63,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 0,
+          "rollingSummaryLength": 0,
+          "recentRecommendationIds": [],
+          "preferenceKeys": []
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_fresh_home_mini_20",
+            "prod_air_03",
+            "prod_air_08",
+            "prod_air_14",
+            "prod_air_07",
+            "prod_smart_05",
+            "prod_clean_08",
+            "prod_air_clean_p35"
+          ],
+          "selectedProductIds": [
+            "prod_fresh_home_mini_20"
+          ],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            1.93457
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A002",
+      "group": "guest-discovery",
+      "mode": "guest",
+      "category": "product",
+      "prompt": "Nhà có mèo rụng lông, nền gỗ, tôi muốn robot hút bụi ít kẹt tóc tầm 5 triệu.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 2761,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "recommend",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Chào bạn, tôi hiểu bạn đang tìm robot hút bụi phù hợp cho nhà có mèo và sàn gỗ, với ngân sách khoảng 5 triệu.\nHiện tại, trong các sản phẩm chúng tôi có, có Máy hút bụi cầm tay Deerma DX700S 15000 Pa với giá 900.000 đồng. Bạn xem thử sản phẩm này nhé.",
+      "textPreview": "Chào bạn, tôi hiểu bạn đang tìm robot hút bụi phù hợp cho nhà có mèo và sàn gỗ, với ngân sách khoảng 5 triệu.\nHiện tại, trong các sản phẩm chúng tôi có, có Máy hút bụi cầm tay Deerma DX700S 15000 Pa với giá 900.000 đồng. Bạn xem thử sản phẩm này nhé.",
+      "productIds": [
+        "prod_clean_08"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "account-required",
+        "version": 0,
+        "items": [],
+        "subtotal": 0,
+        "grandTotal": 0,
+        "status": "active"
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 63,
+        "playbackCount": 63,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 0,
+          "rollingSummaryLength": 0,
+          "recentRecommendationIds": [],
+          "preferenceKeys": []
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_clean_08",
+            "prod_clean_03",
+            "prod_clean_04",
+            "prod_clean_02",
+            "prod_clean_07",
+            "prod_clean_05",
+            "prod_clean_09",
+            "prod_smart_09"
+          ],
+          "selectedProductIds": [
+            "prod_clean_08"
+          ],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            2.185547
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A003",
+      "group": "guest-discovery",
+      "mode": "guest",
+      "category": "product",
+      "prompt": "Căn hộ studio bếp nhỏ, cần 2 món nấu nhanh tổng dưới 4 triệu, ưu tiên dễ vệ sinh.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 3710,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "recommend",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Chào bạn, với nhu cầu nấu ăn nhanh và dễ vệ sinh cho căn hộ studio, tôi gợi ý bạn tham khảo Lò chiên không dầu Ferroli 12 lít FAF-12M. Sản phẩm này rất tiện lợi cho việc chế biến các món ăn nhanh và có mức giá rất hợp lý. Bạn xem qua sản phẩm này và cho tôi biết nếu bạn cần tư vấn thêm nhé!",
+      "textPreview": "Chào bạn, với nhu cầu nấu ăn nhanh và dễ vệ sinh cho căn hộ studio, tôi gợi ý bạn tham khảo Lò chiên không dầu Ferroli 12 lít FAF-12M. Sản phẩm này rất tiện lợi cho việc chế biến các món ăn nhanh và có mức giá rất hợp lý. Bạn xem qua sản phẩm này và cho tôi biết nếu bạn cần tư vấn thêm nhé!",
+      "productIds": [
+        "prod_kitchen_08"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "account-required",
+        "version": 0,
+        "items": [],
+        "subtotal": 0,
+        "grandTotal": 0,
+        "status": "active"
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 63,
+        "playbackCount": 63,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 0,
+          "rollingSummaryLength": 0,
+          "recentRecommendationIds": [],
+          "preferenceKeys": []
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_kitchen_08",
+            "prod_clean_04",
+            "prod_care_01",
+            "prod_air_03",
+            "prod_kitchen_13",
+            "prod_kitchen_04",
+            "prod_climate_09",
+            "prod_care_12"
+          ],
+          "selectedProductIds": [
+            "prod_kitchen_08"
+          ],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            2.359375
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A004",
+      "group": "guest-discovery",
+      "mode": "guest",
+      "category": "product",
+      "prompt": "Tôi cần quà tân gia cho đồng nghiệp, lịch sự, không quá đắt, khoảng 1 triệu.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 4412,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "recommend",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Mình đang giữ lại Ổ cắm thông minh TP-Link Tapo P110 trong khung gợi ý vì sản phẩm này khớp nhất với dữ liệu hiện có. Bạn có thể xem thông tin trên thẻ hoặc nói thêm tiêu chí để mình lọc lại chính xác hơn.",
+      "textPreview": "Mình đang giữ lại Ổ cắm thông minh TP-Link Tapo P110 trong khung gợi ý vì sản phẩm này khớp nhất với dữ liệu hiện có. Bạn có thể xem thông tin trên thẻ hoặc nói thêm tiêu chí để mình lọc lại chính xác hơn.",
+      "productIds": [
+        "prod_smart_13"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "account-required",
+        "version": 0,
+        "items": [],
+        "subtotal": 0,
+        "grandTotal": 0,
+        "status": "active"
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 63,
+        "playbackCount": 63,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 0,
+          "rollingSummaryLength": 0,
+          "recentRecommendationIds": [],
+          "preferenceKeys": []
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_smart_13",
+            "prod_climate_09",
+            "prod_care_04",
+            "prod_care_12",
+            "prod_care_14",
+            "prod_climate_14",
+            "prod_care_01",
+            "prod_smart_07"
+          ],
+          "selectedProductIds": [
+            "prod_smart_13"
+          ],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            0.648926
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A005",
+      "group": "guest-discovery",
+      "mode": "guest",
+      "category": "product",
+      "prompt": "Có sản phẩm nào giúp nhà sạch hơn nhưng tôi không biết nên mua máy gì, ngân sách 2-3 triệu.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 3700,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "recommend",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Chào bạn, với nhu cầu làm sạch nhà cửa và ngân sách 2-3 triệu, tôi xin gợi ý bạn xem qua Nồi chiên không dầu Magic 6.5 lít A-805 nhé. Sản phẩm này có giá 2.060.000 đồng. Bạn có muốn tôi cung cấp thêm thông tin chi tiết về sản phẩm này không?",
+      "textPreview": "Chào bạn, với nhu cầu làm sạch nhà cửa và ngân sách 2-3 triệu, tôi xin gợi ý bạn xem qua Nồi chiên không dầu Magic 6.5 lít A-805 nhé. Sản phẩm này có giá 2.060.000 đồng. Bạn có muốn tôi cung cấp thêm thông tin chi tiết về sản phẩm này không?",
+      "productIds": [
+        "prod_kitchen_06"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "account-required",
+        "version": 0,
+        "items": [],
+        "subtotal": 0,
+        "grandTotal": 0,
+        "status": "active"
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 63,
+        "playbackCount": 63,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 0,
+          "rollingSummaryLength": 0,
+          "recentRecommendationIds": [],
+          "preferenceKeys": []
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_kitchen_06",
+            "prod_clean_08",
+            "prod_air_08",
+            "prod_blender_04",
+            "prod_climate_02",
+            "prod_climate_09",
+            "prod_care_11",
+            "prod_kitchen_13"
+          ],
+          "selectedProductIds": [
+            "prod_kitchen_06"
+          ],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            -1.071289
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    }
+  ]
+}

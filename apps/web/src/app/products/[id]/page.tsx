@@ -13,7 +13,7 @@ interface Product {
   description: string;
 }
 
-const apiBaseUrl = process.env.API_BASE_URL ?? 'http://127.0.0.1:7010';
+const apiBaseUrl = process.env.API_BASE_URL ?? 'http://127.0.0.1:6810';
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -31,7 +31,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       <section className="product-detail-shell">
         <div className="product-detail-media">
           <img src={productImageUrl(product)} alt={product.title} />
-          <div className="source-ribbon">Nguồn: {productSourceName(product)}</div>
+          <div className="source-ribbon">Dữ liệu catalog: {productSourceName(product)}</div>
         </div>
         <article className="product-detail-card">
           <p className="eyebrow">{product.category}</p>
@@ -51,7 +51,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               <div><dt>Điểm chính</dt><dd>{productSpec(product)}</dd></div>
               <div><dt>Phù hợp</dt><dd>{productUseCase(product)}</dd></div>
               <div><dt>Thương hiệu</dt><dd>{product.brand}</dd></div>
-              <div><dt>Nguồn</dt><dd><a href={productSourceUrl(product)} target="_blank" rel="noreferrer">{productSourceName(product)}</a></dd></div>
+              <div><dt>Dữ liệu catalog</dt><dd><a href={productSourceUrl(product)} target="_blank" rel="noreferrer">{productSourceName(product)}</a></dd></div>
             </dl>
           </section>
         </article>

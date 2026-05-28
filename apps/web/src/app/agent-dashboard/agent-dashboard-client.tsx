@@ -57,7 +57,7 @@ interface PromptSetting {
   source: 'default' | 'database';
 }
 
-const apiBaseUrl = resolveBrowserApiBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:7010');
+const apiBaseUrl = resolveBrowserApiBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:6820');
 const agentLabels: Record<string, string> = {
   'lead-agent': 'Lead',
   'cart-agent': 'Cart',
@@ -223,33 +223,32 @@ export function AgentDashboardClient() {
 const AgentGraph = memo(function AgentGraph({ trace }: { trace: AgentTrace }) {
   const [detail, setDetail] = useState<GraphDetail | undefined>(undefined);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | undefined>(undefined);
-  const [activeTab, setActiveTab] = useState<'flow' | 'prompt'>('flow');
+  const [activeTab, setActiveTab] = useState<'overview' | 'prompt'>(() => (
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('tab') === 'prompt'
+      ? 'prompt'
+      : 'overview'
+  ));
   const { activeAgent, playbackEvents, visibleEdges, visibleNodes } = useMemo(() => buildGraphView(trace), [trace.traceId, trace.pipeline?.length, trace.events.length]);
   const nodeStepBadges = useMemo(() => buildNodeStepBadges(visibleEdges), [visibleEdges]);
-  const edgePairCounts = useMemo(() => buildEdgePairCounts(visibleEdges), [visibleEdges]);
+  const edgePathItems = useMemo(() => buildCanvasEdgePathItems(visibleNodes, visibleEdges), [visibleNodes, visibleEdges]);
   const hoveredNode = hoveredNodeId ? visibleNodes.find((node) => node.id === hoveredNodeId) : undefined;
 
   return (
     <>
+      <GraphLegend />
       <div className="agent-node-canvas" aria-label="So do trace agent theo thu tu thuc thi">
         <TracePlaybackCanvas nodes={visibleNodes} events={playbackEvents} />
-        <GraphLegend />
         <svg className="agent-node-edges" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-          {visibleEdges.map((edge, index) => {
-            const from = visibleNodes.find((node) => node.id === edge.from);
-            const to = visibleNodes.find((node) => node.id === edge.to);
-            if (!from || !to) return null;
-            return (
-              <path
-                className={`agent-node-edge ${edge.direction ?? 'call'} ${edgeFlowTone(edge.direction)}`}
-                d={graphEdgePath(from, to, edge, edgePairCounts)}
-                data-from={edge.from}
-                data-to={edge.to}
-                data-direction={edge.direction ?? 'call'}
-                key={`${edge.from}-${edge.to}-${edge.order ?? index}-edge`}
-              />
-            );
-          })}
+          {edgePathItems.map((item) => (
+            <path
+              className={`agent-node-edge ${item.edge.direction ?? 'call'} ${edgeFlowTone(item.edge.direction)}`}
+              d={item.path}
+              data-from={item.edge.from}
+              data-to={item.edge.to}
+              data-direction={item.edge.direction ?? 'call'}
+              key={item.key}
+            />
+          ))}
         </svg>
         {visibleNodes.map((node) => (
           <button
@@ -287,14 +286,10 @@ const AgentGraph = memo(function AgentGraph({ trace }: { trace: AgentTrace }) {
         {detail ? <GraphDetailPopup detail={detail} onClose={() => setDetail(undefined)} /> : null}
       </div>
       <div className="agent-dashboard-tabs" role="tablist" aria-label="Công cụ dashboard">
-        <button type="button" className={activeTab === 'flow' ? 'active' : ''} onClick={() => setActiveTab('flow')} role="tab" aria-selected={activeTab === 'flow'}>Flow</button>
+        <button type="button" className={activeTab === 'overview' ? 'active' : ''} onClick={() => setActiveTab('overview')} role="tab" aria-selected={activeTab === 'overview'}>Dashboard</button>
         <button type="button" className={activeTab === 'prompt' ? 'active' : ''} onClick={() => setActiveTab('prompt')} role="tab" aria-selected={activeTab === 'prompt'}>Prompt</button>
       </div>
-      {activeTab === 'flow' ? (
-        <TraceFlowBoard activeAgent={activeAgent} edges={visibleEdges} nodes={visibleNodes} playbackEvents={playbackEvents} trace={trace} onSelect={setDetail} />
-      ) : (
-        <PromptEditor trace={trace} />
-      )}
+      {activeTab === 'prompt' ? <PromptEditor trace={trace} /> : null}
     </>
   );
 });
@@ -320,8 +315,14 @@ function PromptEditor({ trace }: { trace: AgentTrace }) {
     try {
       const response = await fetch(`${apiBaseUrl}/api/v1/prompt-settings`, { credentials: 'include', cache: 'no-store' });
       const text = await response.text();
-      if (!response.ok) throw new Error(parseErrorText(text, response.status));
+      if (!response.ok) {
+        const message = parseErrorText(text, response.status);
+        throw new Error(response.status === 404
+          ? 'Chưa thấy API prompt-settings. Hãy restart backend và chạy Prisma db push để dashboard đọc prompt từ DB.'
+          : message);
+      }
       const payload = JSON.parse(text) as { prompts: PromptSetting[] };
+      if (!payload.prompts.length) throw new Error('DB chưa có prompt nào. Hãy chạy lại backend để seed PromptSetting mặc định.');
       setPrompts(payload.prompts);
       const nextSelected = selectedKey && payload.prompts.some((prompt) => prompt.key === selectedKey) ? selectedKey : payload.prompts[0]?.key ?? '';
       setSelectedKey(nextSelected);
@@ -539,7 +540,9 @@ function buildGraphView(trace: AgentTrace): { activeAgent: string | undefined; v
     const visibleNodes = compactVisibleGraphNodes(positionedNodes.filter((node) => shouldShowNode(node, connectedNodeIds)));
     const nodeIds = new Set(visibleNodes.map((node) => node.id));
     const visibleEdges = selectVisibleGraphEdges(expandedEdges, nodeIds, 160);
-    return { activeAgent, visibleNodes, visibleEdges, playbackEvents: buildPlaybackEvents(trace, visibleEdges, nodeIds) };
+    const routedNodes = avoidLineNodeCollisions(visibleNodes, visibleEdges);
+    const routedNodeIds = new Set(routedNodes.map((node) => node.id));
+    return { activeAgent, visibleNodes: routedNodes, visibleEdges, playbackEvents: buildPlaybackEvents(trace, visibleEdges, routedNodeIds) };
   }
 
   const activeAgents = agentOrder.filter((agent) => trace.agents.includes(agent) || trace.steps.some((step) => step.agent === agent));
@@ -563,8 +566,10 @@ function buildGraphView(trace: AgentTrace): { activeAgent: string | undefined; v
   const visibleNodes = spreadNearbyNodes(applySessionFlowLayout(expandedGraph.nodes, trace, expandedGraph.edges));
   const nodeIds = new Set(visibleNodes.map((node) => node.id));
   const visibleEdges = selectVisibleGraphEdges(expandedGraph.edges, nodeIds, 160);
+  const routedNodes = avoidLineNodeCollisions(visibleNodes, visibleEdges);
+  const routedNodeIds = new Set(routedNodes.map((node) => node.id));
 
-  return { activeAgent, visibleNodes, visibleEdges, playbackEvents: buildPlaybackEvents(trace, visibleEdges, nodeIds) };
+  return { activeAgent, visibleNodes: routedNodes, visibleEdges, playbackEvents: buildPlaybackEvents(trace, visibleEdges, routedNodeIds) };
 }
 
 function buildGraphClusters(trace: AgentTrace, nodes: PositionedGraphNode[], edges: GraphEdge[]): GraphCluster[] {
@@ -820,8 +825,8 @@ function compactVisibleGraphNodes(nodes: PositionedGraphNode[]): PositionedGraph
         kind: 'tool',
         status: toolNodes.some((node) => node.status === 'error') ? 'error' : toolNodes.some((node) => node.status === 'blocked') ? 'blocked' : 'completed',
         detail: `${hiddenToolCount} tool đã gom`,
-        x: 75,
-        y: 82,
+        x: 88,
+        y: 88,
         icon: `+${hiddenToolCount}`,
         tone: 'tool',
       },
@@ -1054,6 +1059,8 @@ function TracePlaybackCanvas({
   events: GraphPlaybackEvent[];
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const playbackPairCounts = useMemo(() => buildEdgePairCounts(events), [events]);
+  const playbackObstacles = useMemo(() => nodes.length > 24 ? nodes.filter((node) => node.kind === 'agent' || node.kind === 'tool') : nodes, [nodes]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -1062,7 +1069,7 @@ function TracePlaybackCanvas({
     if (!canvas || !host || !context) return;
 
     const nodeById = new Map(nodes.map((node) => [node.id, node]));
-    const playableEvents = events.filter((event) => nodeById.has(event.from) && nodeById.has(event.to));
+    const playableEvents = uniquePlaybackEvents(events.filter((event) => nodeById.has(event.from) && nodeById.has(event.to)));
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let animationFrame = 0;
     let startTime = performance.now();
@@ -1088,13 +1095,13 @@ function TracePlaybackCanvas({
 
       const loopMs = reducedMotion ? 4800 : 2533;
       const elapsed = time - startTime;
-      const visiblePlayEvents = playableEvents.slice(0, 18);
+      const visiblePlayEvents = playableEvents.slice(0, 56);
       visiblePlayEvents.forEach((event, index) => {
         const fromNode = nodeById.get(event.from);
         const toNode = nodeById.get(event.to);
         if (!fromNode || !toNode) return;
         const offsetProgress = ((elapsed + index * 170) % loopMs) / loopMs;
-        drawPlaybackSegment(context, fromNode, toNode, event, offsetProgress, width, height);
+        drawPlaybackSegment(context, fromNode, toNode, event, offsetProgress, width, height, playbackPairCounts, playbackObstacles);
       });
       animationFrame = window.requestAnimationFrame(draw);
     };
@@ -1108,15 +1115,22 @@ function TracePlaybackCanvas({
       window.removeEventListener('resize', resize);
       window.cancelAnimationFrame(animationFrame);
     };
-  }, [nodes, events]);
+  }, [nodes, events, playbackPairCounts, playbackObstacles]);
 
   return <canvas className="agent-playback-canvas" ref={canvasRef} aria-hidden="true" />;
 }
 
+function uniquePlaybackEvents(events: GraphPlaybackEvent[]): GraphPlaybackEvent[] {
+  const byPath = new Map<string, GraphPlaybackEvent>();
+  for (const event of events) {
+    const key = `${event.from}->${event.to}:${edgeFlowTone(event.direction)}`;
+    if (!byPath.has(key)) byPath.set(key, event);
+  }
+  return [...byPath.values()].sort((left, right) => left.order - right.order || left.id.localeCompare(right.id));
+}
+
 function buildPlaybackEvents(_trace: AgentTrace, edges: GraphEdge[], nodeIds: Set<string>): GraphPlaybackEvent[] {
-  const sourceEvents = _trace.playbackEvents?.length
-    ? _trace.playbackEvents
-    : edges.map((edge, index) => ({
+  const edgeEvents = edges.map((edge, index) => ({
       id: `${edge.from}-${edge.to}-${edge.order ?? index}`,
       from: edge.from,
       to: edge.to,
@@ -1124,11 +1138,14 @@ function buildPlaybackEvents(_trace: AgentTrace, edges: GraphEdge[], nodeIds: Se
       direction: edge.direction ?? 'call',
       status: edge.status,
       label: edge.label,
-    }));
+  }));
+  const sourceEvents = _trace.playbackEvents?.length
+    ? [..._trace.playbackEvents, ...edgeEvents]
+    : edgeEvents;
 
-  return sourceEvents
+  return uniquePlaybackEvents(sourceEvents
     .filter((event) => nodeIds.has(event.from) && nodeIds.has(event.to))
-    .sort((left, right) => left.order - right.order || left.id.localeCompare(right.id))
+    .sort((left, right) => left.order - right.order || left.id.localeCompare(right.id)))
     .slice(0, 72);
 }
 
@@ -1140,17 +1157,13 @@ function drawPlaybackSegment(
   progress: number,
   width: number,
   height: number,
+  pairCounts: Map<string, number>,
+  obstacles: PositionedGraphNode[],
 ) {
   const from = { x: (fromNode.x / 100) * width, y: (fromNode.y / 100) * height };
   const to = { x: (toNode.x / 100) * width, y: (toNode.y / 100) * height };
-  const offset = edgeFlowTone(event.direction) === 'return' ? -18 : 18;
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  const length = Math.hypot(dx, dy) || 1;
-  const control = {
-    x: (from.x + to.x) / 2 + (-dy / length) * offset,
-    y: (from.y + to.y) / 2 + (dx / length) * offset,
-  };
+  const controlPercent = graphEdgeControlPoint(fromNode, toNode, event, pairCounts, obstacles);
+  const control = { x: (controlPercent.x / 100) * width, y: (controlPercent.y / 100) * height };
   const color = playbackColor(event.direction);
 
   context.save();
@@ -1955,7 +1968,28 @@ function edgePairKey(edge: GraphEdge): string {
   return [edge.from, edge.to].sort().join('__');
 }
 
-function graphEdgePath(from: PositionedGraphNode, to: PositionedGraphNode, edge: GraphEdge, pairCounts: Map<string, number>): string {
+function buildCanvasEdgePathItems(nodes: PositionedGraphNode[], edges: GraphEdge[]): Array<{ edge: GraphEdge; key: string; path: string }> {
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
+  const pairCounts = buildEdgePairCounts(edges);
+  const obstacles = nodes.length > 24 ? nodes.filter((node) => node.kind === 'agent' || node.kind === 'tool') : nodes;
+  return edges.flatMap((edge, index) => {
+    const from = nodeById.get(edge.from);
+    const to = nodeById.get(edge.to);
+    if (!from || !to) return [];
+    return [{
+      edge,
+      key: `${edge.from}-${edge.to}-${edge.order ?? index}-edge`,
+      path: graphEdgePath(from, to, edge, pairCounts, obstacles),
+    }];
+  });
+}
+
+function graphEdgePath(from: PositionedGraphNode, to: PositionedGraphNode, edge: GraphEdge, pairCounts: Map<string, number>, obstacles: PositionedGraphNode[] = []): string {
+  const control = graphEdgeControlPoint(from, to, edge, pairCounts, obstacles);
+  return `M ${from.x} ${from.y} Q ${control.x} ${control.y} ${to.x} ${to.y}`;
+}
+
+function graphEdgeControlPoint(from: PositionedGraphNode, to: PositionedGraphNode, edge: GraphEdge, pairCounts: Map<string, number>, obstacles: PositionedGraphNode[] = []): { x: number; y: number } {
   const hasReverseOrPair = (pairCounts.get(edgePairKey(edge)) ?? 0) > 1;
   const baseOffset = edgeFlowTone(edge.direction) === 'return' ? -6 : 6;
   const offset = hasReverseOrPair ? baseOffset : 0;
@@ -1966,7 +2000,39 @@ function graphEdgePath(from: PositionedGraphNode, to: PositionedGraphNode, edge:
   const normalY = (dx / length) * offset;
   const midX = (from.x + to.x) / 2 + normalX;
   const midY = (from.y + to.y) / 2 + normalY;
-  return `M ${from.x} ${from.y} Q ${midX} ${midY} ${to.x} ${to.y}`;
+  return routeEdgeControlAroundNodes(from, { x: midX, y: midY }, to, edge, obstacles);
+}
+
+function routeEdgeControlAroundNodes(
+  from: PositionedGraphNode,
+  control: { x: number; y: number },
+  to: PositionedGraphNode,
+  edge: GraphEdge,
+  obstacles: PositionedGraphNode[],
+): { x: number; y: number } {
+  if (obstacles.length === 0) return control;
+
+  let routedX = control.x;
+  let routedY = control.y;
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const length = Math.hypot(dx, dy) || 1;
+  const normal = edgeFlowTone(edge.direction) === 'return'
+    ? { x: dy / length, y: -dx / length }
+    : { x: -dy / length, y: dx / length };
+
+  for (const obstacle of obstacles) {
+    if (obstacle.id === edge.from || obstacle.id === edge.to) continue;
+    const nearest = nearestPointOnQuadratic(obstacle, from, { x: routedX, y: routedY }, to);
+    const clearance = edgeCollisionClearance(obstacle) + 1.2;
+    if (nearest.distance >= clearance) continue;
+    const side = Math.sign((obstacle.x - from.x) * normal.x + (obstacle.y - from.y) * normal.y) || 1;
+    const strength = Math.min((clearance - nearest.distance + 1) * 1.8, 12);
+    routedX = clampPercent(routedX - normal.x * side * strength, 4, 96);
+    routedY = clampPercent(routedY - normal.y * side * strength, 6, 94);
+  }
+
+  return { x: routedX, y: routedY };
 }
 
 function buildSupportNodes(trace: AgentTrace, activeAgents: string[]): PositionedGraphNode[] {
@@ -2260,11 +2326,11 @@ function applySessionFlowLayout(nodes: PositionedGraphNode[], trace: AgentTrace,
 
   if (agentNodes.length > 3) {
     const preferredAgentGrid = new Map<string, { x: number; y: number }>([
-      ['lead-agent', { x: 40, y: 47 }],
+      ['lead-agent', { x: 36, y: 47 }],
       ['storage-memory-agent', { x: 25, y: 34 }],
       ['history-agent', { x: 24, y: 62 }],
       ['user-analysis-agent', { x: 31, y: 78 }],
-      ['search-agent', { x: 49, y: 30 }],
+      ['search-agent', { x: 51, y: 30 }],
       ['rag-agent', { x: 43, y: 82 }],
       ['recommendation-agent', { x: 56, y: 75 }],
       ['security-agent', { x: 76, y: 31 }],
@@ -2298,15 +2364,61 @@ function applySessionFlowLayout(nodes: PositionedGraphNode[], trace: AgentTrace,
     if (edge.from.endsWith('-agent') && (edge.to.startsWith('tool-') || edge.to.endsWith('-tool') || edge.to.includes('tool'))) ownerAgentByTool.set(edge.to, edge.from);
   }
   const toolSlotByAgent = new Map<string, number>();
+  const toolLaneOffsets = new Map<string, Array<{ x: number; y: number }>>([
+    ['search-agent', [
+      { x: 10, y: -17 },
+      { x: 27, y: 2 },
+      { x: 12, y: 23 },
+      { x: 31, y: 24 },
+      { x: -14, y: 22 },
+      { x: 39, y: -15 },
+      { x: -22, y: 34 },
+      { x: 0, y: 36 },
+    ]],
+    ['recommendation-agent', [
+      { x: 13, y: -19 },
+      { x: 26, y: -5 },
+      { x: 13, y: 11 },
+      { x: 28, y: 18 },
+      { x: -13, y: 11 },
+      { x: 2, y: -31 },
+    ]],
+    ['sales-agent', [
+      { x: -14, y: -18 },
+      { x: 13, y: -14 },
+      { x: -14, y: 9 },
+      { x: 13, y: 12 },
+    ]],
+    ['cart-agent', [
+      { x: 12, y: -18 },
+      { x: 23, y: -5 },
+      { x: 11, y: 11 },
+    ]],
+    ['customer-support-agent', [
+      { x: 13, y: -14 },
+      { x: 24, y: 3 },
+      { x: 12, y: 17 },
+    ]],
+  ]);
   toolNodes.forEach((node, index) => {
     const ownerAgentId = ownerAgentByTool.get(node.id);
     const ownerPosition = ownerAgentId ? fixedPositions.get(ownerAgentId) : undefined;
     if (ownerAgentId && ownerPosition) {
       const slot = toolSlotByAgent.get(ownerAgentId) ?? 0;
       toolSlotByAgent.set(ownerAgentId, slot + 1);
+      const ownerOffsets = toolLaneOffsets.get(ownerAgentId);
+      if (ownerOffsets?.length) {
+        const offset = ownerOffsets[slot % ownerOffsets.length];
+        const wrap = Math.floor(slot / ownerOffsets.length);
+        fixedPositions.set(node.id, {
+          x: clampPercent(ownerPosition.x + offset.x + wrap * 2.2, 18, 90),
+          y: clampPercent(ownerPosition.y + offset.y + wrap * 3.2, 15, 88),
+        });
+        return;
+      }
       fixedPositions.set(node.id, {
-        x: clampPercent(ownerPosition.x + 15 + (slot % 2) * 11, 18, 90),
-        y: clampPercent(ownerPosition.y - 17 + Math.floor(slot / 2) * 17, 15, 88),
+        x: clampPercent(ownerPosition.x + 18 + (slot % 2) * 13, 18, 90),
+        y: clampPercent(ownerPosition.y - 22 + Math.floor(slot / 2) * 20, 15, 88),
       });
       return;
     }
@@ -2323,8 +2435,8 @@ function applySessionFlowLayout(nodes: PositionedGraphNode[], trace: AgentTrace,
       if (!ownerId || !ownerPosition) return;
       if (ownerId === 'sales-agent') {
         fixedPositions.set(node.id, {
-          x: clampPercent(ownerPosition.x - 16, 16, 86),
-          y: clampPercent(ownerPosition.y - 15, 15, 88),
+          x: clampPercent(ownerPosition.x - 20, 16, 86),
+          y: clampPercent(ownerPosition.y - 21, 15, 88),
         });
         return;
       }
@@ -2336,8 +2448,8 @@ function applySessionFlowLayout(nodes: PositionedGraphNode[], trace: AgentTrace,
 
   const preferredDbPositions = new Map<string, { x: number; y: number }>([
     ['postgres-db', { x: 22, y: 25 }],
-    ['qdrant-db', { x: 63, y: 44 }],
-    ['llm-service', { x: 74, y: 71 }],
+    ['qdrant-db', { x: 72, y: 16 }],
+    ['llm-service', { x: 86, y: 43 }],
     ['cart-state', { x: 75, y: 83 }],
   ]);
   const remainingDbNodes = dbNodes.filter((node) => !preferredDbPositions.has(node.id));
@@ -2357,9 +2469,8 @@ function applySessionFlowLayout(nodes: PositionedGraphNode[], trace: AgentTrace,
   });
 }
 
-function spreadNearbyNodes(nodes: PositionedGraphNode[]): PositionedGraphNode[] {
+function spreadNearbyNodes(nodes: PositionedGraphNode[], minDistance = 11.5): PositionedGraphNode[] {
   const nextNodes = nodes.map((node) => ({ ...node }));
-  const minDistance = 17;
 
   for (let pass = 0; pass < 8; pass += 1) {
     for (let leftIndex = 0; leftIndex < nextNodes.length; leftIndex += 1) {
@@ -2375,15 +2486,323 @@ function spreadNearbyNodes(nodes: PositionedGraphNode[]): PositionedGraphNode[] 
         const push = (minDistance - Math.max(distance, 0.1)) / 2;
         const pushX = Math.cos(angle) * push;
         const pushY = Math.sin(angle) * push;
-        left.x = clampPercent(left.x - pushX, 7, 93);
-        left.y = clampPercent(left.y - pushY, 10, 90);
-        right.x = clampPercent(right.x + pushX, 7, 93);
-        right.y = clampPercent(right.y + pushY, 10, 90);
+        const leftMobility = nodeMobility(left);
+        const rightMobility = nodeMobility(right);
+        const totalMobility = leftMobility + rightMobility || 1;
+        const leftShare = leftMobility / totalMobility;
+        const rightShare = rightMobility / totalMobility;
+        left.x = clampPercent(left.x - pushX * 2 * leftShare, 7, 93);
+        left.y = clampPercent(left.y - pushY * 2 * leftShare, 10, 90);
+        right.x = clampPercent(right.x + pushX * 2 * rightShare, 7, 93);
+        right.y = clampPercent(right.y + pushY * 2 * rightShare, 10, 90);
       }
     }
   }
 
+  return resolveVisualNodeOverlaps(nextNodes);
+}
+
+function avoidLineNodeCollisions(nodes: PositionedGraphNode[], edges: GraphEdge[]): PositionedGraphNode[] {
+  if (nodes.length < 3 || edges.length === 0) return nodes;
+
+  const homes = new Map(nodes.map((node) => [node.id, { x: node.x, y: node.y }]));
+  const owners = buildNodeOwnerAnchors(nodes, edges);
+  let nextNodes = nodes.map((node) => ({ ...node }));
+  const pairCounts = buildEdgePairCounts(edges);
+  const routedEdges = edges.filter(shouldAvoidNodeEdgeCollision);
+
+  for (let pass = 0; pass < 3; pass += 1) {
+    const nodeById = new Map(nextNodes.map((node) => [node.id, node]));
+    for (let index = 0; index < nextNodes.length; index += 1) {
+      const node = nextNodes[index];
+      const owner = owners.get(node.id);
+      const home = homes.get(node.id) ?? node;
+      const anchor = owner ? nodeById.get(owner) ?? home : home;
+      const candidate = bestCollisionAwareNodePosition(node, {
+        anchor,
+        home,
+        nodes: nextNodes,
+        edges: routedEdges,
+        pairCounts,
+        nodeById,
+        index,
+      });
+      node.x = candidate.x;
+      node.y = candidate.y;
+    }
+  }
+
+  return resolveVisualNodeOverlaps(nextNodes);
+}
+
+function buildNodeOwnerAnchors(nodes: PositionedGraphNode[], edges: GraphEdge[]): Map<string, string> {
+  const nodeIds = new Set(nodes.map((node) => node.id));
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
+  const owners = new Map<string, string>();
+  for (const node of nodes) {
+    if (node.id.includes('__for__')) {
+      const ownerId = node.id.split('__for__')[1];
+      if (ownerId && nodeIds.has(ownerId)) owners.set(node.id, ownerId);
+    }
+  }
+  for (const edge of edges) {
+    const target = nodeById.get(edge.to);
+    const source = nodeById.get(edge.from);
+    if (edge.from.endsWith('-agent') && target && !isSharedInfrastructureNode(target) && !owners.has(edge.to)) owners.set(edge.to, edge.from);
+    if (edge.to.endsWith('-agent') && source && !source.id.endsWith('-agent') && !isSharedInfrastructureNode(source) && !owners.has(edge.from)) owners.set(edge.from, edge.to);
+  }
+  return owners;
+}
+
+function isSharedInfrastructureNode(node: PositionedGraphNode): boolean {
+  return node.kind === 'db' || node.kind === 'vector_db' || node.kind === 'llm' || node.kind === 'service';
+}
+
+function bestCollisionAwareNodePosition(
+  node: PositionedGraphNode,
+  params: {
+    anchor: { x: number; y: number };
+    home: { x: number; y: number };
+    nodes: PositionedGraphNode[];
+    edges: GraphEdge[];
+    pairCounts: Map<string, number>;
+    nodeById: Map<string, PositionedGraphNode>;
+    index: number;
+  },
+): { x: number; y: number } {
+  const maxDrift = node.kind === 'agent' ? 3.2 : node.id.includes('__for__') || node.kind === 'tool' ? 8.4 : 6.2;
+  const candidates = nodePositionCandidates(node, params.home, params.anchor, maxDrift);
+  let best = { x: node.x, y: node.y };
+  let bestScore = Number.POSITIVE_INFINITY;
+
+  for (const candidate of candidates) {
+    const score = scoreNodePosition(node, candidate, params);
+    if (score < bestScore) {
+      bestScore = score;
+      best = candidate;
+    }
+  }
+
+  return best;
+}
+
+function nodePositionCandidates(
+  node: PositionedGraphNode,
+  home: { x: number; y: number },
+  anchor: { x: number; y: number },
+  maxDrift: number,
+): Array<{ x: number; y: number }> {
+  const candidates = [
+    { x: node.x, y: node.y },
+    { x: home.x, y: home.y },
+  ];
+  const idealRadius = node.kind === 'agent' ? 0 : node.kind === 'tool' ? 13.5 : node.id.includes('history-agent__for__') ? 11 : 9;
+  const baseAngle = Math.atan2(home.y - anchor.y, home.x - anchor.x) || 0;
+  const angles = [baseAngle, baseAngle + Math.PI / 5, baseAngle - Math.PI / 5, baseAngle + Math.PI / 2, baseAngle - Math.PI / 2, baseAngle + Math.PI];
+  const radii = node.kind === 'agent' ? [0, 1.8, 2.8] : [idealRadius * 0.76, idealRadius, idealRadius * 1.18];
+
+  for (const radius of radii) {
+    for (const angle of angles) {
+      const x = anchor.x + Math.cos(angle) * radius;
+      const y = anchor.y + Math.sin(angle) * radius;
+      candidates.push({
+        x: clampPercent(x, Math.max(7, home.x - maxDrift), Math.min(93, home.x + maxDrift)),
+        y: clampPercent(y, Math.max(10, home.y - maxDrift), Math.min(90, home.y + maxDrift)),
+      });
+    }
+  }
+
+  if (node.kind !== 'agent') {
+    for (const dx of [-5.8, 0, 5.8]) {
+      for (const dy of [-8.6, 0, 8.6]) {
+        candidates.push({
+          x: clampPercent(home.x + dx, Math.max(7, home.x - maxDrift), Math.min(93, home.x + maxDrift)),
+          y: clampPercent(home.y + dy, Math.max(10, home.y - maxDrift), Math.min(90, home.y + maxDrift)),
+        });
+      }
+    }
+  }
+
+  return candidates;
+}
+
+function scoreNodePosition(
+  node: PositionedGraphNode,
+  candidate: { x: number; y: number },
+  params: {
+    anchor: { x: number; y: number };
+    home: { x: number; y: number };
+    nodes: PositionedGraphNode[];
+    edges: GraphEdge[];
+    pairCounts: Map<string, number>;
+    nodeById: Map<string, PositionedGraphNode>;
+    index: number;
+  },
+): number {
+  const candidateNode = { ...node, ...candidate };
+  const homeDistance = Math.hypot(candidate.x - params.home.x, candidate.y - params.home.y);
+  const anchorDistance = Math.hypot(candidate.x - params.anchor.x, candidate.y - params.anchor.y);
+  const anchorWeight = node.id.includes('history-agent__for__') ? 0.2 : node.kind === 'agent' ? 0.2 : 1.1;
+  let score = homeDistance * (node.kind === 'agent' ? 10 : 2.2) + anchorDistance * anchorWeight;
+
+  for (const edge of params.edges) {
+    if (edge.from === node.id || edge.to === node.id) continue;
+    const from = params.nodeById.get(edge.from);
+    const to = params.nodeById.get(edge.to);
+    if (!from || !to) continue;
+    const nearest = nearestPointOnEdgeCurve(candidateNode, from, to, edge, params.pairCounts);
+    const clearance = edgeCollisionClearance(node);
+    if (nearest.distance < clearance) score += (clearance - nearest.distance + 1) ** 2 * 24;
+  }
+
+  for (let index = 0; index < params.nodes.length; index += 1) {
+    if (index === params.index) continue;
+    const other = params.nodes[index];
+    score += nodeRectOverlapPenalty(candidateNode, other) * 34;
+  }
+
+  return score;
+}
+
+function shouldAvoidNodeEdgeCollision(edge: GraphEdge): boolean {
+  const fromIsContext = edge.from === 'task-context' || edge.from === 'session-context';
+  const toIsContext = edge.to === 'task-context' || edge.to === 'session-context';
+  if (fromIsContext && toIsContext) return false;
+  if ((fromIsContext || toIsContext) && edge.direction !== 'call' && edge.direction !== 'return') return false;
+  return true;
+}
+
+function nearestPointOnEdgeCurve(
+  node: PositionedGraphNode,
+  from: PositionedGraphNode,
+  to: PositionedGraphNode,
+  edge: GraphEdge,
+  pairCounts: Map<string, number>,
+): { point: { x: number; y: number }; distance: number } {
+  const control = graphEdgeControlPoint(from, to, edge, pairCounts);
+  return nearestPointOnQuadratic(node, from, control, to);
+}
+
+function nearestPointOnQuadratic(
+  node: PositionedGraphNode,
+  from: { x: number; y: number },
+  control: { x: number; y: number },
+  to: { x: number; y: number },
+): { point: { x: number; y: number }; distance: number } {
+  let bestPoint = quadraticPoint(from, control, to, 0.5);
+  let bestDistance = Number.POSITIVE_INFINITY;
+
+  for (let index = 2; index <= 18; index += 1) {
+    const progress = index / 20;
+    const point = quadraticPoint(from, control, to, progress);
+    const distance = Math.hypot(node.x - point.x, node.y - point.y);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestPoint = point;
+    }
+  }
+
+  return { point: bestPoint, distance: bestDistance };
+}
+
+function edgeCollisionClearance(node: PositionedGraphNode): number {
+  if (node.kind === 'agent') return 7.4;
+  if (node.kind === 'tool') return 6.3;
+  if (node.kind === 'db' || node.kind === 'vector_db' || node.kind === 'llm') return 6.7;
+  if (node.id === 'task-context' || node.id === 'session-context') return 7.2;
+  return 5.9;
+}
+
+function nodePairMinDistance(left: PositionedGraphNode, right: PositionedGraphNode): number {
+  const leftSize = left.kind === 'agent' ? 8.4 : left.kind === 'tool' ? 6.3 : 6.9;
+  const rightSize = right.kind === 'agent' ? 8.4 : right.kind === 'tool' ? 6.3 : 6.9;
+  const sameOwner = ownerSuffix(left.id) && ownerSuffix(left.id) === ownerSuffix(right.id);
+  return (leftSize + rightSize) * (sameOwner ? 0.62 : 0.78);
+}
+
+function nodeRectOverlapPenalty(left: PositionedGraphNode, right: PositionedGraphNode): number {
+  const leftSize = nodeLayoutFootprint(left);
+  const rightSize = nodeLayoutFootprint(right);
+  const minX = leftSize.x + rightSize.x;
+  const minY = leftSize.y + rightSize.y;
+  const overlapX = minX - Math.abs(left.x - right.x);
+  const overlapY = minY - Math.abs(left.y - right.y);
+  if (overlapX <= 0 || overlapY <= 0) return 0;
+  const sameOwner = ownerSuffix(left.id) && ownerSuffix(left.id) === ownerSuffix(right.id);
+  const ownerFactor = sameOwner ? 0.72 : 1;
+  return ((overlapX / minX) ** 2 + (overlapY / minY) ** 2) * ownerFactor;
+}
+
+function resolveVisualNodeOverlaps(nodes: PositionedGraphNode[]): PositionedGraphNode[] {
+  const nextNodes = nodes.map((node) => ({ ...node }));
+
+  for (let pass = 0; pass < 24; pass += 1) {
+    let moved = false;
+    for (let leftIndex = 0; leftIndex < nextNodes.length; leftIndex += 1) {
+      for (let rightIndex = leftIndex + 1; rightIndex < nextNodes.length; rightIndex += 1) {
+        const left = nextNodes[leftIndex];
+        const right = nextNodes[rightIndex];
+        const leftSize = nodeLayoutFootprint(left);
+        const rightSize = nodeLayoutFootprint(right);
+        const minX = leftSize.x + rightSize.x + 0.9;
+        const minY = leftSize.y + rightSize.y + 0.9;
+        const dx = right.x - left.x;
+        const dy = right.y - left.y;
+        const overlapX = minX - Math.abs(dx);
+        const overlapY = minY - Math.abs(dy);
+        if (overlapX <= 0 || overlapY <= 0) continue;
+
+        const leftMobility = nodeMobility(left);
+        const rightMobility = nodeMobility(right);
+        const totalMobility = leftMobility + rightMobility || 1;
+        const leftShare = leftMobility / totalMobility;
+        const rightShare = rightMobility / totalMobility;
+        const directionX = dx >= 0 ? 1 : -1;
+        const directionY = dy >= 0 ? 1 : -1;
+
+        if (overlapX / minX < overlapY / minY) {
+          const push = Math.min(overlapX + 1.4, 8.8);
+          left.x = clampPercent(left.x - directionX * push * leftShare, 7, 93);
+          right.x = clampPercent(right.x + directionX * push * rightShare, 7, 93);
+        } else {
+          const push = Math.min(overlapY + 1.4, 10.8);
+          left.y = clampPercent(left.y - directionY * push * leftShare, 10, 90);
+          right.y = clampPercent(right.y + directionY * push * rightShare, 10, 90);
+        }
+        moved = true;
+      }
+    }
+    if (!moved) break;
+  }
+
   return nextNodes;
+}
+
+function nodeLayoutFootprint(node: PositionedGraphNode): { x: number; y: number } {
+  if (node.kind === 'agent') return { x: 3.4, y: 7.5 };
+  if (node.kind === 'tool') return { x: 3.1, y: 6.4 };
+  if (node.kind === 'db' || node.kind === 'vector_db' || node.kind === 'llm' || node.kind === 'service') return { x: 3.4, y: 6.8 };
+  if (node.id === 'task-context' || node.id === 'session-context') return { x: 3.6, y: 7.2 };
+  return { x: 3.2, y: 6.4 };
+}
+
+function nodeMobility(node: PositionedGraphNode): number {
+  if (node.kind === 'agent') return 0.16;
+  if (node.id === 'task-context' || node.id === 'session-context' || node.id === 'pipeline-executor') return 0.26;
+  if (isSharedInfrastructureNode(node)) return 0.18;
+  if (node.id.includes('history-agent__for__')) return 0.62;
+  if (node.kind === 'tool' || node.id.includes('__for__')) return 1.9;
+  return 0.85;
+}
+
+function ownerSuffix(id: string): string | undefined {
+  return id.includes('__for__') ? id.split('__for__')[1] : undefined;
+}
+
+function collisionFallbackAngle(node: PositionedGraphNode, edge: GraphEdge, pass: number): number {
+  let hash = pass + node.id.length * 17 + edge.from.length * 7 + edge.to.length * 11;
+  for (const char of `${node.id}:${edge.from}:${edge.to}`) hash = (hash * 31 + char.charCodeAt(0)) % 9973;
+  return (hash / 9973) * Math.PI * 2;
 }
 
 function clampPercent(value: number, min: number, max: number): number {

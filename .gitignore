@@ -13,6 +13,7 @@ logs/setup/*.log
 runtime/
 data/
 .venv/
+.tmp*/
 *.log
 *.pid
 *.tsbuildinfo

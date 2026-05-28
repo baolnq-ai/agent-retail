@@ -12,7 +12,7 @@ interface Product {
   description: string;
 }
 
-const apiBaseUrl = process.env.API_BASE_URL ?? 'http://127.0.0.1:7010';
+const apiBaseUrl = process.env.API_BASE_URL ?? 'http://127.0.0.1:6810';
 
 export default async function HomePage() {
   const products = await loadProducts();
@@ -22,11 +22,11 @@ export default async function HomePage() {
 
   return (
     <>
-      <section className="storefront-hero" aria-label="Trang chủ mua sắm RetailHome">
+      <section className="storefront-hero" aria-label="Trang chủ NTC AI Retail">
         <div className="storefront-hero-copy">
-          <p className="eyebrow">RetailHome</p>
-          <h1>Thiết bị gia dụng chọn lọc cho từng góc nhà.</h1>
-          <p className="hero-lead">Mua sắm máy lọc không khí, thiết bị bếp, robot vệ sinh và nhà thông minh với thông tin rõ ràng, ảnh sản phẩm và nguồn tham khảo minh bạch.</p>
+          <p className="eyebrow">NTC AI Retail</p>
+          <h1>Catalog gia dụng vận hành cùng retail agent.</h1>
+          <p className="hero-lead">Tra cứu sản phẩm, kiểm tồn kho, thao tác giỏ hàng và theo dõi pipeline AI từ cùng một hệ thống bán lẻ.</p>
           <form className="storefront-search" action="/products">
             <input name="q" aria-label="Tìm sản phẩm" placeholder="Tìm máy lọc, robot hút bụi, nồi chiên..." />
             <button type="submit">Tìm</button>
@@ -49,10 +49,10 @@ export default async function HomePage() {
         )}
       </section>
 
-      <section className="deal-strip" aria-label="Cam kết mua sắm">
-        <strong>100 lựa chọn nổi bật</strong>
-        <span>Thông tin sản phẩm có nguồn tham khảo</span>
-        <span>Giao diện dễ xem ngày và đêm</span>
+      <section className="deal-strip" aria-label="Năng lực hệ thống">
+        <strong>Catalog retail có kiểm tồn</strong>
+        <span>Chat agent bám dữ liệu sản phẩm và giỏ hàng</span>
+        <span>Dashboard trace cho từng lượt xử lý</span>
         <a href="/products">Xem tất cả</a>
       </section>
 
@@ -81,7 +81,7 @@ export default async function HomePage() {
                 <summary>Chi tiết</summary>
                 <div>
                   <b>{productUseCase(product)}</b>
-                  <span>Nguồn: {productSourceName(product)}</span>
+                  <span>Dữ liệu catalog: {productSourceName(product)}</span>
                   <span>Còn {product.inventory} sản phẩm</span>
                 </div>
               </details>

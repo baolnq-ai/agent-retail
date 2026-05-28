@@ -3,12 +3,14 @@ import type { Product } from '../../models/catalog.models.js';
 import type { RecommendationAgentResult, SalesEvaluationResult } from '../../models/agent-execution.models.js';
 import { AgentHistoryService } from '../agent-history.service.js';
 import { ModelGatewayService } from '../model-gateway.service.js';
+import { PromptSettingsService } from '../prompt-settings.service.js';
 
 @Injectable()
 export class SalesEvaluatorAgentService {
   constructor(
     private readonly modelGatewayService: ModelGatewayService,
     private readonly agentHistoryService: AgentHistoryService,
+    private readonly promptSettingsService: PromptSettingsService,
   ) {}
 
   async evaluate(params: { userId?: string; message: string; draft: string; recommendationResult: RecommendationAgentResult; completedCartAction: boolean; actionResult?: string }): Promise<SalesEvaluationResult> {
@@ -30,7 +32,7 @@ export class SalesEvaluatorAgentService {
         maxTokens: 260,
         temperature: 0,
         messages: [
-          { role: 'system', content: 'Bạn là sales-evaluator-agent. Trả JSON thuần, không markdown. Đánh giá draft sales-agent có khớp product rail/recommendation handoff và tool result không.' },
+          { role: 'system', content: await this.promptSettingsService.getContent('sales-evaluator-system') || 'Bạn là sales-evaluator-agent. Trả JSON thuần, không markdown. Đánh giá draft sales-agent có khớp product rail/recommendation handoff và tool result không.' },
           { role: 'user', content: buildEvaluationPrompt(params, history.summary) },
         ],
       });

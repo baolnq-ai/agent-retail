@@ -23,6 +23,20 @@ export class ProductManagerAgentService {
         confidence: 0.96,
       };
     }
+    const cartHistoryProductIds = productIdsForCartHistoryAction(params.analysis, params.memoryInvestigation, params.cart);
+    if (params.analysis.intent === 'cart_action' && cartHistoryProductIds.length > 0) {
+      const selectedProducts = productsFromIds(cartHistoryProductIds, params.allProducts);
+      return {
+        mode: 'recent',
+        query,
+        candidates: selectedProducts,
+        selectedProducts: ensureProductSelection(selectProductsForRequest(params.message, selectedProducts, params.analysis), selectedProducts, params.message, params.analysis),
+        excludedProductIds: [],
+        evidence: selectedProducts.map((product) => `Cart/history resolved: ${product.title}`),
+        confidence: selectedProducts.length > 0 ? Math.max(params.memoryInvestigation.confidence, 0.76) : 0.25,
+      };
+    }
+
     if (params.analysis.retrievalMode === 'none') {
       return { mode: 'none', query, candidates: [], selectedProducts: [], excludedProductIds: [], evidence: ['Không cần truy xuất sản phẩm.'], confidence: 0.8 };
     }
@@ -77,6 +91,16 @@ function buildExcludedProductIds(analysis: UserAnalysis, memoryInvestigation: Me
     ...cart.items.map((item) => item.productId),
     ...memoryInvestigation.lastSelectedProductIds,
   ]);
+}
+
+function productIdsForCartHistoryAction(analysis: UserAnalysis, memoryInvestigation: MemoryInvestigationResult, cart: Cart): string[] {
+  if (analysis.intent !== 'cart_action') return [];
+  if (analysis.references.resolvedProductIds?.length) return analysis.references.resolvedProductIds;
+  if (analysis.cartOperation === 'remove' && (analysis.references.useCurrentCartItem || analysis.references.demonstrative) && cart.items.length === 1) return [cart.items[0].productId];
+  if (analysis.cartOperation === 'add' && memoryInvestigation.referenceProductIds.length) return memoryInvestigation.referenceProductIds;
+  if (analysis.cartOperation === 'add' && memoryInvestigation.lastSelectedProductIds.length) return memoryInvestigation.lastSelectedProductIds;
+  if (analysis.cartOperation === 'remove' && memoryInvestigation.lastCartActionProductIds.length) return memoryInvestigation.lastCartActionProductIds;
+  return [];
 }
 
 function selectProductsForRequest(message: string, products: Product[], analysis: UserAnalysis): Product[] {

@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const port = 3601;
 const baseUrl = `http://127.0.0.1:${port}`;
-const origin = 'http://127.0.0.1:7000';
+const origin = 'http://127.0.0.1:6800';
 
 const env = {
   ...process.env,

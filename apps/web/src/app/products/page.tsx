@@ -13,7 +13,7 @@ interface Product {
   description: string;
 }
 
-const apiBaseUrl = process.env.API_BASE_URL ?? 'http://127.0.0.1:7010';
+const apiBaseUrl = process.env.API_BASE_URL ?? 'http://127.0.0.1:6810';
 
 export default async function ProductsPage({ searchParams }: { searchParams?: Promise<{ category?: string; q?: string }> }) {
   const products = await loadProducts();
@@ -62,7 +62,7 @@ export default async function ProductsPage({ searchParams }: { searchParams?: Pr
                 <summary>Xem nhanh</summary>
                 <div>
                   <b>{productUseCase(product)}</b>
-                  <span>Nguồn: {productSourceName(product)}</span>
+                  <span>Dữ liệu catalog: {productSourceName(product)}</span>
                   <span>Tồn kho: {product.inventory}</span>
                 </div>
               </details>

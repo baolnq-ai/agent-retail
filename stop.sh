@@ -9,10 +9,17 @@ API_LOG_DIR="$RUNTIME_LOG_DIR/backend"
 WEB_LOG_DIR="$RUNTIME_LOG_DIR/frontend"
 STOP_LOG="$SETUP_LOG_DIR/stop-$(date +%Y%m%d-%H%M%S).log"
 ENV_FILE="$ROOT_DIR/.env"
-API_PORT="${API_PORT:-7010}"
-WEB_PORT="${WEB_PORT:-7000}"
-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-retail_agent_provider}"
-TMUX_SESSION="${TMUX_SESSION:-retail-agent}"
+API_PORT="${API_PORT:-6810}"
+WEB_PORT="${WEB_PORT:-6800}"
+NGINX_PORT="${NGINX_PORT:-6820}"
+POSTGRES_PORT="${POSTGRES_PORT:-6832}"
+REDIS_PORT="${REDIS_PORT:-6839}"
+QDRANT_PORT="${QDRANT_PORT:-6833}"
+QDRANT_GRPC_PORT="${QDRANT_GRPC_PORT:-6834}"
+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-retail_agent_dev}"
+DOCKER_COMPOSE_PROJECT_NAME="${DOCKER_COMPOSE_PROJECT_NAME:-retail_agent_full}"
+TMUX_SESSION="${TMUX_SESSION:-egnt-retail}"
+PROJECT_PORTS=("${WEB_PORT}" "${API_PORT}" "${NGINX_PORT:-6820}" "${POSTGRES_PORT:-6832}" "${REDIS_PORT:-6839}" "${QDRANT_PORT:-6833}" "${QDRANT_GRPC_PORT:-6834}")
 
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -68,7 +75,14 @@ command_exists() {
 load_env_file() {
   local incoming_api_port="${API_PORT:-}"
   local incoming_web_port="${WEB_PORT:-}"
+  local incoming_nginx_port="${NGINX_PORT:-}"
+  local incoming_postgres_port="${POSTGRES_PORT:-}"
+  local incoming_redis_port="${REDIS_PORT:-}"
+  local incoming_qdrant_port="${QDRANT_PORT:-}"
+  local incoming_qdrant_grpc_port="${QDRANT_GRPC_PORT:-}"
   local incoming_compose_project_name="${COMPOSE_PROJECT_NAME:-}"
+  local incoming_docker_compose_project_name="${DOCKER_COMPOSE_PROJECT_NAME:-}"
+  local incoming_tmux_session="${TMUX_SESSION:-}"
 
   if [[ -f "$ENV_FILE" ]]; then
     set -a
@@ -80,9 +94,20 @@ load_env_file() {
     warn "No .env found; using default ports"
   fi
 
-  export API_PORT="${incoming_api_port:-${API_PORT:-7010}}"
-  export WEB_PORT="${incoming_web_port:-${WEB_PORT:-7000}}"
-  export COMPOSE_PROJECT_NAME="${incoming_compose_project_name:-${COMPOSE_PROJECT_NAME:-retail_agent_provider}}"
+  export API_PORT="${incoming_api_port:-${API_PORT:-6810}}"
+  export WEB_PORT="${incoming_web_port:-${WEB_PORT:-6800}}"
+  export NGINX_PORT="${incoming_nginx_port:-${NGINX_PORT:-6820}}"
+  export POSTGRES_PORT="${incoming_postgres_port:-${POSTGRES_PORT:-6832}}"
+  export REDIS_PORT="${incoming_redis_port:-${REDIS_PORT:-6839}}"
+  export QDRANT_PORT="${incoming_qdrant_port:-${QDRANT_PORT:-6833}}"
+  export QDRANT_GRPC_PORT="${incoming_qdrant_grpc_port:-${QDRANT_GRPC_PORT:-6834}}"
+  export COMPOSE_PROJECT_NAME="${incoming_compose_project_name:-${COMPOSE_PROJECT_NAME:-retail_agent_dev}}"
+  export DOCKER_COMPOSE_PROJECT_NAME="${incoming_docker_compose_project_name:-${DOCKER_COMPOSE_PROJECT_NAME:-retail_agent_full}}"
+  export TMUX_SESSION="${incoming_tmux_session:-${TMUX_SESSION:-egnt-retail}}"
+  if [[ "$TMUX_SESSION" != *"egnt-retail"* ]]; then
+    export TMUX_SESSION="egnt-retail-${TMUX_SESSION}"
+  fi
+  PROJECT_PORTS=("${WEB_PORT}" "${API_PORT}" "$NGINX_PORT" "$POSTGRES_PORT" "$REDIS_PORT" "$QDRANT_PORT" "$QDRANT_GRPC_PORT")
 }
 
 is_pid_running() {
@@ -122,18 +147,29 @@ stop_pid_file() {
 }
 
 stop_repo_runtime_processes() {
-  if ! command_exists powershell.exe; then
-    warn "Repo-scoped process cleanup is only available on Windows PowerShell from this shell"
-    return
-  fi
-
   local root_path="$ROOT_DIR"
-  if command_exists cygpath; then
+  if command_exists powershell.exe && command_exists cygpath; then
     root_path="$(cygpath -w "$ROOT_DIR")"
   fi
 
-  powershell.exe -NoProfile -Command "\$root = '$root_path'.ToLowerInvariant(); Get-CimInstance Win32_Process | Where-Object { \$_.CommandLine -and \$_.CommandLine.ToLowerInvariant().Contains(\$root) -and (\$_.CommandLine.ToLowerInvariant().Contains('@retail-agent/api') -or \$_.CommandLine.ToLowerInvariant().Contains('apps\\web') -or \$_.CommandLine.ToLowerInvariant().Contains('next dev')) } | ForEach-Object { Stop-Process -Id \$_.ProcessId -Force -ErrorAction SilentlyContinue }" >> "$STOP_LOG" 2>&1 || true
-  ok "Stopped provider runtime processes scoped to this repo when present"
+  if command_exists powershell.exe; then
+    powershell.exe -NoProfile -Command "\$root = '$root_path'.ToLowerInvariant(); Get-CimInstance Win32_Process | Where-Object { \$_.CommandLine -and \$_.CommandLine.ToLowerInvariant().Contains(\$root) -and (\$_.CommandLine.ToLowerInvariant().Contains('@retail-agent/api') -or \$_.CommandLine.ToLowerInvariant().Contains('apps\\web') -or \$_.CommandLine.ToLowerInvariant().Contains('next dev')) } | ForEach-Object { Stop-Process -Id \$_.ProcessId -Force -ErrorAction SilentlyContinue }" >> "$STOP_LOG" 2>&1 || true
+  fi
+
+  if command_exists ps; then
+    while read -r pid; do
+      [[ -n "$pid" && "$pid" != "$$" ]] || continue
+      local cmd
+      cmd="$(ps -p "$pid" -o args= 2>/dev/null || true)"
+      if [[ "$cmd" == *"$ROOT_DIR"* && ( "$cmd" == *"@retail-agent/api"* || "$cmd" == *"apps/web"* || "$cmd" == *"next dev"* || "$cmd" == *"dist/main.js"* ) ]]; then
+        kill "$pid" >> "$STOP_LOG" 2>&1 || true
+        sleep 1
+        kill -9 "$pid" >> "$STOP_LOG" 2>&1 || true
+      fi
+    done < <(ps -eo pid= 2>/dev/null || true)
+  fi
+
+  ok "Stopped project runtime processes scoped to this repo when present"
 }
 
 stop_compose_services() {
@@ -144,6 +180,9 @@ stop_compose_services() {
 
   docker compose -p "$COMPOSE_PROJECT_NAME" -f "$ROOT_DIR/infra/docker/docker-compose.yml" down --remove-orphans >> "$STOP_LOG" 2>&1 || true
   ok "Stopped provider Docker Compose project: $COMPOSE_PROJECT_NAME"
+
+  docker compose -p "$DOCKER_COMPOSE_PROJECT_NAME" -f "$ROOT_DIR/docker-compose.yml" down --remove-orphans >> "$STOP_LOG" 2>&1 || true
+  ok "Stopped full Docker Compose project: $DOCKER_COMPOSE_PROJECT_NAME"
 }
 
 stop_tmux_session() {
@@ -152,12 +191,43 @@ stop_tmux_session() {
     return
   fi
 
-  if tmux has-session -t "$TMUX_SESSION" >/dev/null 2>&1; then
-    tmux kill-session -t "$TMUX_SESSION" >> "$STOP_LOG" 2>&1 || true
-    ok "Stopped tmux session: $TMUX_SESSION"
-  else
-    warn "No tmux session found: $TMUX_SESSION"
-  fi
+  local stopped=0
+  for session in "$TMUX_SESSION" "retail-agent"; do
+    if tmux has-session -t "$session" >/dev/null 2>&1; then
+      tmux kill-session -t "$session" >> "$STOP_LOG" 2>&1 || true
+      ok "Stopped tmux session: $session"
+      stopped=1
+    fi
+  done
+  while IFS=: read -r session _; do
+    if [[ "$session" == *"egnt-retail"* && "$session" != "$TMUX_SESSION" ]]; then
+      tmux kill-session -t "$session" >> "$STOP_LOG" 2>&1 || true
+      ok "Stopped tmux session matching egnt-retail: $session"
+      stopped=1
+    fi
+  done < <(tmux list-sessions -F '#S:' 2>/dev/null || true)
+  [[ "$stopped" == "1" ]] || warn "No tmux runtime session found"
+}
+
+stop_project_ports() {
+  local port pid
+  for port in "${PROJECT_PORTS[@]}"; do
+    [[ "$port" =~ ^[0-9]+$ ]] || continue
+    if command_exists lsof; then
+      while read -r pid; do
+        [[ -n "$pid" ]] || continue
+        kill "$pid" >> "$STOP_LOG" 2>&1 || true
+        sleep 1
+        kill -9 "$pid" >> "$STOP_LOG" 2>&1 || true
+        ok "Stopped process on port $port: $pid"
+      done < <(lsof -tiTCP:"$port" -sTCP:LISTEN 2>/dev/null || true)
+    elif command_exists fuser; then
+      fuser -k "${port}/tcp" >> "$STOP_LOG" 2>&1 || true
+      ok "Requested fuser cleanup for port $port"
+    else
+      warn "Cannot inspect port $port because neither lsof nor fuser is available"
+    fi
+  done
 }
 
 cleanup_next_locks() {
@@ -180,6 +250,9 @@ main() {
   step "Stop tmux runtime session"
   stop_tmux_session
 
+  step "Clear project ports"
+  stop_project_ports
+
   step "Stop provider Docker services"
   stop_compose_services
 
@@ -191,6 +264,7 @@ main() {
   printf "  Web pid file: %s\n" "$WEB_LOG_DIR/web.pid"
   printf "  tmux session: %s\n" "$TMUX_SESSION"
   printf "  Compose project: %s\n" "$COMPOSE_PROJECT_NAME"
+  printf "  Full Docker compose project: %s\n" "$DOCKER_COMPOSE_PROJECT_NAME"
   printf "  Log: %s\n" "$STOP_LOG"
 }
 

@@ -27,7 +27,7 @@ interface PingResult {
   };
 }
 
-const configuredApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:7010';
+const configuredApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:6820';
 
 const contractRows = [
   { name: 'Models', endpoint: 'GET /v1/models' },

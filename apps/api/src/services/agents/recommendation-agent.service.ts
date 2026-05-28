@@ -4,12 +4,14 @@ import type { KnowledgeDocument, Product } from '../../models/catalog.models.js'
 import type { CartManagerResult, ProductManagerResult, RecommendationAgentResult, UserAnalysis } from '../../models/agent-execution.models.js';
 import { AgentHistoryService } from '../agent-history.service.js';
 import { ModelGatewayService } from '../model-gateway.service.js';
+import { PromptSettingsService } from '../prompt-settings.service.js';
 
 @Injectable()
 export class RecommendationAgentService {
   constructor(
     private readonly modelGatewayService?: ModelGatewayService,
     private readonly agentHistoryService?: AgentHistoryService,
+    private readonly promptSettingsService?: PromptSettingsService,
   ) {}
 
   async planPresentation(params: {
@@ -29,7 +31,7 @@ export class RecommendationAgentService {
         maxTokens: 360,
         temperature: 0,
         messages: [
-          { role: 'system', content: 'Bạn là recommendation-agent. Trả JSON thuần, không markdown. Quyết định sản phẩm nào được phép hiển thị ở product_list và sales-agent được phép nhắc. Không chọn productId ngoài danh sách allowedProductIds.' },
+          { role: 'system', content: await this.promptSettingsService?.getContent('recommendation-system') || 'Bạn là recommendation-agent. Trả JSON thuần, không markdown. Quyết định sản phẩm nào được phép hiển thị ở product_list và sales-agent được phép nhắc. Không chọn productId ngoài danh sách allowedProductIds.' },
           { role: 'user', content: buildRecommendationPrompt(params, fallback, history?.summary) },
         ],
       });

@@ -10,7 +10,7 @@ const port = 43100 + Math.floor(Math.random() * 1000);
 test('web runtime home page responds to a real HTTP request', async () => {
   const child = spawn(process.execPath, [nextCli, 'start', '-H', '127.0.0.1', '-p', String(port)], {
     cwd: new URL('..', import.meta.url),
-    env: { ...process.env, PORT: String(port), API_BASE_URL: process.env.API_BASE_URL ?? 'http://127.0.0.1:7010' },
+    env: { ...process.env, PORT: String(port), API_BASE_URL: process.env.API_BASE_URL ?? 'http://127.0.0.1:6810' },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let exited = false;

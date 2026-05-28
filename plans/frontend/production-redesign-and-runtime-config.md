@@ -21,7 +21,7 @@ Make RetailHome feel like a production retail storefront while keeping model/run
 
 3. Retail navigation and chat tools
    - Remove dashboard/settings from primary shopping nav.
-   - Keep dashboard available from the chat widget with `Mở dashboard` opening `/agent-dashboard` in a new tab.
+   - Keep dashboard available from the chat widget with `Má»Ÿ dashboard` opening `/agent-dashboard` in a new tab.
    - Replace internal chat progress labels with shopper-friendly labels.
 
 4. Storefront redesign

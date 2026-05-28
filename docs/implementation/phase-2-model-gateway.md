@@ -1,11 +1,11 @@
 # Phase 2 ModelGateway
 
-- Thời gian cập nhật: 2026-05-14
-- Task: ModelGateway với request thật tới chat/embed/rerank servers
+- Thá»i gian cáº­p nháº­t: 2026-05-14
+- Task: ModelGateway vá»›i request tháº­t tá»›i chat/embed/rerank servers
 
-## Nội dung đã triển khai
+## Ná»™i dung Ä‘Ã£ triá»ƒn khai
 
-Đã thêm `ModelGatewayService` và `ModelGatewayController`:
+ÄÃ£ thÃªm `ModelGatewayService` vÃ  `ModelGatewayController`:
 
 ```txt
 apps/api/src/services/model-gateway.service.ts
@@ -25,7 +25,7 @@ Endpoints runtime:
 - Model: `google/gemma-4-E4B-it`
 - Embedding/rerank: `https://replace-with-your-embed-rerank-gateway.example.invalid`
 
-Các env vars đã được validate trong backend config:
+CÃ¡c env vars Ä‘Ã£ Ä‘Æ°á»£c validate trong backend config:
 
 - `CHAT_MODEL_BASE_URL`
 - `CHAT_MODEL_ID`
@@ -33,7 +33,7 @@ Các env vars đã được validate trong backend config:
 
 ## Runtime verification
 
-Đã chạy thành công:
+ÄÃ£ cháº¡y thÃ nh cÃ´ng:
 
 ```txt
 corepack pnpm typecheck
@@ -42,15 +42,15 @@ corepack pnpm test
 corepack pnpm test:runtime
 ```
 
-Runtime ModelGateway test thực hiện qua API đang chạy thật:
+Runtime ModelGateway test thá»±c hiá»‡n qua API Ä‘ang cháº¡y tháº­t:
 
 1. Spawn `node dist/main.js`.
-2. Gửi `GET /model-gateway/health`.
-3. Gửi `POST /model-gateway/chat` tới chat model server thật.
-4. Gửi `POST /model-gateway/embed` tới embedding server thật.
-5. Gửi `POST /model-gateway/rerank` tới rerank server thật.
-6. Assert response schema và ranking mẫu.
+2. Gá»­i `GET /model-gateway/health`.
+3. Gá»­i `POST /model-gateway/chat` tá»›i chat model server tháº­t.
+4. Gá»­i `POST /model-gateway/embed` tá»›i embedding server tháº­t.
+5. Gá»­i `POST /model-gateway/rerank` tá»›i rerank server tháº­t.
+6. Assert response schema vÃ  ranking máº«u.
 
-## Trạng thái phase
+## Tráº¡ng thÃ¡i phase
 
-Phase 2 pass. Không dùng fallback/smoke để pass; test đã đi qua API runtime thật và model servers thật.
+Phase 2 pass. KhÃ´ng dÃ¹ng fallback/smoke Ä‘á»ƒ pass; test Ä‘Ã£ Ä‘i qua API runtime tháº­t vÃ  model servers tháº­t.

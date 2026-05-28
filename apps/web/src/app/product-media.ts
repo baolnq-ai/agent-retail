@@ -14,7 +14,7 @@ export function productImageUrl(product: ProductMediaLike): string {
 }
 
 export function productSourceName(product: ProductMediaLike): string {
-  return product.attributes.sourceName ?? 'Nguồn sản phẩm';
+  return product.attributes.sourceName ?? 'Catalog nội bộ';
 }
 
 export function productSourceUrl(product: ProductMediaLike): string {

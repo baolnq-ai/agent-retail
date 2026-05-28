@@ -49,8 +49,8 @@ p { color: var(--muted); line-height: 1.65; }
   margin: 0 auto;
 }
 .commerce-main:has(.agent-dashboard-shell) {
-  width: min(1680px, calc(100vw - 28px));
-  max-width: calc(100vw - 28px);
+  width: 100%;
+  max-width: 1680px;
 }
 
 .commerce-header {
@@ -93,7 +93,7 @@ p { color: var(--muted); line-height: 1.65; }
   font-weight: 850;
 }
 
-.commerce-brand span,
+.commerce-brand-logo,
 .product-visual,
 .commerce-product-visual,
 .product-detail-visual,
@@ -107,10 +107,12 @@ p { color: var(--muted); line-height: 1.65; }
   font-weight: 850;
 }
 
-.commerce-brand span {
+.commerce-brand-logo {
   width: 42px;
   height: 42px;
   border-radius: 14px;
+  object-fit: contain;
+  background: #ffffff;
 }
 
 .commerce-nav {
@@ -171,10 +173,10 @@ p { color: var(--muted); line-height: 1.65; }
   background: var(--surface);
 }
 
-.commerce-brand span {
+.commerce-brand-logo {
   border-radius: 8px;
-  color: #eafff1;
-  background: linear-gradient(135deg, var(--green), var(--blue));
+  padding: 3px;
+  background: #ffffff;
 }
 
 .commerce-nav a,
@@ -2076,7 +2078,10 @@ p { color: var(--muted); line-height: 1.65; }
   28% { opacity: 1; transform: translateY(-6px) scale(1.08); }
   46% { opacity: 0.82; transform: translateY(1px) scale(0.92); }
 }
-@keyframes graphPathFlow { to { stroke-dashoffset: -8; } }
+@keyframes graphPathFlow {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -96; }
+}
 
 .agent-dashboard-shell {
   display: grid;
@@ -2158,8 +2163,11 @@ p { color: var(--muted); line-height: 1.65; }
 }
 .agent-node-canvas {
   position: relative;
+  contain: layout paint style;
   overflow: hidden;
-  min-height: clamp(760px, calc(100dvh - 210px), 980px);
+  width: min(100%, 90vw);
+  min-height: clamp(700px, 86dvh, 900px);
+  margin-inline: auto;
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 18px;
   background:
@@ -2510,6 +2518,7 @@ p { color: var(--muted); line-height: 1.65; }
   z-index: 2;
   width: 100%;
   height: 100%;
+  pointer-events: none;
 }
 .agent-playback-canvas {
   position: absolute;
@@ -2589,7 +2598,6 @@ p { color: var(--muted); line-height: 1.65; }
   border-color: rgba(34, 197, 94, 0.24);
   background: rgba(20, 83, 45, 0.065);
 }
-.graph-legend,
 .graph-route-summary {
   position: absolute;
   z-index: 5;
@@ -2598,15 +2606,19 @@ p { color: var(--muted); line-height: 1.65; }
   background: rgba(3, 10, 8, 0.78);
 }
 .graph-legend {
-  right: 14px;
-  top: 14px;
   display: flex;
+  position: relative;
+  z-index: 1;
   flex-wrap: wrap;
   gap: 5px 9px;
-  max-width: min(560px, calc(100% - 28px));
-  max-height: 62px;
-  overflow: hidden;
-  padding: 7px 9px;
+  align-items: center;
+  width: min(100%, 90vw);
+  min-height: 50px;
+  margin: 0 auto 10px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 14px;
+  padding: 8px 10px;
+  background: rgba(3, 10, 8, 0.78);
 }
 .graph-legend b {
   display: inline-flex;
@@ -2916,13 +2928,13 @@ p { color: var(--muted); line-height: 1.65; }
   stroke-linecap: round;
   stroke-dasharray: 1 1.4;
   opacity: 0.58;
-  animation: graphPathFlow 6.13s linear infinite;
+  animation: graphPathFlow 14s linear infinite;
   pointer-events: none;
 }
 .agent-node-edge:hover { opacity: 0.58; }
 .agent-node-edge.return {
   stroke: rgba(56, 189, 248, 0.42);
-  stroke-dasharray: 0.95 1.1;
+  stroke-dasharray: 1 1.4;
 }
 .agent-node-edge.data {
   stroke: rgba(45, 212, 191, 0.32);
@@ -3944,6 +3956,7 @@ p { color: var(--muted); line-height: 1.65; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .agent-node-edge { animation-duration: 14s !important; }
 }
 
 @media (max-width: 980px) {
@@ -4004,8 +4017,8 @@ p { color: var(--muted); line-height: 1.65; }
     min-width: 0;
   }
   .commerce-main:has(.agent-dashboard-shell) {
-    width: calc(100vw - 20px);
-    max-width: calc(100vw - 20px);
+    width: 100%;
+    max-width: 100%;
   }
   .agent-dashboard-hero {
     overflow: hidden;
@@ -4061,7 +4074,7 @@ p { color: var(--muted); line-height: 1.65; }
   .agent-node-canvas {
     width: 100%;
     min-width: 0;
-    min-height: 1240px;
+    min-height: min(940px, 90dvh);
   }
   .agent-graph-cluster {
     border-radius: 11px;
