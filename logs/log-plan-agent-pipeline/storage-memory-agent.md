@@ -1,4 +1,4 @@
-# Log: Storage/Memory Agent Plan Job
+﻿# Log: Storage/Memory Agent Plan Job
 
 - Created: 2026-05-21 18:18
 - Updated: 2026-05-22 14:20
@@ -22,8 +22,8 @@ Create the Storage/Memory Agent plan after Cart, Search and Recommendation agent
   - `plans/agent-pipeline/agents/storage-memory-agent/checklist.md`
 - Created design doc and tests:
   - `docs/agent-pipeline/agents/storage-memory-agent/design.md`
-  - `test/agent-pipeline/agents/storage-memory-agent/cases.md`
-  - `test/agent-pipeline/agents/storage-memory-agent/real-request-100-cases.md`
+  - `tests/agent-pipeline/agents/storage-memory-agent/cases.md`
+  - `tests/agent-pipeline/agents/storage-memory-agent/real-request-100-cases.md`
 
 ### Decision
 

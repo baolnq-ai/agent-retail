@@ -1,4 +1,4 @@
-# Plan: Retail Chatbot 30Q Benchmark And Dashboard Fix
+﻿# Plan: Retail Chatbot 30Q Benchmark And Dashboard Fix
 
 - Created: 2026-05-25 08:42
 - Updated: 2026-05-25 09:25
@@ -35,11 +35,11 @@ Run a stricter 30-question retail chatbot benchmark through the real frontend/AP
 | Phase | Goal | Status | Evidence |
 | --- | --- | --- | --- |
 | 1 | Create plan/log and audit current failures | done | Plan + log |
-| 2 | Fix dashboard animation/layout with screenshot review | done | `test/retail-chatbot-30q-benchmark-evidence-2026-05-25/dashboard/` |
-| 3 | Fix chat status/loading and backend status events | done | `test/retail-chatbot-30q-benchmark-evidence-2026-05-25/frontend/01-chat-loading-status-dots.png` |
-| 4 | Build 30-question benchmark runner/report | done | `test/agent-pipeline/retail-chatbot-benchmark-30/` |
+| 2 | Fix dashboard animation/layout with screenshot review | done | `tests/retail-chatbot-30q-benchmark-evidence-2026-05-25/dashboard/` |
+| 3 | Fix chat status/loading and backend status events | done | `tests/retail-chatbot-30q-benchmark-evidence-2026-05-25/frontend/01-chat-loading-status-dots.png` |
+| 4 | Build 30-question benchmark runner/report | done | `tests/agent-pipeline/retail-chatbot-benchmark-30/` |
 | 5 | Run benchmark, read outputs, fix false routing/grounding/performance issues | done | Iteration reports and final report |
-| 6 | Final full rerun with new 30-question set and evidence package | done | `test/retail-chatbot-30q-benchmark-evidence-2026-05-25/README.md` |
+| 6 | Final full rerun with new 30-question set and evidence package | done | `tests/retail-chatbot-30q-benchmark-evidence-2026-05-25/README.md` |
 
 ## Verification
 
@@ -55,7 +55,7 @@ Run a stricter 30-question retail chatbot benchmark through the real frontend/AP
 - Final benchmark `F30-*`: 30/30 pass, 0 warn, 0 fail.
 - Latency avg/p50/p95: 2299/2441/3415 ms.
 - Dashboard CDP audit: 12 nodes, 11 edges, 0 overlap pairs.
-- Evidence package: `test/retail-chatbot-30q-benchmark-evidence-2026-05-25/`.
+- Evidence package: `tests/retail-chatbot-30q-benchmark-evidence-2026-05-25/`.
 
 ## Close criteria
 

@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-retail_password}
       POSTGRES_DB: ${POSTGRES_DB:-retail_agent}
     ports:
-      - "${POSTGRES_PORT:-6832}:5432"
+      - "${POSTGRES_PORT:-3132}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-retail} -d $${POSTGRES_DB:-retail_agent}"]
       interval: 5s
@@ -22,7 +22,7 @@ services:
     image: redis:7-alpine
     restart: unless-stopped
     ports:
-      - "${REDIS_PORT:-6839}:6379"
+      - "${REDIS_PORT:-3139}:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -35,8 +35,8 @@ services:
     image: qdrant/qdrant:v1.12.6
     restart: unless-stopped
     ports:
-      - "${QDRANT_PORT:-6833}:6333"
-      - "${QDRANT_GRPC_PORT:-6834}:6334"
+      - "${QDRANT_PORT:-3133}:6333"
+      - "${QDRANT_GRPC_PORT:-3134}:6334"
     volumes:
       - qdrant_data:/qdrant/storage
 
@@ -66,12 +66,12 @@ services:
       CHAT_MODEL_BASE_URL: ${CHAT_MODEL_BASE_URL:-https://replace-with-your-vllm-gateway.example.invalid}
       CHAT_MODEL_ID: ${CHAT_MODEL_ID:-google/gemma-4-E4B-it}
       EMBED_RERANK_BASE_URL: ${EMBED_RERANK_BASE_URL:-https://replace-with-your-embed-rerank-gateway.example.invalid}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://127.0.0.1:6800,http://localhost:6800,http://127.0.0.1:6820,http://localhost:6820}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://127.0.0.1:3100,http://localhost:3100,http://127.0.0.1:3120,http://localhost:3120}
       RUN_DB_PUSH: ${RUN_DB_PUSH:-1}
       RUN_DB_SEED: ${RUN_DB_SEED:-1}
       WAIT_TIMEOUT_MS: ${WAIT_TIMEOUT_MS:-90000}
     ports:
-      - "${API_PORT:-6810}:6810"
+      - "${API_PORT:-3110}:6810"
     healthcheck:
       test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:6810/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
       interval: 10s
@@ -88,10 +88,10 @@ services:
       NODE_ENV: production
       PORT: 6800
       API_BASE_URL: http://api:6810
-      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://127.0.0.1:6820}
-      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://127.0.0.1:6820}
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://127.0.0.1:3120}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://127.0.0.1:3120}
     ports:
-      - "${WEB_PORT:-6800}:6800"
+      - "${WEB_PORT:-3100}:6800"
     healthcheck:
       test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:6800').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
       interval: 10s
@@ -107,7 +107,7 @@ services:
       api:
         condition: service_healthy
     ports:
-      - "${NGINX_PORT:-6820}:80"
+      - "${NGINX_PORT:-3120}:80"
     command:
       - /bin/sh
       - -c

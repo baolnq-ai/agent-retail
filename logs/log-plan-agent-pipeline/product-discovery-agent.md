@@ -1,4 +1,4 @@
-# Log: Product Discovery Agent Plan Job
+﻿# Log: Product Discovery Agent Plan Job
 
 - Created: 2026-05-21 17:20
 - Updated: 2026-05-21 17:52
@@ -24,8 +24,8 @@ Start the second agent plan after Cart Agent: Product Discovery Agent for search
 - Created design doc:
   - `docs/agent-pipeline/agents/product-discovery-agent/design.md`
 - Created tests:
-  - `test/agent-pipeline/agents/product-discovery-agent/cases.md`
-  - `test/agent-pipeline/agents/product-discovery-agent/real-request-100-cases.md`
+  - `tests/agent-pipeline/agents/product-discovery-agent/cases.md`
+  - `tests/agent-pipeline/agents/product-discovery-agent/real-request-100-cases.md`
 
 ### Assessment
 

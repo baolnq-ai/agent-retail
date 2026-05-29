@@ -1,4 +1,4 @@
-# Product Discovery Agent Job
+﻿# Product Discovery Agent Job
 
 - Created: 2026-05-21 17:20
 - Updated: 2026-05-21 17:52
@@ -11,15 +11,15 @@
 | --- | --- |
 | [plan.md](plan.md) | Main Product Discovery Agent plan |
 | [status.md](status.md) | Current job status and phase tracker |
-| [checklist.md](checklist.md) | Completion checklist for design/code/test/close |
+| [checklist.md](checklist.md) | Completion checklist for design/code/tests/close |
 
 ## Related
 
 | Type | Path |
 | --- | --- |
 | Design doc | [docs/agent-pipeline/agents/product-discovery-agent/design.md](../../../../docs/agent-pipeline/agents/product-discovery-agent/design.md) |
-| Test cases | [test/agent-pipeline/agents/product-discovery-agent/cases.md](../../../../test/agent-pipeline/agents/product-discovery-agent/cases.md) |
-| Real request 100 | [test/agent-pipeline/agents/product-discovery-agent/real-request-100-cases.md](../../../../test/agent-pipeline/agents/product-discovery-agent/real-request-100-cases.md) |
+| Test cases | [tests/agent-pipeline/agents/product-discovery-agent/cases.md](../../../../tests/agent-pipeline/agents/product-discovery-agent/cases.md) |
+| Real request 100 | [tests/agent-pipeline/agents/product-discovery-agent/real-request-100-cases.md](../../../../tests/agent-pipeline/agents/product-discovery-agent/real-request-100-cases.md) |
 | Job log | [logs/log-plan-agent-pipeline/product-discovery-agent.md](../../../../logs/log-plan-agent-pipeline/product-discovery-agent.md) |
 | Planning log mirror | [logs/planning/agent-pipeline/agents/product-discovery-agent.md](../../../../logs/planning/agent-pipeline/agents/product-discovery-agent.md) |
 

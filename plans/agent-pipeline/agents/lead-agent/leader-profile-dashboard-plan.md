@@ -1,11 +1,11 @@
-# Plan: Lead Agent Profile Dashboard
+﻿# Plan: Lead Agent Profile Dashboard
 
 - Created: 2026-05-22 00:25
 - Updated: 2026-05-22 00:25
 - Status: planned
 - Related log: `logs/planning/agent-pipeline/agents/lead-agent.md`
 - Related doc: `docs/agent-pipeline/architecture/system-definition.md`
-- Related tests: `test/agent-pipeline/agents/lead-agent/leader-profile-dashboard-cases.md`
+- Related tests: `tests/agent-pipeline/agents/lead-agent/leader-profile-dashboard-cases.md`
 
 ## Goal
 

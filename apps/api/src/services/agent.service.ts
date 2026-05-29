@@ -525,7 +525,7 @@ function resolveDisplayProducts(prepared: PreparedChat, blockedCartAction: boole
 
 function sanitizeCartActionResult(actionResult: string, products: Product[]): string {
   let text = cleanAssistantText(actionResult, products);
-  if (/^Cart mutation rejected:\s*product_not_found\.?/i.test(text)) return 'MÃ¬nh chÆ°a tÃ¬m tháº¥y sáº£n pháº©m Ä‘Ã³ Ä‘á»ƒ thao tÃ¡c trong giá» hÃ ng.';
+  if (/^Cart mutation rejected:\s*product_not_found\.?/i.test(text)) return 'Mình chưa tìm thấy sản phẩm đó để thao tác trong giỏ hàng.';
   text = text
     .replace(/^Added product .+ to cart\./i, 'Mình đã thêm sản phẩm vào giỏ hàng.')
     .replace(/^Removed product .+ from cart\./i, 'Mình đã xoá sản phẩm khỏi giỏ hàng.')
@@ -1162,6 +1162,6 @@ function stripVietnameseTone(value: string): string {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/đ/g, 'd')
     .replace(/Đ/g, 'd')
-    .replace(/Ã„â€˜/g, 'd')
-    .replace(/Ã„Â/g, 'd');
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'd');
 }

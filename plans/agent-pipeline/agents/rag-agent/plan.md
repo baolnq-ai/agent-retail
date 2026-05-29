@@ -1,4 +1,4 @@
-# Plan: RAG Agent
+﻿# Plan: RAG Agent
 
 - Created: 2026-05-21 19:24
 - Updated: 2026-05-21 19:34
@@ -6,7 +6,7 @@
 - Related log: `logs/log-plan-agent-pipeline/rag-agent.md`
 - Mirror log: `logs/planning/agent-pipeline/agents/rag-agent.md`
 - Related doc: `docs/agent-pipeline/agents/rag-agent/design.md`
-- Related tests: `test/agent-pipeline/agents/rag-agent/cases.md`, `test/agent-pipeline/agents/rag-agent/real-request-100-cases.md`
+- Related tests: `tests/agent-pipeline/agents/rag-agent/cases.md`, `tests/agent-pipeline/agents/rag-agent/real-request-100-cases.md`
 - Job status: `plans/agent-pipeline/agents/rag-agent/status.md`
 - Job checklist: `plans/agent-pipeline/agents/rag-agent/checklist.md`
 

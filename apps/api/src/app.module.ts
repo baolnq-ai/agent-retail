@@ -40,9 +40,54 @@ import { ModelSettingsService } from './services/model-settings.service.js';
 import { PromptSettingsService } from './services/prompt-settings.service.js';
 import { PrismaService } from './services/prisma.service.js';
 import { QdrantService } from './services/qdrant.service.js';
+import { RedisCacheService } from './services/redis-cache.service.js';
 
 @Module({
-  controllers: [HealthController, ModelGatewayController, ModelSettingsController, PromptSettingsController, CatalogController, KnowledgeController, CommerceController, AccountMemoryController, AgentController, AgentObservabilityController, AuthController],
-  providers: [PrismaService, HealthService, ModelSettingsService, PromptSettingsService, QdrantService, ModelGatewayService, CatalogService, KnowledgeService, CommerceService, AgentHistoryService, AgentOrchestratorService, AgentTraceService, AgentQualityGateService, CartManagerAgentService, CartSqlRagAgentService, CartAgentPrivateToolExecutorService, CartAgentLedgerService, CartAgentMutationWriterService, CartAgentStateService, MemoryAgentService, StorageMemoryAgentService, HistoryAgentService, SearchAgentService, ProductManagerAgentService, RecommendationAgentService, SalesEvaluatorAgentService, UserAnalysisAgentService, AgentService, AuthService, ChatMemoryService],
+  controllers: [
+    HealthController,
+    ModelGatewayController,
+    ModelSettingsController,
+    PromptSettingsController,
+    CatalogController,
+    KnowledgeController,
+    CommerceController,
+    AccountMemoryController,
+    AgentController,
+    AgentObservabilityController,
+    AuthController,
+  ],
+  providers: [
+    PrismaService,
+    RedisCacheService,
+    HealthService,
+    ModelSettingsService,
+    PromptSettingsService,
+    QdrantService,
+    ModelGatewayService,
+    CatalogService,
+    KnowledgeService,
+    CommerceService,
+    AgentHistoryService,
+    AgentOrchestratorService,
+    AgentTraceService,
+    AgentQualityGateService,
+    CartManagerAgentService,
+    CartSqlRagAgentService,
+    CartAgentPrivateToolExecutorService,
+    CartAgentLedgerService,
+    CartAgentMutationWriterService,
+    CartAgentStateService,
+    MemoryAgentService,
+    StorageMemoryAgentService,
+    HistoryAgentService,
+    SearchAgentService,
+    ProductManagerAgentService,
+    RecommendationAgentService,
+    SalesEvaluatorAgentService,
+    UserAnalysisAgentService,
+    AgentService,
+    AuthService,
+    ChatMemoryService,
+  ],
 })
 export class AppModule {}

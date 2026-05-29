@@ -1,4 +1,4 @@
-# Log: Agent Pipeline Execution Tracker
+﻿# Log: Agent Pipeline Execution Tracker
 
 - Created: 2026-05-22 00:55
 - Updated: 2026-05-22 15:10
@@ -691,7 +691,7 @@ Add and run a direct Cart Agent 100-case real-request evaluation harness.
 - Added `apps/api/tests/runtime-cart-agent-real-request-100.mjs`.
 - Added `test:runtime:cart-agent:100`.
 - Harness runs 100 real Cart SQL RAG requests against Postgres and asserts output, cart DB state, CartEvent and CartAgentInteraction/Memory side effects.
-- Updated `test/agent-pipeline/agents/cart-agent/real-request-100-cases.md` with latest pass report and scope note.
+- Updated `tests/agent-pipeline/agents/cart-agent/real-request-100-cases.md` with latest pass report and scope note.
 
 ### Verification
 

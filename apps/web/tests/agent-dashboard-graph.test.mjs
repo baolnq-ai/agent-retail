@@ -110,3 +110,12 @@ test('chat product cards keep image, copy, and add button in separate columns on
   assert.match(stylesSource, /@media \(max-width: 420px\)\s*\{[^}]*\.chat-product-card\s*\{[^}]*grid-template-columns:\s*64px minmax\(0, 1fr\)/s);
   assert.doesNotMatch(stylesSource, /\.chat-product-card\s*\{[^}]*grid-template-columns:\s*42px minmax\(0, 1fr\)/s);
 });
+
+test('chat reasoning loader keeps animating while waiting for streamed tokens', () => {
+  assert.match(stylesSource, /\.chat-widget\.busy \.progress-line::after/);
+  assert.match(stylesSource, /\.chat-widget\.busy \.assistant-pulse i/);
+  assert.match(stylesSource, /\.chat-widget\.busy \.typing span/);
+  assert.match(stylesSource, /@keyframes reasoningRailSweep/);
+  assert.match(stylesSource, /@keyframes reasoningDotFlow/);
+  assert.match(stylesSource, /@keyframes reasoningPanelSheen/);
+});

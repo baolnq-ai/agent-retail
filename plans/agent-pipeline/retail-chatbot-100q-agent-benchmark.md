@@ -1,4 +1,4 @@
-# Plan: Retail Chatbot 100Q Agent Benchmark
+﻿# Plan: Retail Chatbot 100Q Agent Benchmark
 
 - Created: 2026-05-25 09:31
 - Updated: 2026-05-25 10:28
@@ -34,10 +34,10 @@ Run a strict 100-question retail chatbot benchmark through the real agent pipeli
 | Phase | Goal | Status | Evidence |
 | --- | --- | --- | --- |
 | 1 | Create plan/log and inspect existing 30Q benchmark/evidence | done | Plan + log |
-| 2 | Build 100Q runner and frontend/dashboard evidence script | done | `test/agent-pipeline/retail-chatbot-benchmark-100/` |
+| 2 | Build 100Q runner and frontend/dashboard evidence script | done | `tests/agent-pipeline/retail-chatbot-benchmark-100/` |
 | 3 | Run baseline 100Q, read failures and classify root causes | done | Variant A report |
 | 4 | Fix agent/UI issues generally and rerun with a new 100Q set | done | Variants B-F reports |
-| 5 | Capture frontend suggestion/status/dashboard evidence and audit screenshots | done | `test/retail-chatbot-100q-agent-evidence-2026-05-25/` |
+| 5 | Capture frontend suggestion/status/dashboard evidence and audit screenshots | done | `tests/retail-chatbot-100q-agent-evidence-2026-05-25/` |
 | 6 | Run regression tests, hygiene scans, close and move plan | done | Test output + closed plan |
 
 ## Verification

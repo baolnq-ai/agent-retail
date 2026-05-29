@@ -1,4 +1,4 @@
-# Log: Storage/Memory Agent Plan
+﻿# Log: Storage/Memory Agent Plan
 
 - Created: 2026-05-21 18:18
 - Updated: 2026-05-22 14:20
@@ -68,7 +68,7 @@ Lập plan Storage/Memory Agent để Lead có bộ nhớ tổng trước khi đ
 - Rà DB hiện tại: `ChatThread`, `ChatMessage`, `UserPreference`, `UserInteractionEvent`.
 - Rà service hiện tại: `MemoryAgentService`, `ChatMemoryService`, `AgentHistoryService`.
 - Ghi gap production: thiếu near/mid/far table, evidence/source refs, confidence, TTL/decay, cross-agent index, privacy controls.
-- Tạo plan/doc/test/log/status/checklist cho Storage/Memory Agent.
+- Tạo plan/doc/tests/log/status/checklist cho Storage/Memory Agent.
 - Chốt public interfaces: `get_context`, `write_turn`, `write_event`, `write_agent_result`, `update_preference`, `delete_user_memory`.
 - Chốt private tool inventory 38 tools.
 

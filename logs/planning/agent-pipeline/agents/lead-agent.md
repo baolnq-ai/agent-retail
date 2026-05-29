@@ -1,4 +1,4 @@
-# Log: Lead Agent Plan
+﻿# Log: Lead Agent Plan
 
 ## 2026-05-22 00:00
 
@@ -11,7 +11,7 @@ Add a dedicated Lead Agent plan for clean context, task ledger, compact refs, me
 - Added `plans/agent-pipeline/agents/lead-agent/context-task-ledger-plan.md`.
 - Added `plans/agent-pipeline/agents/lead-agent/status.md`.
 - Added `plans/agent-pipeline/agents/lead-agent/checklist.md`.
-- Added `test/agent-pipeline/agents/lead-agent/context-task-ledger-cases.md`.
+- Added `tests/agent-pipeline/agents/lead-agent/context-task-ledger-cases.md`.
 - Updated Lead Agent plan header with links to the context plan, status, and checklist.
 - Updated agent-pipeline plan index.
 
@@ -66,7 +66,7 @@ Lập plan riêng cho Lead Agent, agent giữ vai trò điều phối, đánh gi
 - Định nghĩa output contract `LeadAgentDecision`.
 - Đặt các required behavior cho cart, search, recommendation, RAG, support, security.
 - Chia phase implementation từ schema đến trace.
-- Tạo test case riêng trong `test/agent-pipeline/agents/lead-agent/cases.md`.
+- Tạo test case riêng trong `tests/agent-pipeline/agents/lead-agent/cases.md`.
 
 ### Verification
 

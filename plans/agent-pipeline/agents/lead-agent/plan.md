@@ -1,11 +1,11 @@
-# Plan: Lead Agent
+﻿# Plan: Lead Agent
 
 - Created: 2026-05-21 13:46
 - Updated: 2026-05-22 00:00
 - Status: planned
 - Related log: `logs/planning/agent-pipeline/agents/lead-agent.md`
 - Related doc: `docs/agent-pipeline/architecture/system-definition.md`
-- Related tests: `test/agent-pipeline/agents/lead-agent/cases.md`
+- Related tests: `tests/agent-pipeline/agents/lead-agent/cases.md`
 - Context task ledger plan: `plans/agent-pipeline/agents/lead-agent/context-task-ledger-plan.md`
 - Job status: `plans/agent-pipeline/agents/lead-agent/status.md`
 - Job checklist: `plans/agent-pipeline/agents/lead-agent/checklist.md`
@@ -144,7 +144,7 @@ interface LeadAgentDecision {
 
 ## Verification
 
-- `test/agent-pipeline/agents/lead-agent/cases.md` phải được chuyển thành test tự động hoặc checklist verify rõ.
+- `tests/agent-pipeline/agents/lead-agent/cases.md` phải được chuyển thành test tự động hoặc checklist verify rõ.
 - Test cần pass các nhóm:
   - cart target resolution;
   - search/recommendation routing;

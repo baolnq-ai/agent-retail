@@ -12,13 +12,13 @@ API_LOG=""
 WEB_LOG=""
 ENV_FILE="$ROOT_DIR/.env"
 ENV_EXAMPLE="$ROOT_DIR/.env.example"
-API_PORT="${API_PORT:-6810}"
-WEB_PORT="${WEB_PORT:-6800}"
-NGINX_PORT="${NGINX_PORT:-6820}"
-POSTGRES_PORT="${POSTGRES_PORT:-6832}"
-REDIS_PORT="${REDIS_PORT:-6839}"
-QDRANT_PORT="${QDRANT_PORT:-6833}"
-QDRANT_GRPC_PORT="${QDRANT_GRPC_PORT:-6834}"
+API_PORT="${API_PORT:-3110}"
+WEB_PORT="${WEB_PORT:-3100}"
+NGINX_PORT="${NGINX_PORT:-3120}"
+POSTGRES_PORT="${POSTGRES_PORT:-3132}"
+REDIS_PORT="${REDIS_PORT:-3139}"
+QDRANT_PORT="${QDRANT_PORT:-3133}"
+QDRANT_GRPC_PORT="${QDRANT_GRPC_PORT:-3134}"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-retail_agent_dev}"
 DOCKER_COMPOSE_PROJECT_NAME="${DOCKER_COMPOSE_PROJECT_NAME:-retail_agent_full}"
 DOCKER_IMAGE_REPO="${DOCKER_IMAGE_REPO:-baonguyen3568/ai-agent-retail}"
@@ -30,8 +30,8 @@ RUN_TESTS="${RUN_TESTS:-0}"
 SKIP_DOCKER="${SKIP_DOCKER:-0}"
 SETUP_TERMINAL_MODE="${SETUP_TERMINAL_MODE:-auto}"
 TMUX_SESSION="${TMUX_SESSION:-egnt-retail}"
-PORT_MIN=6800
-PORT_MAX=6850
+PORT_MIN=3100
+PORT_MAX=3150
 
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -206,6 +206,11 @@ load_env_file() {
   local incoming_embed_rerank_base_url="${EMBED_RERANK_BASE_URL:-}"
   local incoming_redis_url="${REDIS_URL:-}"
   local incoming_qdrant_url="${QDRANT_URL:-}"
+  local incoming_cors_origins="${CORS_ORIGINS:-}"
+  local incoming_next_public_api_base_url="${NEXT_PUBLIC_API_BASE_URL:-}"
+  local incoming_next_public_site_url="${NEXT_PUBLIC_SITE_URL:-}"
+  local incoming_next_allowed_dev_origins="${NEXT_ALLOWED_DEV_ORIGINS:-}"
+  local incoming_tunnel_public_url="${TUNNEL_PUBLIC_URL:-}"
 
   if [[ -f "$ENV_FILE" ]]; then
     set -a
@@ -228,13 +233,13 @@ load_env_file() {
   local loaded_chat_model_id="${CHAT_MODEL_ID:-}"
   local loaded_embed_rerank_base_url="${EMBED_RERANK_BASE_URL:-}"
 
-  export API_PORT="${incoming_api_port:-${API_PORT:-6810}}"
-  export WEB_PORT="${incoming_web_port:-${WEB_PORT:-6800}}"
-  export NGINX_PORT="${incoming_nginx_port:-${NGINX_PORT:-6820}}"
-  export POSTGRES_PORT="${incoming_postgres_port:-${POSTGRES_PORT:-6832}}"
-  export REDIS_PORT="${incoming_redis_port:-${REDIS_PORT:-6839}}"
-  export QDRANT_PORT="${incoming_qdrant_port:-${QDRANT_PORT:-6833}}"
-  export QDRANT_GRPC_PORT="${incoming_qdrant_grpc_port:-${QDRANT_GRPC_PORT:-6834}}"
+  export API_PORT="${incoming_api_port:-${API_PORT:-3110}}"
+  export WEB_PORT="${incoming_web_port:-${WEB_PORT:-3100}}"
+  export NGINX_PORT="${incoming_nginx_port:-${NGINX_PORT:-3120}}"
+  export POSTGRES_PORT="${incoming_postgres_port:-${POSTGRES_PORT:-3132}}"
+  export REDIS_PORT="${incoming_redis_port:-${REDIS_PORT:-3139}}"
+  export QDRANT_PORT="${incoming_qdrant_port:-${QDRANT_PORT:-3133}}"
+  export QDRANT_GRPC_PORT="${incoming_qdrant_grpc_port:-${QDRANT_GRPC_PORT:-3134}}"
   export COMPOSE_PROJECT_NAME="${incoming_compose_project_name:-${COMPOSE_PROJECT_NAME:-retail_agent_dev}}"
   export DOCKER_COMPOSE_PROJECT_NAME="${incoming_docker_compose_project_name:-${DOCKER_COMPOSE_PROJECT_NAME:-retail_agent_full}}"
   export DOCKER_IMAGE_REPO="${incoming_docker_image_repo:-${DOCKER_IMAGE_REPO:-baonguyen3568/ai-agent-retail}}"
@@ -246,9 +251,9 @@ load_env_file() {
     export TMUX_SESSION="egnt-retail-${TMUX_SESSION}"
   fi
   export DATABASE_URL="${incoming_database_url:-${DATABASE_URL:-postgresql://retail:retail_password@localhost:${POSTGRES_PORT}/retail_agent?schema=public}}"
-  if [[ "$incoming_chat_model_base_url" =~ ^http://(localhost|127\.0\.0\.1):8007$ ]]; then incoming_chat_model_base_url=""; fi
+  if [[ "$incoming_chat_model_base_url" =~ replace-with|example\.invalid ]]; then incoming_chat_model_base_url=""; fi
   if [[ "$incoming_chat_model_id" == "replace-with-your-chat-model-id" ]]; then incoming_chat_model_id=""; fi
-  if [[ "$incoming_embed_rerank_base_url" =~ ^http://(localhost|127\.0\.0\.1):8006$ ]]; then incoming_embed_rerank_base_url=""; fi
+  if [[ "$incoming_embed_rerank_base_url" =~ replace-with|example\.invalid ]]; then incoming_embed_rerank_base_url=""; fi
 
   export CHAT_MODEL_BASE_URL="${incoming_chat_model_base_url:-${CHAT_MODEL_BASE_URL:-https://replace-with-your-vllm-gateway.example.invalid}}"
   export CHAT_MODEL_ID="${incoming_chat_model_id:-${CHAT_MODEL_ID:-google/gemma-4-E4B-it}}"
@@ -256,12 +261,33 @@ load_env_file() {
   if [[ -n "$incoming_chat_model_base_url" && -n "$loaded_chat_model_base_url" && "$incoming_chat_model_base_url" != "$loaded_chat_model_base_url" ]]; then warn "CHAT_MODEL_BASE_URL from shell overrides .env value. Effective value: $incoming_chat_model_base_url"; fi
   if [[ -n "$incoming_chat_model_id" && -n "$loaded_chat_model_id" && "$incoming_chat_model_id" != "$loaded_chat_model_id" ]]; then warn "CHAT_MODEL_ID from shell overrides .env value. Effective value: $incoming_chat_model_id"; fi
   if [[ -n "$incoming_embed_rerank_base_url" && -n "$loaded_embed_rerank_base_url" && "$incoming_embed_rerank_base_url" != "$loaded_embed_rerank_base_url" ]]; then warn "EMBED_RERANK_BASE_URL from shell overrides .env value. Effective value: $incoming_embed_rerank_base_url"; fi
-  if [[ "$CHAT_MODEL_BASE_URL" =~ ^http://(localhost|127\.0\.0\.1):8007$ || "$CHAT_MODEL_ID" == "replace-with-your-chat-model-id" || "$EMBED_RERANK_BASE_URL" =~ ^http://(localhost|127\.0\.0\.1):8006$ ]]; then
-    warn "Model config still points to localhost/placeholders. Use CHAT_MODEL_BASE_URL=https://replace-with-your-vllm-gateway.example.invalid, CHAT_MODEL_ID=google/gemma-4-E4B-it, EMBED_RERANK_BASE_URL=https://replace-with-your-embed-rerank-gateway.example.invalid unless your model services run on this machine."
+  if [[ "$CHAT_MODEL_BASE_URL" =~ replace-with|example\.invalid || "$CHAT_MODEL_ID" == "replace-with-your-chat-model-id" || "$EMBED_RERANK_BASE_URL" =~ replace-with|example\.invalid ]]; then
+    warn "Model config still uses placeholders. Set CHAT_MODEL_BASE_URL, CHAT_MODEL_ID and EMBED_RERANK_BASE_URL in .env for real chatbot validation."
   fi
   ok "Effective model config: CHAT_MODEL_BASE_URL=$CHAT_MODEL_BASE_URL; CHAT_MODEL_ID=$CHAT_MODEL_ID; EMBED_RERANK_BASE_URL=$EMBED_RERANK_BASE_URL"
   export REDIS_URL="${incoming_redis_url:-${REDIS_URL:-redis://localhost:${REDIS_PORT}}}"
   export QDRANT_URL="${incoming_qdrant_url:-${QDRANT_URL:-http://localhost:${QDRANT_PORT}}}"
+  export CORS_ORIGINS="${incoming_cors_origins:-${CORS_ORIGINS:-http://127.0.0.1:${WEB_PORT},http://localhost:${WEB_PORT},http://127.0.0.1:${NGINX_PORT},http://localhost:${NGINX_PORT}}}"
+  export NEXT_ALLOWED_DEV_ORIGINS="${incoming_next_allowed_dev_origins:-${NEXT_ALLOWED_DEV_ORIGINS:-*.trycloudflare.com}}"
+  export TUNNEL_PUBLIC_URL="${incoming_tunnel_public_url:-${TUNNEL_PUBLIC_URL:-}}"
+  if [[ -n "$TUNNEL_PUBLIC_URL" ]]; then
+    TUNNEL_PUBLIC_URL="${TUNNEL_PUBLIC_URL%/}"
+    if [[ ! "$TUNNEL_PUBLIC_URL" =~ ^https?://[^/]+$ ]]; then
+      fail "TUNNEL_PUBLIC_URL must be a valid origin such as https://example.trycloudflare.com"
+    fi
+    export NEXT_PUBLIC_API_BASE_URL="$TUNNEL_PUBLIC_URL"
+    export NEXT_PUBLIC_SITE_URL="$TUNNEL_PUBLIC_URL"
+    if [[ ",$CORS_ORIGINS," != *",$TUNNEL_PUBLIC_URL,"* ]]; then
+      export CORS_ORIGINS="${CORS_ORIGINS},${TUNNEL_PUBLIC_URL}"
+    fi
+    local tunnel_host="${TUNNEL_PUBLIC_URL#*://}"
+    if [[ ",$NEXT_ALLOWED_DEV_ORIGINS," != *",$tunnel_host,"* ]]; then
+      export NEXT_ALLOWED_DEV_ORIGINS="${NEXT_ALLOWED_DEV_ORIGINS},${tunnel_host}"
+    fi
+  else
+    export NEXT_PUBLIC_API_BASE_URL="${incoming_next_public_api_base_url:-${NEXT_PUBLIC_API_BASE_URL:-http://127.0.0.1:${NGINX_PORT}}}"
+    export NEXT_PUBLIC_SITE_URL="${incoming_next_public_site_url:-${NEXT_PUBLIC_SITE_URL:-$NEXT_PUBLIC_API_BASE_URL}}"
+  fi
   validate_port_range API_PORT "$API_PORT"
   validate_port_range WEB_PORT "$WEB_PORT"
   validate_port_range NGINX_PORT "$NGINX_PORT"
@@ -270,10 +296,12 @@ load_env_file() {
   validate_port_range QDRANT_PORT "$QDRANT_PORT"
   validate_port_range QDRANT_GRPC_PORT "$QDRANT_GRPC_PORT"
   export API_BASE_URL="http://127.0.0.1:${API_PORT}"
-  if [[ "$SKIP_DOCKER" == "1" ]]; then
+  if [[ "$SKIP_DOCKER" == "1" && -z "$TUNNEL_PUBLIC_URL" ]]; then
     export NEXT_PUBLIC_API_BASE_URL="http://127.0.0.1:${API_PORT}"
-  else
+    export NEXT_PUBLIC_SITE_URL="$NEXT_PUBLIC_API_BASE_URL"
+  elif [[ -z "$TUNNEL_PUBLIC_URL" && -z "$incoming_next_public_api_base_url" ]]; then
     export NEXT_PUBLIC_API_BASE_URL="http://127.0.0.1:${NGINX_PORT}"
+    export NEXT_PUBLIC_SITE_URL="$NEXT_PUBLIC_API_BASE_URL"
   fi
   API_LOG="$API_LOG_DIR/api-${API_PORT}.log"
   WEB_LOG="$WEB_LOG_DIR/web-${WEB_PORT}.log"
@@ -466,12 +494,15 @@ start_runtime_tmux() {
   embed_base_q="$(quote_arg "$EMBED_RERANK_BASE_URL")"
   redis_url_q="$(quote_arg "$REDIS_URL")"
   qdrant_url_q="$(quote_arg "$QDRANT_URL")"
+  cors_origins_q="$(quote_arg "$CORS_ORIGINS")"
   api_base_q="$(quote_arg "http://127.0.0.1:${API_PORT}")"
   public_api_base_q="$(quote_arg "$NEXT_PUBLIC_API_BASE_URL")"
+  public_site_url_q="$(quote_arg "$NEXT_PUBLIC_SITE_URL")"
+  next_allowed_dev_origins_q="$(quote_arg "$NEXT_ALLOWED_DEV_ORIGINS")"
 
   local api_cmd web_cmd
-  api_cmd="cd $root_q && echo \$\$ > $api_pid_q && exec > >(tee -a $api_log_q) 2>&1 && exec env API_PORT=$api_port_q PORT=$api_port_q DATABASE_URL=$database_url_q CHAT_MODEL_BASE_URL=$chat_base_q CHAT_MODEL_ID=$chat_id_q EMBED_RERANK_BASE_URL=$embed_base_q REDIS_URL=$redis_url_q QDRANT_URL=$qdrant_url_q corepack pnpm --filter @retail-agent/api start"
-  web_cmd="cd $root_q/apps/web && echo \$\$ > $web_pid_q && exec > >(tee -a $web_log_q) 2>&1 && exec env API_BASE_URL=$api_base_q NEXT_PUBLIC_API_BASE_URL=$public_api_base_q PORT=$web_port_q corepack pnpm exec next dev -H 0.0.0.0 -p $web_port_q"
+  api_cmd="cd $root_q && echo \$\$ > $api_pid_q && exec > >(tee -a $api_log_q) 2>&1 && exec env API_PORT=$api_port_q PORT=$api_port_q DATABASE_URL=$database_url_q CHAT_MODEL_BASE_URL=$chat_base_q CHAT_MODEL_ID=$chat_id_q EMBED_RERANK_BASE_URL=$embed_base_q REDIS_URL=$redis_url_q QDRANT_URL=$qdrant_url_q CORS_ORIGINS=$cors_origins_q corepack pnpm --filter @retail-agent/api start"
+  web_cmd="cd $root_q/apps/web && echo \$\$ > $web_pid_q && exec > >(tee -a $web_log_q) 2>&1 && exec env API_BASE_URL=$api_base_q NEXT_PUBLIC_API_BASE_URL=$public_api_base_q NEXT_PUBLIC_SITE_URL=$public_site_url_q NEXT_ALLOWED_DEV_ORIGINS=$next_allowed_dev_origins_q PORT=$web_port_q corepack pnpm exec next dev -H 0.0.0.0 -p $web_port_q"
 
   tmux new-session -d -s "$TMUX_SESSION" -n api "bash -lc $(quote_arg "$api_cmd")" >> "$SETUP_LOG" 2>&1
   ok "tmux session started: $TMUX_SESSION window=api"
@@ -485,6 +516,7 @@ start_runtime_tmux() {
   wait_for_port 127.0.0.1 "$WEB_PORT" "Web" 90
   if [[ "$SKIP_DOCKER" != "1" ]]; then
     wait_for_http "http://127.0.0.1:${NGINX_PORT}/health" "nginx API proxy" 90
+    wait_for_http "http://127.0.0.1:${NGINX_PORT}/" "nginx web proxy" 90
   fi
 
   local api_pid web_pid
@@ -505,7 +537,7 @@ start_runtime_background() {
 
   (
     cd "$ROOT_DIR"
-    API_PORT="$API_PORT" PORT="$API_PORT" DATABASE_URL="$DATABASE_URL" CHAT_MODEL_BASE_URL="$CHAT_MODEL_BASE_URL" CHAT_MODEL_ID="$CHAT_MODEL_ID" EMBED_RERANK_BASE_URL="$EMBED_RERANK_BASE_URL" REDIS_URL="$REDIS_URL" QDRANT_URL="$QDRANT_URL" corepack pnpm --filter @retail-agent/api start >> "$API_LOG" 2>&1
+    API_PORT="$API_PORT" PORT="$API_PORT" DATABASE_URL="$DATABASE_URL" CHAT_MODEL_BASE_URL="$CHAT_MODEL_BASE_URL" CHAT_MODEL_ID="$CHAT_MODEL_ID" EMBED_RERANK_BASE_URL="$EMBED_RERANK_BASE_URL" REDIS_URL="$REDIS_URL" QDRANT_URL="$QDRANT_URL" CORS_ORIGINS="$CORS_ORIGINS" corepack pnpm --filter @retail-agent/api start >> "$API_LOG" 2>&1
   ) &
   local api_pid=$!
 
@@ -515,13 +547,14 @@ start_runtime_background() {
 
   (
     cd "$ROOT_DIR/apps/web"
-    API_BASE_URL="http://127.0.0.1:${API_PORT}" NEXT_PUBLIC_API_BASE_URL="$NEXT_PUBLIC_API_BASE_URL" PORT="$WEB_PORT" corepack pnpm exec next dev -H 0.0.0.0 -p "$WEB_PORT" >> "$WEB_LOG" 2>&1
+    API_BASE_URL="http://127.0.0.1:${API_PORT}" NEXT_PUBLIC_API_BASE_URL="$NEXT_PUBLIC_API_BASE_URL" NEXT_PUBLIC_SITE_URL="$NEXT_PUBLIC_SITE_URL" NEXT_ALLOWED_DEV_ORIGINS="$NEXT_ALLOWED_DEV_ORIGINS" PORT="$WEB_PORT" corepack pnpm exec next dev -H 0.0.0.0 -p "$WEB_PORT" >> "$WEB_LOG" 2>&1
   ) &
   local web_pid=$!
 
   wait_for_port 127.0.0.1 "$WEB_PORT" "Web" 90
   if [[ "$SKIP_DOCKER" != "1" ]]; then
     wait_for_http "http://127.0.0.1:${NGINX_PORT}/health" "nginx API proxy" 90
+    wait_for_http "http://127.0.0.1:${NGINX_PORT}/" "nginx web proxy" 90
   fi
 
   printf "%s\n" "$api_pid" > "$API_LOG_DIR/api.pid"

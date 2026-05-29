@@ -1,10 +1,10 @@
-# Agent Dashboard Cluster Flow - 2026-05-26
+﻿# Agent Dashboard Cluster Flow - 2026-05-26
 
 - Created: 2026-05-26 08:23
 - Updated: 2026-05-26 08:23
 - Plan: `plans/plan-agent-dashboard-cluster-flow-20260526-v1.md`
 - Log: `logs/implementation/agent-dashboard-cluster-flow-2026-05-26.md`
-- Evidence: `test/agent-dashboard-cluster-flow-evidence-2026-05-26/`
+- Evidence: `tests/agent-dashboard-cluster-flow-evidence-2026-05-26/`
 - Status: closed
 
 ## Mục Tiêu
@@ -45,7 +45,7 @@ Dashboard agent phải mô tả đúng flow thực tế của pipeline: request 
 - Background cluster regions are not rendered; grouping is done by node proximity.
 - The canvas preserves task/session return and write-back edges, so agent/tool calls are not shown as one-way only.
 - Node icons use compact centered code badges to avoid distorted oversized glyphs.
-- Final screenshot evidence: `test/agent-dashboard-icon-legend-density-evidence-2026-05-26/app/02-dashboard-recommendation-single-canvas-fixed.png`.
+- Final screenshot evidence: `tests/agent-dashboard-icon-legend-density-evidence-2026-05-26/app/02-dashboard-recommendation-single-canvas-fixed.png`.
 
 ## 2026-05-26 Icon And Instance Correction
 
@@ -55,7 +55,7 @@ Dashboard agent phải mô tả đúng flow thực tế của pipeline: request 
   - each agent gets its own `His agent` visual node when it reads private history;
   - each tool call is cloned per owning agent as `tool...__for__<agent>`, even when the runtime implementation is shared.
 - Shared resources remain single nodes only when agents truly alternate over the same shared workspace/state, such as `task-context`, `session-context`, DB, or LLM service.
-- Final screenshot evidence: `test/agent-dashboard-icon-legend-density-evidence-2026-05-26/app/06-dashboard-svg-icons-final.png`.
+- Final screenshot evidence: `tests/agent-dashboard-icon-legend-density-evidence-2026-05-26/app/06-dashboard-svg-icons-final.png`.
 
 ## 2026-05-26 Meaningful Icon And Flow Check Update
 
@@ -67,7 +67,7 @@ Dashboard agent phải mô tả đúng flow thực tế của pipeline: request 
   - DB is cylinder, LLM is bot/model, tool is wrench, response is chat bubble.
 - Visual flow must not show non-Lead agent-to-agent calls as the primary route. When a trace edge implies a next-agent handoff, the dashboard shows Lead routing the next agent, then agent write-back to Task, then Task returning to Lead.
 - Tool calls must have a visible return edge to the owning agent when the trace has tool output but no direct visual return edge.
-- Final audited screenshot: `test/agent-dashboard-icon-legend-density-evidence-2026-05-26/app/08-dashboard-flow-checked-meaningful-icons.png`.
+- Final audited screenshot: `tests/agent-dashboard-icon-legend-density-evidence-2026-05-26/app/08-dashboard-flow-checked-meaningful-icons.png`.
 
 ## 2026-05-26 Legend Trim And Hard Benchmark Update
 
@@ -76,7 +76,7 @@ Dashboard agent phải mô tả đúng flow thực tế của pipeline: request 
   - `Trả về`;
   - node icon/shape meanings.
 - `Đọc dữ liệu`, `Ghi dữ liệu`, and `Guard` remain trace semantics, but they are not shown as separate main-legend colors unless the canvas renders those colors distinctly again.
-- Hard benchmark added at `test/agent-pipeline/retail-chatbot-hard-flow-benchmark-20/`.
-- Evidence: `test/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/`.
+- Hard benchmark added at `tests/agent-pipeline/retail-chatbot-hard-flow-benchmark-20/`.
+- Evidence: `tests/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/`.
 - Benchmark result: 20/20 completed, 19 pass, 1 warn, 0 fail, `flowFail=0`.
-- Latest dashboard screenshot: `test/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/app/09-dashboard-legend-trimmed-hard-flow.png`.
+- Latest dashboard screenshot: `tests/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/app/09-dashboard-legend-trimmed-hard-flow.png`.

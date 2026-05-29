@@ -1,10 +1,10 @@
-# Log: Dashboard Flow Continuous Animation
+﻿# Log: Dashboard Flow Continuous Animation
 
 - Started: 2026-05-25 11:20 +07:00
 - Closed: 2026-05-25 11:54 +07:00
 - Status: closed
 - Related plan: `plans/frontend/dashboard-flow-continuous-animation.md`
-- Evidence: `test/dashboard-flow-continuous-evidence-2026-05-25/`
+- Evidence: `tests/dashboard-flow-continuous-evidence-2026-05-25/`
 
 ## Goal
 

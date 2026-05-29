@@ -1,11 +1,11 @@
-# Plan: Agent Pipeline Working Rules
+﻿# Plan: Agent Pipeline Working Rules
 
 - Created: 2026-05-21 13:46
 - Updated: 2026-05-21 13:46
 - Status: planned
 - Related log: `logs/planning/agent-pipeline/rebuild.md`
 - Related doc: `docs/agent-pipeline/architecture/system-definition.md`
-- Related tests: `test/agent-pipeline/README.md`
+- Related tests: `tests/agent-pipeline/README.md`
 
 ## Goal
 
@@ -54,7 +54,7 @@
 
 ### 4. Tests
 
-- Test case thiết kế nằm trong `test/agent-pipeline/`, chia theo `platform/` và `agents/{agent-name}/`.
+- Test case thiết kế nằm trong `tests/agent-pipeline/`, chia theo `platform/` và `agents/{agent-name}/`.
 - Test tự động backend đặt trong `apps/api/tests/` khi bắt đầu implement.
 - Test tự động frontend đặt trong `apps/web/tests/` nếu có UI/stream/trace thay đổi.
 - Không đóng plan nếu chưa có test pass hoặc lý do rõ vì sao chưa chạy được.
@@ -73,7 +73,7 @@ Evidence hợp lệ gồm:
 
 | Phase | Goal | Status | Evidence |
 | --- | --- | --- | --- |
-| 1 | Tạo folder và quy định plan/doc/log/test | done | `plans/agent-pipeline/`, `docs/agent-pipeline/`, `logs/planning/agent-pipeline/`, `test/agent-pipeline/` |
+| 1 | Tạo folder và quy định plan/doc/log/test | done | `plans/agent-pipeline/`, `docs/agent-pipeline/`, `logs/planning/agent-pipeline/`, `tests/agent-pipeline/` |
 | 2 | Áp dụng quy định cho plan tổng và Lead Agent | done | `architecture/master-pipeline-rebuild.md`, `agents/lead-agent/plan.md` |
 | 3 | Dùng quy định này cho các plan agent tiếp theo | pending | Sẽ cập nhật khi tạo plan từng agent |
 

@@ -1,4 +1,4 @@
-# Cart Agent Job
+﻿# Cart Agent Job
 
 - Created: 2026-05-21 16:32
 - Updated: 2026-05-21 16:58
@@ -11,15 +11,15 @@
 | --- | --- |
 | [plan.md](plan.md) | Main Cart SQL RAG Agent plan |
 | [status.md](status.md) | Current job status and phase tracker |
-| [checklist.md](checklist.md) | Completion checklist for design/code/test/close |
+| [checklist.md](checklist.md) | Completion checklist for design/code/tests/close |
 
 ## Related
 
 | Type | Path |
 | --- | --- |
 | Design doc | [docs/agent-pipeline/agents/cart-agent/design.md](../../../../docs/agent-pipeline/agents/cart-agent/design.md) |
-| Test cases | [test/agent-pipeline/agents/cart-agent/cases.md](../../../../test/agent-pipeline/agents/cart-agent/cases.md) |
-| Real request 100 | [test/agent-pipeline/agents/cart-agent/real-request-100-cases.md](../../../../test/agent-pipeline/agents/cart-agent/real-request-100-cases.md) |
+| Test cases | [tests/agent-pipeline/agents/cart-agent/cases.md](../../../../tests/agent-pipeline/agents/cart-agent/cases.md) |
+| Real request 100 | [tests/agent-pipeline/agents/cart-agent/real-request-100-cases.md](../../../../tests/agent-pipeline/agents/cart-agent/real-request-100-cases.md) |
 | Job log | [logs/log-plan-agent-pipeline/cart-agent.md](../../../../logs/log-plan-agent-pipeline/cart-agent.md) |
 | Planning log mirror | [logs/planning/agent-pipeline/agents/cart-agent.md](../../../../logs/planning/agent-pipeline/agents/cart-agent.md) |
 

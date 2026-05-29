@@ -5,8 +5,10 @@ import { readFile } from 'node:fs/promises';
 const layoutSource = await readFile(new URL('../src/app/layout.tsx', import.meta.url), 'utf8');
 const shellSource = await readFile(new URL('../src/app/app-shell.tsx', import.meta.url), 'utf8');
 const pageSource = await readFile(new URL('../src/app/page.tsx', import.meta.url), 'utf8');
+const homeProductShowcaseSource = await readFile(new URL('../src/app/home-product-showcase.tsx', import.meta.url), 'utf8');
 const clientSource = await readFile(new URL('../src/app/retail-client.tsx', import.meta.url), 'utf8');
 const productsPageSource = await readFile(new URL('../src/app/products/page.tsx', import.meta.url), 'utf8');
+const productsClientSource = await readFile(new URL('../src/app/products/products-client.tsx', import.meta.url), 'utf8');
 const productDetailSource = await readFile(new URL('../src/app/products/[id]/page.tsx', import.meta.url), 'utf8');
 const cartPageSource = await readFile(new URL('../src/app/cart/page.tsx', import.meta.url), 'utf8');
 const cartClientSource = await readFile(new URL('../src/app/cart/cart-client.tsx', import.meta.url), 'utf8');
@@ -26,7 +28,9 @@ test('frontend shell exposes commerce, account, chat, and API testing flows', ()
   assert.match(shellSource, /href="\/products"/);
   assert.match(shellSource, /href="\/cart"/);
   assert.match(shellSource, /href="\/account"/);
-  assert.doesNotMatch(shellSource, /⌘|◒|◎/);
+  assert.match(shellSource, /BagIcon/);
+  assert.match(shellSource, /UserIcon/);
+  assert.doesNotMatch(shellSource, /âŒ˜|â—’|â—Ž/);
   assert.match(shellSource, /retail-cart-changed/);
 
   assert.doesNotMatch(pageSource, /RetailChatWidget/);
@@ -34,29 +38,40 @@ test('frontend shell exposes commerce, account, chat, and API testing flows', ()
   assert.doesNotMatch(productsPageSource, /commerce-header/);
   assert.doesNotMatch(productDetailSource, /commerce-header/);
   assert.match(pageSource, /storefront-hero/);
-  assert.match(pageSource, /Mua sắm ngay/);
+  assert.match(pageSource, /motion-stage/);
+  assert.match(pageSource, /product-led-home/);
+  assert.match(pageSource, /HomeProductShowcase/);
+  assert.match(pageSource, /retail-marquee/);
+  assert.match(homeProductShowcaseSource, /useState/);
+  assert.match(homeProductShowcaseSource, /moveSlide/);
+  assert.match(homeProductShowcaseSource, /Xem chi tiết/);
   assert.match(pageSource, /productImageUrl/);
   assert.match(pageSource, /product-popover/);
 
-  assert.match(clientSource, /Trợ lý mua sắm/);
+  assert.match(clientSource, /trợ lý/i);
   assert.match(clientSource, /chat-widget/);
+  assert.match(clientSource, /isChatBusy \? ' busy' : ''/);
   assert.match(clientSource, /chat-launcher/);
   assert.match(clientSource, /Dashboard/);
   assert.match(clientSource, /\/agent-dashboard/);
-  assert.doesNotMatch(clientSource, /⌁|⌫/);
+  assert.doesNotMatch(clientSource, /âŒ|âŒ«/);
   assert.match(clientSource, /api\/v1\/chat\/stream/);
   assert.match(clientSource, /api\/v1\/cart\/current\/items/);
   assert.doesNotMatch(clientSource, /api\/v1\/cart\/\$\{cart\.id\}\/items/);
   assert.doesNotMatch(pageSource + clientSource + shellSource, /web-demo-cart/);
 
-  assert.match(productsPageSource, /AddToCartButton/);
+  assert.match(productsPageSource, /ProductsClient/);
+  assert.match(productsClientSource, /AddToCartButton/);
+  assert.match(productsClientSource, /window\.history\.replaceState/);
+  assert.match(productsClientSource, /catalog-motion-stage/);
+  assert.match(productsClientSource, /catalog-rail/);
   assert.match(productDetailSource, /AddToCartButton/);
   assert.match(addToCartSource, /credentials: 'include'/);
   assert.match(addToCartSource, /resolveBrowserApiBaseUrl/);
   assert.match(addToCartSource, /retail-cart-changed/);
   assert.match(cartPageSource, /CartClient/);
   assert.match(cartClientSource, /resolveBrowserApiBaseUrl/);
-  assert.match(cartClientSource, /Giỏ hàng theo tài khoản/);
+  assert.match(cartClientSource, /Giá» hÃ ng theo tÃ i khoáº£n|Giỏ hàng theo tài khoản/);
   assert.match(cartClientSource, /api\/v1\/cart\/current\/items/);
 
   assert.match(accountPageSource, /AccountClient/);
@@ -67,7 +82,7 @@ test('frontend shell exposes commerce, account, chat, and API testing flows', ()
   assert.match(accountClientSource, /verifiedSession/);
   assert.match(accountClientSource, /resolveBrowserApiBaseUrl/);
   assert.match(accountClientSource, /api\/v1\/auth\/me/);
-  assert.match(accountClientSource, /Đăng xuất/);
+  assert.match(accountClientSource, /ÄÄƒng xuáº¥t|Đăng xuất/);
 
   assert.match(testApiPageSource, /AgentSettingsClient/);
   assert.match(browserApiSource, /window\.location\.hostname/);

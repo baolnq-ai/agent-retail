@@ -326,7 +326,7 @@ Deploy requirements:
 - Observability có logs/metrics/traces và redaction.
 - Performance targets đạt trên smoke load.
 - AI eval đạt threshold.
-- CI/CD pipeline tối thiểu có đủ lint/typecheck/test/build/audit.
+- CI/CD pipeline tối thiểu có đủ lint/typecheck/tests/build/audit.
 - Runbook và known risks documented.
 - Push chỉ thực hiện sau khi user xác nhận và theo `push-code-skill`.
 

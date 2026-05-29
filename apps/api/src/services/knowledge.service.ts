@@ -45,7 +45,7 @@ function normalize(value: string): string {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/đ/g, 'd')
     .replace(/Đ/g, 'd')
-    .replace(/Ä‘/g, 'd')
+    .replace(/đ/g, 'd')
     .replace(/\s+/g, ' ')
     .trim();
 }

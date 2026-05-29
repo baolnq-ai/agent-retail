@@ -1,4 +1,4 @@
-# Plan: Cart Agent
+﻿# Plan: Cart Agent
 
 - Created: 2026-05-21 14:18
 - Updated: 2026-05-22 10:45
@@ -6,7 +6,7 @@
 - Related log: `logs/log-plan-agent-pipeline/cart-agent.md`
 - Mirror log: `logs/planning/agent-pipeline/agents/cart-agent.md`
 - Related doc: `docs/agent-pipeline/agents/cart-agent/design.md`
-- Related tests: `test/agent-pipeline/agents/cart-agent/cases.md`, `test/agent-pipeline/agents/cart-agent/real-request-100-cases.md`
+- Related tests: `tests/agent-pipeline/agents/cart-agent/cases.md`, `tests/agent-pipeline/agents/cart-agent/real-request-100-cases.md`
 - Job status: `plans/agent-pipeline/agents/cart-agent/status.md`
 - Job checklist: `plans/agent-pipeline/agents/cart-agent/checklist.md`
 
@@ -808,7 +808,7 @@ interface CartAgentResult {
 | 10 | Tích hợp với Product/Search handoff và Lead future contract | pending | Cross-agent contract tests |
 | 11 | Trace/observability cho từng node/tool | pending | Trace tests |
 | 12 | Tối ưu fast path, latency budget và background summarization | pending | Performance tests/benchmark |
-| 13 | Chạy real-request evaluation suite 100 case qua API/agent runtime và tinh chỉnh tới pass 100% | pending | `test/agent-pipeline/agents/cart-agent/real-request-100-cases.md` pass report + DB/trace evidence |
+| 13 | Chạy real-request evaluation suite 100 case qua API/agent runtime và tinh chỉnh tới pass 100% | pending | `tests/agent-pipeline/agents/cart-agent/real-request-100-cases.md` pass report + DB/trace evidence |
 | 14 | Regression runtime cart/chat | pending | API tests pass |
 
 ## Verification

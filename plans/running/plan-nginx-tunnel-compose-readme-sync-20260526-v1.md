@@ -1,4 +1,4 @@
-# Plan: nginx-tunnel-compose-readme-sync
+﻿# Plan: nginx-tunnel-compose-readme-sync
 
 - Created: 2026-05-26
 - Status: completed
@@ -7,7 +7,7 @@
 
 ## Mục Tiêu
 
-Đồng bộ README/tài liệu vận hành sang tiếng Việt có dấu, thêm nginx Docker Compose để tunnel dự án qua một cổng, và ghi rõ backend/frontend/model gateway/test/evidence.
+Đồng bộ README/tài liệu vận hành sang tiếng Việt có dấu, thêm nginx Docker Compose để tunnel dự án qua một cổng, và ghi rõ backend/frontend/model gateway/tests/evidence.
 
 ## Phạm Vi
 

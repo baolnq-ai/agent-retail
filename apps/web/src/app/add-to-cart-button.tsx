@@ -44,7 +44,7 @@ export function AddToCartButton({ apiBaseUrl, productId, label = 'Thêm vào gi�
     try {
       const cart = await postJson<Cart>(`${resolvedApiBaseUrl}/api/v1/cart/current/items`, { productId, quantity: 1 });
       window.dispatchEvent(new CustomEvent('retail-cart-changed', { detail: cart }));
-      setStatusText('Đã thêm vào giỏ hàng');
+      setStatusText('Đã thêm vào giỏ');
     } catch (error) {
       setStatusText(error instanceof Error ? error.message : 'Không thêm được sản phẩm');
     } finally {

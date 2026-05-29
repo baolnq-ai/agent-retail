@@ -1,11 +1,11 @@
-# Plan: Agent Pipeline Rebuild
+﻿# Plan: Agent Pipeline Rebuild
 
 - Created: 2026-05-21 13:46
 - Updated: 2026-05-22 02:30
 - Status: in_progress
 - Related log: `logs/planning/agent-pipeline/rebuild.md`
 - Related doc: `docs/agent-pipeline/architecture/system-definition.md`
-- Related tests: `test/agent-pipeline/README.md`
+- Related tests: `tests/agent-pipeline/README.md`
 
 ## Goal
 

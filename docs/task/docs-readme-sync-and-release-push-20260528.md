@@ -1,4 +1,4 @@
-# Đồng bộ README/docs/logs/plans và push release
+﻿# Đồng bộ README/docs/logs/plans và push release
 
 Ngày: 2026-05-28
 
@@ -21,7 +21,7 @@ Tinh chỉnh README gốc và các index trong `docs/`, `logs/`, `plans/` để 
 | [../../README.md](../../README.md) | Hub chính của repo |
 | [../../plans/plan-docs-readme-sync-and-release-push-20260528-v1.md](../../plans/plan-docs-readme-sync-and-release-push-20260528-v1.md) | Plan đã đóng |
 | [../../logs/implementation/docs-readme-sync-and-release-push-20260528.md](../../logs/implementation/docs-readme-sync-and-release-push-20260528.md) | Log triển khai |
-| [../../test/docker-full-compose-evidence-2026-05-28/README.md](../../test/docker-full-compose-evidence-2026-05-28/README.md) | Evidence Docker full compose |
+| [../../tests/docker-full-compose-evidence-2026-05-28/README.md](../../tests/docker-full-compose-evidence-2026-05-28/README.md) | Evidence Docker full compose |
 
 ## Ghi chú
 

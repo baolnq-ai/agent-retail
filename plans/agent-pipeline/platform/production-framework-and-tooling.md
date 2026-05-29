@@ -1,11 +1,11 @@
-# Plan: Production Framework And Tooling
+﻿# Plan: Production Framework And Tooling
 
 - Created: 2026-05-21 13:58
 - Updated: 2026-05-22 02:35
 - Status: completed
 - Related log: `logs/planning/agent-pipeline/execution-tracker.md`
 - Related doc: `docs/agent-pipeline/platform/production-framework-decision.md`
-- Related tests: `test/agent-pipeline/platform/production-toolcall-cases.md`
+- Related tests: `tests/agent-pipeline/platform/production-toolcall-cases.md`
 - Related status: `plans/agent-pipeline/platform/production-framework-status.md`
 
 ## Goal

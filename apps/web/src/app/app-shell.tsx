@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { resolveBrowserApiBaseUrl } from './browser-api-base-url.js';
 import { RetailChatWidget, type AuthUser, type Cart, type Product } from './retail-client.js';
 
-const configuredApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:6820';
+const configuredApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:3120';
 const emptyCart: Cart = { id: 'account-required', version: 0, items: [], subtotal: 0, grandTotal: 0, status: 'active' };
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -99,20 +99,22 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="commerce-header">
         <a className="commerce-brand" href="/" aria-label="NTC AI Retail Agent">
           <img className="commerce-brand-logo" src="/logo.png" alt="" width="42" height="42" />
-          <strong>NTC AI Retail</strong>
+          <strong>NTC Store</strong>
         </a>
         <nav className="commerce-nav" aria-label="Điều hướng chính">
           <a href="/products">Sản phẩm</a>
-          <a href="/cart">Giỏ hàng{authUser ? <em>{cart.items.length}</em> : null}</a>
+          <a href="/cart"><BagIcon />Giỏ hàng{authUser ? <em>{cart.items.length}</em> : null}</a>
         </nav>
         <div className="commerce-account-actions">
-          <button className="theme-toggle" type="button" onClick={toggleTheme}>{theme === 'dark' ? 'Sáng' : 'Tối'}</button>
+          <button className="theme-toggle icon-button" type="button" onClick={toggleTheme} aria-label={theme === 'dark' ? 'Đổi sang giao diện sáng' : 'Đổi sang giao diện tối'} title={theme === 'dark' ? 'Giao diện sáng' : 'Giao diện tối'}>
+            {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+          </button>
           {authUser ? (
             <>
               <span className="user-chip">{authUser.name}</span>
               <button type="button" onClick={() => void handleLogout()}>Đăng xuất</button>
             </>
-          ) : <a className="login-link" href="/account">Tài khoản</a>}
+          ) : <a className="login-link" href="/account"><UserIcon />Tài khoản</a>}
         </div>
       </header>
       <main className="commerce-main">{children}</main>
@@ -149,4 +151,39 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
   const text = await response.text();
   if (!response.ok) throw new Error(text || `Yêu cầu thất bại ${response.status}`);
   return (text ? JSON.parse(text) : {}) as T;
+}
+
+function SunIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M21 14.6A8.3 8.3 0 0 1 9.4 3 7 7 0 1 0 21 14.6Z" />
+    </svg>
+  );
+}
+
+function BagIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6.5 8.5h11l-.7 10.2a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6.5 8.5Z" />
+      <path d="M9 8.5a3 3 0 0 1 6 0" />
+    </svg>
+  );
+}
+
+function UserIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M20 20a7 7 0 0 0-16 0" />
+      <circle cx="12" cy="8" r="4" />
+    </svg>
+  );
 }

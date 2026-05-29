@@ -1,11 +1,11 @@
-# Plan: Recommendation Agent
+﻿# Plan: Recommendation Agent
 
 - Created: 2026-05-21 17:40
 - Updated: 2026-05-21 18:04
 - Status: planned
 - Related log: `logs/log-plan-agent-pipeline/recommendation-agent.md`
 - Related doc: `docs/agent-pipeline/agents/recommendation-agent/design.md`
-- Related tests: `test/agent-pipeline/agents/recommendation-agent/cases.md`
+- Related tests: `tests/agent-pipeline/agents/recommendation-agent/cases.md`
 
 ## Goal
 

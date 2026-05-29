@@ -1,4 +1,4 @@
-# Log: Product Discovery Agent Plan
+﻿# Log: Product Discovery Agent Plan
 
 - Created: 2026-05-21 17:20
 - Updated: 2026-05-21 17:20
@@ -22,7 +22,7 @@ Lập plan agent thứ 2 trong rebuild pipeline: Product Discovery Agent, gồm 
   - `AgentHistoryService`
   - `ProductManagerResult`, `RecommendationAgentResult`
 - Ghi rõ gap: chưa có search index, embedding fallback, candidate snapshot, feedback signal, discovery interaction history, rerank/verifier chuẩn.
-- Tạo plan/doc/test/log/status/checklist cho Product Discovery Agent.
+- Tạo plan/doc/tests/log/status/checklist cho Product Discovery Agent.
 - Chốt tool inventory: 1 public interface `product_discovery.agent.run_goal` + 45 private backend tools.
 - Chốt response-only LLM: không dùng LLM/vLLM toolcall.
 

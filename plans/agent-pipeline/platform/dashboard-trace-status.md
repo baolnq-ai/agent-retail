@@ -1,4 +1,4 @@
-# Status: Dashboard Trace Visualization
+﻿# Status: Dashboard Trace Visualization
 
 - Created: 2026-05-21 20:20
 - Updated: 2026-05-22 10:24
@@ -17,7 +17,7 @@
 | 4 | Add grouped DB/service/tool nodes | done | Postgres/Qdrant/LLM/service nodes wired; dense demo groups overflow runtime nodes |
 | 5 | Add compatibility for legacy trace ids | done | Legacy ids retained |
 | 6 | Add automated dashboard tests | done | `apps/web/tests/agent-dashboard-graph.test.mjs` pass |
-| 7 | Add canvas trace playback animation | done | `TracePlaybackCanvas`; edge CSS static; Web typecheck/test/runtime pass |
+| 7 | Add canvas trace playback animation | done | `TracePlaybackCanvas`; edge CSS static; Web typecheck/tests/runtime pass |
 | 8 | Add real request playback fixtures | done | Live `AgentTrace` stores `playbackEvents`; API 52/52 covers search/cart and RAG/support/security infra nodes; Chrome screenshots pass for support/RAG, cart, recommendation, security and dense demo traces |
 
 ## Current Notes

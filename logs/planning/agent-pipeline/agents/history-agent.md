@@ -1,4 +1,4 @@
-# Log: History Agent Plan
+﻿# Log: History Agent Plan
 
 - Created: 2026-05-21 18:42
 - Updated: 2026-05-22 14:45
@@ -35,7 +35,7 @@ Lập plan History Agent để Lead xử lý các câu hỏi mơ hồ như "sả
 
 ### Work done
 
-- Tạo plan/doc/test/log/status/checklist cho History Agent.
+- Tạo plan/doc/tests/log/status/checklist cho History Agent.
 - Chốt History Agent chỉ được gọi khi Lead phát hiện tham chiếu lịch sử mơ hồ.
 - Chốt nó đọc safe memory và private history summary của Cart/Search/Recommendation, không đọc debug logs/secrets.
 - Chốt contract trả resolved references, confidence, evidence, missingInfo và nextAgentHints.

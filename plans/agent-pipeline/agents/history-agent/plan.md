@@ -1,4 +1,4 @@
-# Plan: History Agent
+﻿# Plan: History Agent
 
 - Created: 2026-05-21 18:42
 - Updated: 2026-05-22 14:45
@@ -6,7 +6,7 @@
 - Related log: `logs/log-plan-agent-pipeline/history-agent.md`
 - Mirror log: `logs/planning/agent-pipeline/agents/history-agent.md`
 - Related doc: `docs/agent-pipeline/agents/history-agent/design.md`
-- Related tests: `test/agent-pipeline/agents/history-agent/cases.md`, `test/agent-pipeline/agents/history-agent/real-request-100-cases.md`
+- Related tests: `tests/agent-pipeline/agents/history-agent/cases.md`, `tests/agent-pipeline/agents/history-agent/real-request-100-cases.md`
 - Job status: `plans/agent-pipeline/agents/history-agent/status.md`
 - Job checklist: `plans/agent-pipeline/agents/history-agent/checklist.md`
 

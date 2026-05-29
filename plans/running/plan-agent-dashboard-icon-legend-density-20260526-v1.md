@@ -1,4 +1,4 @@
-# Plan: agent-dashboard-icon-legend-density
+﻿# Plan: agent-dashboard-icon-legend-density
 
 - Created: 2026-05-26 11:20
 - Updated: 2026-05-26 11:20
@@ -59,7 +59,7 @@ Chỉnh dashboard agent để canvas có chú thích rõ từng hình/icon, node
 
 - Canvas implementation updated in `apps/web/src/app/agent-dashboard/agent-dashboard-client.tsx`.
 - Visual density/icon sizing updated in `apps/web/src/app/styles.css`.
-- Screenshot/audit evidence saved in `test/agent-dashboard-icon-legend-density-evidence-2026-05-26/`.
+- Screenshot/audit evidence saved in `tests/agent-dashboard-icon-legend-density-evidence-2026-05-26/`.
 - Final CDP audit: 16 nodes, 37 edges, 0 cluster background regions, 0 extra trace boards, 0 overlap pairs, max icon 36px, step font 10.5px.
 - Verification passed: web test, web typecheck, API trace contract tests.
 
@@ -70,7 +70,7 @@ Chỉnh dashboard agent để canvas có chú thích rõ từng hình/icon, node
 - Kept shared context/state as single nodes only for `session-context`, `task-context`, DB/LLM style shared resources.
 - Slowed line animation 2x.
 - Final CDP audit: 20 nodes, 45 edges, 20 SVG icons, 0 cluster background regions, 0 extra trace boards, 0 overlap pairs, max icon 36px, max SVG 21px.
-- Final screenshot: `test/agent-dashboard-icon-legend-density-evidence-2026-05-26/app/06-dashboard-svg-icons-final.png`.
+- Final screenshot: `tests/agent-dashboard-icon-legend-density-evidence-2026-05-26/app/06-dashboard-svg-icons-final.png`.
 
 ## Final meaningful-icon/flow audit - 2026-05-26
 
@@ -79,14 +79,14 @@ Chỉnh dashboard agent để canvas có chú thích rõ từng hình/icon, node
 - Particle/line animation set to `6.13s`, 1.5x faster than the previous `9.2s` pass.
 - Visual flow normalization removes misleading non-Lead agent-to-agent call routing and adds missing visual return/write-back paths.
 - Final CDP audit: 20 nodes, 48 edges, 20 SVG icons, 0 overlap pairs, 0 unresolved call paths, 0 cluster background regions, 0 extra trace boards.
-- Final screenshot: `test/agent-dashboard-icon-legend-density-evidence-2026-05-26/app/08-dashboard-flow-checked-meaningful-icons.png`.
+- Final screenshot: `tests/agent-dashboard-icon-legend-density-evidence-2026-05-26/app/08-dashboard-flow-checked-meaningful-icons.png`.
 
 ## Legend trim and hard benchmark - 2026-05-26
 
 - Main legend trimmed to only `Gửi đi`, `Trả về`, and node icon/shape meanings.
 - Added 20 hard chatbot benchmark cases with trace-flow invariants.
-- Benchmark evidence: `test/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/`.
+- Benchmark evidence: `tests/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/`.
 - Benchmark result: 20/20 completed, 19 pass, 1 warn, 0 fail, `flowFail=0`, avg/p95 latency 2701/4703 ms.
 - Latest screenshot/audit:
-  - `test/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/app/09-dashboard-legend-trimmed-hard-flow.png`
-  - `test/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/app/audit-legend-trimmed-hard-flow.json`
+  - `tests/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/app/09-dashboard-legend-trimmed-hard-flow.png`
+  - `tests/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/app/audit-legend-trimmed-hard-flow.json`

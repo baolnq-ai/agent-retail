@@ -335,21 +335,26 @@ export function RetailChatWidget({ apiBaseUrl, initialProducts, authUser, cart, 
   }
 
   if (chatMode === 'closed') {
-    return <button type="button" className="chat-launcher" onClick={() => setChatMode('open')}>Trợ lý mua sắm</button>;
+    return (
+      <button type="button" className="chat-launcher" onClick={() => setChatMode('open')} aria-label="Mở trợ lý mua sắm" title="Trợ lý mua sắm">
+        <ChatBotIcon />
+      </button>
+    );
   }
 
   return (
-    <aside className={chatMode === 'minimized' ? 'chat-widget minimized' : 'chat-widget'} aria-label="Khung chat tư vấn mua hàng">
+    <aside className={`${chatMode === 'minimized' ? 'chat-widget minimized' : 'chat-widget'}${isChatBusy ? ' busy' : ''}`} aria-label="Khung chat tư vấn mua hàng">
       <div className="chat-header">
-        <div>
+        <div className="chat-title-line">
+          <span className="chat-title-icon" aria-hidden="true"><ChatBotIcon /></span>
           <strong>Trợ lý mua sắm</strong>
           <span>{statusText}</span>
         </div>
         <div className="chat-window-actions">
-          <a href="/agent-dashboard" target="_blank" rel="noreferrer">Dashboard</a>
-          {authUser ? <button type="button" className="chat-clear-history" disabled={isActionBusy} onClick={() => void handleClearHistory()}>Xoá</button> : null}
-          <button type="button" onClick={() => setChatMode(chatMode === 'minimized' ? 'open' : 'minimized')}>{chatMode === 'minimized' ? 'Mở' : 'Thu nhỏ'}</button>
-          <button type="button" onClick={() => setChatMode('closed')}>Đóng</button>
+          <a href="/agent-dashboard" target="_blank" rel="noreferrer" aria-label="Mở dashboard agent" title="Dashboard"><ChartIcon /></a>
+          {authUser ? <button type="button" className="chat-clear-history" disabled={isActionBusy} onClick={() => void handleClearHistory()} aria-label="Xoá lịch sử" title="Xoá lịch sử"><TrashIcon /></button> : null}
+          <button type="button" onClick={() => setChatMode(chatMode === 'minimized' ? 'open' : 'minimized')} aria-label={chatMode === 'minimized' ? 'Mở rộng chat' : 'Thu nhỏ chat'} title={chatMode === 'minimized' ? 'Mở rộng' : 'Thu nhỏ'}>{chatMode === 'minimized' ? <ExpandIcon /> : <MinimizeIcon />}</button>
+          <button type="button" onClick={() => setChatMode('closed')} aria-label="Đóng chat" title="Đóng"><CloseIcon /></button>
         </div>
       </div>
       <div className="progress-line" aria-label="Tiến trình xử lý chat">
@@ -574,4 +579,50 @@ async function deleteJson<T>(url: string): Promise<T> {
 
 function formatPrice(value: number): string {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+}
+
+function ChatBotIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7 8.5h10a4 4 0 0 1 4 4v1a4 4 0 0 1-4 4h-3.5L10 20v-2.5H7a4 4 0 0 1-4-4v-1a4 4 0 0 1 4-4Z" />
+      <path d="M12 8.5V5" />
+      <circle cx="9" cy="13" r="1" />
+      <circle cx="15" cy="13" r="1" />
+    </svg>
+  );
+}
+
+function ChartIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 19V5" />
+      <path d="M4 19h16" />
+      <path d="M8 16v-5" />
+      <path d="M12 16V8" />
+      <path d="M16 16v-3" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 7h16" />
+      <path d="M10 11v6M14 11v6" />
+      <path d="M6 7l1 14h10l1-14" />
+      <path d="M9 7V4h6v3" />
+    </svg>
+  );
+}
+
+function MinimizeIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12" /></svg>;
+}
+
+function ExpandIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" /></svg>;
+}
+
+function CloseIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>;
 }

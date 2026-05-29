@@ -1,4 +1,4 @@
-# Agent Pipeline Execution Tracker
+﻿# Agent Pipeline Execution Tracker
 
 - Created: 2026-05-22 00:55
 - Updated: 2026-05-22 15:10
@@ -35,7 +35,7 @@ Rules:
 | --- | --- | --- | --- | --- | --- | --- |
 | 00 | [x] | `architecture/working-rules.md` | passed | Governance rules created | Plan/log/test rules exist | Keep enforcing |
 | 01 | [x] | `platform/production-framework-and-tooling.md` | passed | Production framework close gate passed | API 51/51; Web 3/3; tracker/master/README updated | Continue plan 02 dashboard trace visualization |
-| 02 | [x] | `platform/dashboard-trace-visualization.md` | passed | Dashboard trace visualization close gate passed | Web typecheck/test/runtime pass; API 52/52; screenshots saved for support/RAG, cart, recommendation, support, security, dense | Continue plan 03 cart-agent runtime |
+| 02 | [x] | `platform/dashboard-trace-visualization.md` | passed | Dashboard trace visualization close gate passed | Web typecheck/tests/runtime pass; API 52/52; screenshots saved for support/RAG, cart, recommendation, support, security, dense | Continue plan 03 cart-agent runtime |
 | 03 | [ ] | `agents/cart-agent/plan.md` | partial | Direct runtime complete; cross-agent gaps documented | Cart contract/wrapper/tool registry/private executor/ledger/mutation writer/state/pending/memory tests pass; direct runtime 100/100; API 72/72 | Move to next specialist while cross-agent cases remain tracked |
 | 04 | [x] | `agents/storage-memory-agent/plan.md` | passed | Storage/Memory close gate passed | API 79/79; storage runtime pass; storage 100-case pass 100/100 | Continue plan 05 history-agent runtime |
 | 05 | [x] | `agents/history-agent/plan.md` | passed | History Agent close gate passed | API 84/84; history 100-case pass 100/100 | Continue plan 06 search-agent runtime |

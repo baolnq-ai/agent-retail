@@ -1,4 +1,4 @@
-# Log: Agent Pipeline Rebuild
+﻿# Log: Agent Pipeline Rebuild
 
 - Created: 2026-05-21 13:46
 - Updated: 2026-05-21 13:46
@@ -15,7 +15,7 @@ Khởi tạo bộ plan để code lại chatbot pipeline theo kiến trúc Lead 
 
 - Tạo folder `plans/agent-pipeline/`.
 - Tạo folder `docs/agent-pipeline/`.
-- Tạo folder `test/agent-pipeline/`.
+- Tạo folder `tests/agent-pipeline/`.
 - Tạo log tổng `logs/planning/agent-pipeline/rebuild.md`.
 - Tạo quy định làm việc cho plan/doc/log/test.
 - Tạo plan tổng rebuild pipeline.
@@ -31,7 +31,7 @@ Khởi tạo bộ plan để code lại chatbot pipeline theo kiến trúc Lead 
 ### Verification
 
 - Chưa chạy test code vì task hiện tại là lập plan và tài liệu.
-- Test case nền đã được đặt trong `test/agent-pipeline/`.
+- Test case nền đã được đặt trong `tests/agent-pipeline/`.
 
 ### Next
 
@@ -48,7 +48,7 @@ Bổ sung plan production để chốt có dùng LangGraph/LangChain không và 
 
 - Tạo `plans/agent-pipeline/platform/production-framework-and-tooling.md`.
 - Tạo `docs/agent-pipeline/platform/production-framework-decision.md`.
-- Tạo `test/agent-pipeline/platform/production-toolcall-cases.md`.
+- Tạo `tests/agent-pipeline/platform/production-toolcall-cases.md`.
 - Cập nhật master plan để phase đầu tiên chốt framework/tooling trước khi code.
 
 ### Decisions
@@ -60,7 +60,7 @@ Bổ sung plan production để chốt có dùng LangGraph/LangChain không và 
 ### Verification
 
 - Chưa chạy test code vì đây là bước planning.
-- Test case production đã được ghi trong `test/agent-pipeline/platform/production-toolcall-cases.md`.
+- Test case production đã được ghi trong `tests/agent-pipeline/platform/production-toolcall-cases.md`.
 
 ## 2026-05-21 14:18
 
@@ -74,7 +74,7 @@ Chuyển thứ tự thiết kế để làm Cart Agent trước Lead Agent, vì 
 - Tạo `plans/agent-pipeline/agents/cart-agent/plan.md`.
 - Tạo `docs/agent-pipeline/agents/cart-agent/design.md`.
 - Tạo `logs/planning/agent-pipeline/agents/cart-agent.md`.
-- Tạo `test/agent-pipeline/agents/cart-agent/cases.md`.
+- Tạo `tests/agent-pipeline/agents/cart-agent/cases.md`.
 - Cập nhật master plan, plan index, docs index và test index.
 
 ### DB assessment
@@ -98,9 +98,9 @@ Sắp xếp lại cây thư mục docs, logs và test cho agent-pipeline để t
 - Di chuyển docs nền sang `docs/agent-pipeline/architecture/` và `docs/agent-pipeline/platform/`.
 - Di chuyển Cart Agent doc sang `docs/agent-pipeline/agents/cart-agent/design.md`.
 - Di chuyển test theo agent/platform:
-  - `test/agent-pipeline/agents/cart-agent/`
-  - `test/agent-pipeline/agents/lead-agent/`
-  - `test/agent-pipeline/platform/`
+  - `tests/agent-pipeline/agents/cart-agent/`
+  - `tests/agent-pipeline/agents/lead-agent/`
+  - `tests/agent-pipeline/platform/`
 - Di chuyển logs vào `logs/planning/agent-pipeline/` và `logs/planning/agent-pipeline/agents/`.
 - Cập nhật link trong plans, docs index, test index và logs.
 - Thêm README cho `docs/agent-pipeline/` và `logs/planning/agent-pipeline/`.
@@ -111,7 +111,7 @@ Từ nay mọi tài liệu agent-pipeline dùng cấu trúc domain-first:
 
 ```txt
 docs/agent-pipeline/{architecture,platform,agents/<agent>}
-test/agent-pipeline/{platform,agents/<agent>}
+tests/agent-pipeline/{platform,agents/<agent>}
 logs/planning/agent-pipeline/{rebuild.md,agents/<agent>.md}
 ```
 
@@ -139,7 +139,7 @@ Sắp xếp lại cây thư mục `plans` cho đồng bộ với docs, test và 
 
 ### Decision
 
-Từ nay plan agent-pipeline dùng cùng cấu trúc domain-first với docs/test/logs:
+Từ nay plan agent-pipeline dùng cùng cấu trúc domain-first với docs/tests/logs:
 
 ```txt
 plans/agent-pipeline/{architecture,platform,agents/<agent>}
@@ -155,7 +155,7 @@ Add dashboard trace requirements so new pipeline agents do not break the existin
 
 - Added `plans/agent-pipeline/platform/dashboard-trace-visualization.md`.
 - Added `docs/agent-pipeline/platform/dashboard-trace-visualization.md`.
-- Added `test/agent-pipeline/platform/dashboard-trace-cases.md`.
+- Added `tests/agent-pipeline/platform/dashboard-trace-cases.md`.
 - Added `logs/planning/agent-pipeline/dashboard-trace.md`.
 - Updated master/platform/Lead plans and indexes.
 

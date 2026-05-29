@@ -1,6 +1,6 @@
-# Task Docs
+﻿# Task Docs
 
-- Cập nhật: 2026-05-28
+- Cập nhật: 2026-05-29
 - Phạm vi: tài liệu ngắn cho từng task quan trọng.
 
 ## Cách Dùng
@@ -17,8 +17,11 @@
 | [readme-banner-ci-polish-20260528.md](readme-banner-ci-polish-20260528.md) | Làm lại banner GIF, polish README và sửa CI |
 | [docker-hub-multiarch-compose-20260528.md](docker-hub-multiarch-compose-20260528.md) | Đóng gói Docker Hub multi-arch và Compose một file |
 | [docs-readme-sync-and-release-push-20260528.md](docs-readme-sync-and-release-push-20260528.md) | Đồng bộ README/docs/logs/plans và chuẩn bị push |
+| [source-clean-skill-alignment-20260529.md](source-clean-skill-alignment-20260529.md) | Clean source theo skill và validation lại repo |
+| [setup-port-range-3100-3150-20260529.md](setup-port-range-3100-3150-20260529.md) | Chuyển setup/runtime sang port 3100-3150 và fix 502 |
+| [setup-port-process-cleanup-20260529.md](setup-port-process-cleanup-20260529.md) | Sửa setup tự clear process/port cũ của dự án |
 | [setup-linux-tmux-port-cleanup-20260527.md](setup-linux-tmux-port-cleanup-20260527.md) | Setup Linux/tmux, port 6800-6850 và cleanup source |
-| [benmark-100-pipeline-audit-20260527.md](benmark-100-pipeline-audit-20260527.md) | Benchmark 100 câu và audit pipeline/cart/history |
+| [benchmark-100-pipeline-audit-20260527.md](benchmark-100-pipeline-audit-20260527.md) | Benchmark 100 câu và audit pipeline/cart/history |
 | [frontend-branding-dashboard-prompt-20260526.md](frontend-branding-dashboard-prompt-20260526.md) | Branding, logo, dashboard và prompt settings |
 | [agent-dashboard-cluster-flow-20260526-v1.md](agent-dashboard-cluster-flow-20260526-v1.md) | Logic dashboard agent, node/edge, cụm và flow trả về |
 | [nginx-tunnel-compose-20260526-v1.md](nginx-tunnel-compose-20260526-v1.md) | Nginx Docker Compose để tunnel qua một cổng |

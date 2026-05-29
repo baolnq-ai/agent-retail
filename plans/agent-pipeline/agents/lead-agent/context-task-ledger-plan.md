@@ -1,11 +1,11 @@
-# Plan: Lead Agent Context Task Ledger
+﻿# Plan: Lead Agent Context Task Ledger
 
 - Created: 2026-05-22 00:00
 - Updated: 2026-05-22 00:25
 - Status: planned
 - Related log: `logs/planning/agent-pipeline/agents/lead-agent.md`
 - Related doc: `docs/agent-pipeline/architecture/system-definition.md`
-- Related tests: `test/agent-pipeline/agents/lead-agent/context-task-ledger-cases.md`
+- Related tests: `tests/agent-pipeline/agents/lead-agent/context-task-ledger-cases.md`
 
 ## Goal
 

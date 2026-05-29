@@ -13,7 +13,7 @@ interface Product {
   description: string;
 }
 
-const apiBaseUrl = process.env.API_BASE_URL ?? 'http://127.0.0.1:6810';
+const apiBaseUrl = process.env.API_BASE_URL ?? 'http://127.0.0.1:3110';
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -83,13 +83,13 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 }
 
 async function loadProduct(id: string): Promise<Product> {
-  const response = await fetch(`${apiBaseUrl}/api/v1/products/${id}`, { cache: 'no-store' });
+  const response = await fetch(`${apiBaseUrl}/api/v1/products/${id}`, { next: { revalidate: 20 } });
   if (!response.ok) throw new Error(`Không tải được sản phẩm: ${response.status}`);
   return response.json() as Promise<Product>;
 }
 
 async function loadProducts(): Promise<Product[]> {
-  const response = await fetch(`${apiBaseUrl}/api/v1/products`, { cache: 'no-store' });
+  const response = await fetch(`${apiBaseUrl}/api/v1/products`, { next: { revalidate: 20 } });
   if (!response.ok) throw new Error(`Không tải được sản phẩm liên quan: ${response.status}`);
   const payload = await response.json() as { items: Product[] };
   return payload.items;

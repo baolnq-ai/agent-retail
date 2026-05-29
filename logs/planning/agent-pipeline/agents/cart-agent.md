@@ -1,4 +1,4 @@
-# Log: Cart Agent Plan
+﻿# Log: Cart Agent Plan
 
 - Created: 2026-05-21 14:18
 - Updated: 2026-05-22 13:40
@@ -18,7 +18,7 @@ Lập plan Cart Agent trước Lead Agent, đánh giá DB hiện tại và xác 
 - Đánh giá DB hiện tại thiếu cart event ledger, cart memory riêng, idempotency cho cart CRUD, pending action table riêng.
 - Tạo `plans/agent-pipeline/agents/cart-agent/plan.md`.
 - Tạo `docs/agent-pipeline/agents/cart-agent/design.md`.
-- Tạo `test/agent-pipeline/agents/cart-agent/cases.md`.
+- Tạo `tests/agent-pipeline/agents/cart-agent/cases.md`.
 - Dời Lead Agent sang `plans/agent-pipeline/agents/lead-agent/plan.md` và đánh dấu deferred để viết cuối.
 
 ### Decision
@@ -28,7 +28,7 @@ Cart Agent production nên dùng state graph deterministic + event-sourced cart 
 ### Verification
 
 - Chưa chạy test code vì task hiện tại là plan.
-- Test case thiết kế đã được ghi trong `test/agent-pipeline/agents/cart-agent/cases.md`.
+- Test case thiết kế đã được ghi trong `tests/agent-pipeline/agents/cart-agent/cases.md`.
 
 ## 2026-05-21 14:32
 
@@ -131,7 +131,7 @@ Bổ sung yêu cầu realistic test suite 100 case và pass 100% cho Cart SQL RA
 
 ### Work done
 
-- Tạo `test/agent-pipeline/agents/cart-agent/real-request-100-cases.md`.
+- Tạo `tests/agent-pipeline/agents/cart-agent/real-request-100-cases.md`.
 - Chia 100 case theo 10 nhóm: auth/read, inspect/totals, add, update/remove, SQL RAG, interaction history, ambiguity, error, concurrency/performance, cross-agent regression.
 - Cập nhật plan Cart Agent yêu cầu phase realistic test suite pass 100%.
 - Cập nhật test index.
@@ -561,7 +561,7 @@ Add direct Cart Agent 100-case real-request evaluation harness.
 - Added package script `test:runtime:cart-agent:100`.
 - Harness runs 100 real Cart SQL RAG requests on Postgres for auth, empty read, add, set, increment, decrement, remove, clear pending and state memory.
 - Harness writes report to `logs/planning/agent-pipeline/cart-agent-real-request-100-report.json`.
-- Updated `test/agent-pipeline/agents/cart-agent/real-request-100-cases.md` with latest pass and scope note.
+- Updated `tests/agent-pipeline/agents/cart-agent/real-request-100-cases.md` with latest pass and scope note.
 
 ### Verification
 

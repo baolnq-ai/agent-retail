@@ -1,4 +1,4 @@
-# Plan: Real Catalog Web Redesign
+﻿# Plan: Real Catalog Web Redesign
 
 - Created: 2026-05-25 10:33
 - Updated: 2026-05-25 11:07
@@ -27,15 +27,15 @@ Replace the fake retail catalog with 100 real product records, real image URLs, 
 | 2 | Gather real-data/design references and define catalog fields | done | source notes in log |
 | 3 | Update seed/API/product models for 100 sourced products | done | local DB count: 100, sampled image/source metadata |
 | 4 | Redesign web UI with compact retail hierarchy, images, popups, dark/light, responsive rules | done | screenshots in evidence folder |
-| 5 | Run verification: API tests, web typecheck/tests/build, live UI screenshots | done | API 94/94, web test/build, runtime catalog, screenshots |
+| 5 | Run verification: API tests, web typecheck/tests/build, live UI screenshots | done | API 94/94, web tests/build, runtime catalog, screenshots |
 | 6 | Final report, risks, close/move plan | done | completed log and closed plan |
 
 ## Verification
 - API: catalog returns exactly 100 products with image/source metadata and search still works for core categories.
-- Web: `@retail-agent/web` typecheck/test/build pass.
+- Web: `@retail-agent/web` typecheck/tests/build pass.
 - Runtime: open app in browser, verify home/list/detail/cart/chat product surfaces show real images and compact layout.
 - Responsive: capture desktop 16:9, tablet, and mobile screenshots for light/dark modes.
-- Evidence: create `test/real-catalog-web-redesign-evidence-2026-05-25/README.md` with screenshots and notes.
+- Evidence: create `tests/real-catalog-web-redesign-evidence-2026-05-25/README.md` with screenshots and notes.
 
 ## Close criteria
 - Fake placeholder catalog removed from primary seed and main product UI.
@@ -46,5 +46,5 @@ Replace the fake retail catalog with 100 real product records, real image URLs, 
 
 ## Close Summary
 - Closed 2026-05-25 11:07.
-- Evidence: `test/real-catalog-web-redesign-evidence-2026-05-25/`.
+- Evidence: `tests/real-catalog-web-redesign-evidence-2026-05-25/`.
 - Running app: `http://127.0.0.1:7000` with API `http://127.0.0.1:7010`.

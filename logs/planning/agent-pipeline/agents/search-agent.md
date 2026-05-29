@@ -1,4 +1,4 @@
-# Log: Search Agent Plan
+﻿# Log: Search Agent Plan
 
 - Created: 2026-05-21 17:52
 - Updated: 2026-05-22 15:10
@@ -36,7 +36,7 @@ Tách Search Agent thành pipeline riêng và bỏ Product Manager Agent khỏi 
 
 ### Work done
 
-- Tạo plan/doc/test/status/checklist/log cho Search Agent.
+- Tạo plan/doc/tests/status/checklist/log cho Search Agent.
 - Chốt Search Agent được Lead gọi khi muốn tìm kiếm hoặc resolve sản phẩm.
 - Chốt pipeline: hard/exact search trước, filter/lexical tiếp theo, embedding fallback khi recall thấp.
 - Bổ sung private history: `SearchAgentInteraction`, `SearchAgentMemory` near/mid/far.

@@ -38,24 +38,24 @@ test('model gateway performs real runtime requests through the running API', asy
       assert.equal(typeof ping.checks[key].endpoint, 'string');
     }
 
-    const chat = await postJson(`${baseUrl}/model-gateway/chat`, { message: 'Tráº£ lá»i Ä‘Ãºng má»™t tá»«: á»•n' });
+    const chat = await postJson(`${baseUrl}/model-gateway/chat`, { message: 'Trả lời đúng một từ: ổn' });
     assert.equal(typeof chat.content, 'string');
     assert.ok(chat.content.length > 0);
     assert.equal(typeof chat.model, 'string');
 
     const embeddings = await postJson(`${baseUrl}/model-gateway/embed`, {
-      texts: ['mÃ¡y lá»c khÃ´ng khÃ­ cho phÃ²ng 25m2', 'chÃ­nh sÃ¡ch Ä‘á»•i tráº£'],
+      texts: ['máy lọc không khí cho phòng 25m2', 'chính sách đổi trả'],
     });
     assert.equal(Array.isArray(embeddings), true);
     assert.equal(embeddings.length, 2);
     assert.equal(typeof embeddings[0][0], 'number');
 
     const reranked = await postJson(`${baseUrl}/model-gateway/rerank`, {
-      query: 'mÃ¡y lá»c khÃ´ng khÃ­ cho phÃ²ng 25m2 dÆ°á»›i 4 triá»‡u',
+      query: 'máy lọc không khí cho phòng 25m2 dưới 4 triệu',
       documents: [
-        'MÃ¡y lá»c khÃ´ng khÃ­ phÃ¹ há»£p phÃ²ng 20-30m2, giÃ¡ 3.5 triá»‡u',
-        'Ná»“i chiÃªn khÃ´ng dáº§u dung tÃ­ch 5L',
-        'ChÃ­nh sÃ¡ch Ä‘á»•i tráº£ trong 7 ngÃ y',
+        'Máy lọc không khí phù hợp phòng 20-30m2, giá 3.5 triệu',
+        'Nồi chiên không dầu dung tích 5L',
+        'Chính sách đổi trả trong 7 ngày',
       ],
     });
     assert.equal(Array.isArray(reranked), true);

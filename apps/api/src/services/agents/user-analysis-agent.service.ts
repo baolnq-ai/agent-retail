@@ -109,7 +109,7 @@ function buildAnalysisPrompt(params: { message: string; pendingPlan?: PendingCar
     memoryInvestigation: params.memoryInvestigation,
     preSignal: fallback,
     rules: [
-      'Æ¯u tiÃªn cÃ¢u há»i hiá»‡n táº¡i. KhÃ´ng mÆ°á»£n intent/constraints tá»« lá»‹ch sá»­ agent cÅ© náº¿u cÃ¢u má»›i Ä‘Ã£ rÃµ.',
+      'Ưu tiên câu hỏi hiện tại. Không mượn intent/constraints từ lịch sử agent cũ nếu câu mới đã rõ.',
       'Nếu khách nói xem/coi/mở/kiểm tra giỏ hàng hoặc hỏi giỏ hàng đang có gì thì intent=cart_status, cartOperation=undefined, retrievalMode=none, shouldShowProducts=false.',
       'Nếu khách nói cho nhiều sản phẩm hơn/xem thêm/gợi ý thêm thì intent=recommend và retrievalMode=alternatives.',
       'Nếu khách nói thêm/mua/bỏ vào giỏ và memory đã resolve product ids thì intent=cart_action, cartOperation=add, retrievalMode=recent.',
@@ -378,8 +378,8 @@ function stripVietnameseTone(value: string): string {
     .replace(/Đ/g, 'd')
     .replace(/đ/g, 'd')
     .replace(/Đ/g, 'd')
-    .replace(/Ä‘/g, 'd')
-    .replace(/Ä/g, 'd');
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'd');
 }
 
 function extractProductIds(value: string): string[] {

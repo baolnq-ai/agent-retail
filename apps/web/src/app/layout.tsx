@@ -3,9 +3,9 @@ import type { ReactNode } from 'react';
 import { AppShell } from './app-shell.js';
 import './styles.css';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://127.0.0.1:6820';
-const siteTitle = 'NTC AI Retail Agent';
-const siteDescription = 'Nền tảng retail agent cho catalog, giỏ hàng, tư vấn sản phẩm và quan sát pipeline AI theo thời gian thực.';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://127.0.0.1:3120';
+const siteTitle = 'NTC Store';
+const siteDescription = 'Cửa hàng gia dụng thông minh với tìm kiếm nhanh, giỏ hàng theo tài khoản và trợ lý mua sắm.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

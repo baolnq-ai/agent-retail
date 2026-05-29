@@ -69,4 +69,4 @@ docker compose up -d
 - HTTP qua nginx `6820`: `/health`, `/api/v1/products`, `/agent-dashboard` đều trả `200`.
 - Auth/cart API thật: tạo user test, thêm `prod_smart_10`, cart có 1 dòng, `grandTotal=790000`.
 
-Evidence: [../../test/docker-full-compose-evidence-2026-05-28/README.md](../../test/docker-full-compose-evidence-2026-05-28/README.md).
+Evidence: [../../tests/docker-full-compose-evidence-2026-05-28/README.md](../../tests/docker-full-compose-evidence-2026-05-28/README.md).

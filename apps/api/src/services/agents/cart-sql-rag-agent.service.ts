@@ -559,6 +559,6 @@ function stripVietnameseTone(value: string): string {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/đ/g, 'd')
     .replace(/Đ/g, 'd')
-    .replace(/Ã„â€˜/g, 'd')
-    .replace(/Ã„Â/g, 'd');
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'd');
 }

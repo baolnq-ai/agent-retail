@@ -1,4 +1,4 @@
-# Log frontend branding dashboard prompt 2026-05-26
+﻿# Log frontend branding dashboard prompt 2026-05-26
 
 - Bắt đầu: 2026-05-26 14:16
 - Trạng thái: completed
@@ -25,7 +25,7 @@
 - `corepack pnpm --filter @retail-agent/web test`: pass.
 - `corepack pnpm --filter @retail-agent/api build`: pass.
 - `GET http://127.0.0.1:7110/api/v1/prompt-settings`: pass với `sales-system`.
-- Chrome screenshot: `test/frontend-branding-dashboard-prompt-evidence-2026-05-26/app/`.
+- Chrome screenshot: `tests/frontend-branding-dashboard-prompt-evidence-2026-05-26/app/`.
 
 ## Cập nhật 2026-05-26 15:55
 
@@ -33,7 +33,7 @@
 - Thêm bước resolve node overlap sau khi né line để tránh node bị chèn lại bởi thuật toán routing.
 - Đồng bộ hạt playback canvas theo cùng control point của SVG line, tránh hạt chạy lệch hoặc biến mất ở các đoạn line cong.
 - Kiểm tra Prompt tab qua Chrome CDP: dashboard tải được 6 prompt từ API/DB, textarea có nội dung và trạng thái báo “Đã tải 6 prompt từ cơ sở dữ liệu.”
-- Evidence mới: `test/dashboard-line-node-overlap-evidence-2026-05-26/app/dashboard-node-overlap-fixed-dense-v14.png`.
+- Evidence mới: `tests/dashboard-line-node-overlap-evidence-2026-05-26/app/dashboard-node-overlap-fixed-dense-v14.png`.
 
 ## Verify bổ sung
 
@@ -46,7 +46,7 @@
 
 - Tách `GraphLegend` ra khỏi `.agent-node-canvas`; canvas flow giờ chỉ chứa line, hạt playback, node, hover và popup.
 - CSS legend chuyển sang panel riêng cùng bề rộng `90vw`, nằm trước canvas nên không thể đè node khi trace dày.
-- Evidence mới: `test/dashboard-line-node-overlap-evidence-2026-05-26/app/dashboard-legend-separated-canvas.png`.
+- Evidence mới: `tests/dashboard-line-node-overlap-evidence-2026-05-26/app/dashboard-legend-separated-canvas.png`.
 
 ## Verify bổ sung 2026-05-27
 

@@ -1,4 +1,4 @@
-# Storage/Memory Agent Job
+﻿# Storage/Memory Agent Job
 
 - Created: 2026-05-21 18:18
 - Updated: 2026-05-21 18:18
@@ -18,8 +18,8 @@
 | Type | Path |
 | --- | --- |
 | Design doc | [docs/agent-pipeline/agents/storage-memory-agent/design.md](../../../../docs/agent-pipeline/agents/storage-memory-agent/design.md) |
-| Test cases | [test/agent-pipeline/agents/storage-memory-agent/cases.md](../../../../test/agent-pipeline/agents/storage-memory-agent/cases.md) |
-| Real request 100 | [test/agent-pipeline/agents/storage-memory-agent/real-request-100-cases.md](../../../../test/agent-pipeline/agents/storage-memory-agent/real-request-100-cases.md) |
+| Test cases | [tests/agent-pipeline/agents/storage-memory-agent/cases.md](../../../../tests/agent-pipeline/agents/storage-memory-agent/cases.md) |
+| Real request 100 | [tests/agent-pipeline/agents/storage-memory-agent/real-request-100-cases.md](../../../../tests/agent-pipeline/agents/storage-memory-agent/real-request-100-cases.md) |
 | Job log | [logs/log-plan-agent-pipeline/storage-memory-agent.md](../../../../logs/log-plan-agent-pipeline/storage-memory-agent.md) |
 | Planning log mirror | [logs/planning/agent-pipeline/agents/storage-memory-agent.md](../../../../logs/planning/agent-pipeline/agents/storage-memory-agent.md) |
 

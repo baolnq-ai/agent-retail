@@ -1,4 +1,4 @@
-# Log: Recommendation Agent Plan
+﻿# Log: Recommendation Agent Plan
 
 - Created: 2026-05-21 17:52
 - Updated: 2026-05-21 18:04
@@ -13,7 +13,7 @@ Tách Recommendation Agent thành pipeline riêng cho đề xuất/rerank/xác s
 
 ### Work done
 
-- Tạo plan/doc/test/status/checklist/log cho Recommendation Agent.
+- Tạo plan/doc/tests/status/checklist/log cho Recommendation Agent.
 - Chốt Lead gọi Recommendation Agent khi muốn đề xuất, alternatives, upsell/cross-sell hoặc cá nhân hóa.
 - Chốt Recommendation Agent dùng candidate pool từ Search/embedding/popular/complements.
 - Bổ sung private history: `RecommendationAgentInteraction`, `RecommendationAgentMemory` near/mid/far.

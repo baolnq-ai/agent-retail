@@ -1,4 +1,4 @@
-# Log: Dashboard Chatbot QA Redesign
+﻿# Log: Dashboard Chatbot QA Redesign
 
 - Created: 2026-05-25 08:02 +07:00
 - Type: planning/frontend-testing
@@ -41,8 +41,8 @@ Redesign the agent dashboard and chat loading UI, then add real chatbot QA quest
 - Added node spacing/collision pass for dense traces.
 - Kept animation on the canvas playback layer instead of animating all SVG background edges.
 - Added chat in-window run status and a three-dot assistant loading animation.
-- Added `test/agent-pipeline/chatbot-qa/cases.md` with 20 practical prompts and `runtime-chatbot-qa-20.mjs` to read real API outputs.
-- Captured screenshot evidence under `test/dashboard-chatbot-qa-evidence-2026-05-25/`.
+- Added `tests/agent-pipeline/chatbot-qa/cases.md` with 20 practical prompts and `runtime-chatbot-qa-20.mjs` to read real API outputs.
+- Captured screenshot evidence under `tests/dashboard-chatbot-qa-evidence-2026-05-25/`.
 
 ### Verification
 
@@ -50,7 +50,7 @@ Redesign the agent dashboard and chat loading UI, then add real chatbot QA quest
 - `corepack pnpm --filter @retail-agent/web test`: pass, 3/3.
 - `corepack pnpm --filter @retail-agent/api test`: pass, 93/93.
 - `corepack pnpm --filter @retail-agent/web build`: pass.
-- `node test/agent-pipeline/chatbot-qa/runtime-chatbot-qa-20.mjs`: completed 20/20; 19 pass, 1 warn, 0 fail.
+- `node tests/agent-pipeline/chatbot-qa/runtime-chatbot-qa-20.mjs`: completed 20/20; 19 pass, 1 warn, 0 fail.
 
 ### Remaining Risk
 

@@ -18,6 +18,8 @@ Có 'dev by ambrouse' ở cuối trang.
 - README là trang tổng quan kỹ thuật, giúp người đọc hiểu repo làm gì, vào đâu để dùng/sửa, và verify thế nào.
 - Ưu tiên trung thực kỹ thuật hơn quảng cáo.
 - Nội dung ngắn, dễ scan, có link tới docs/changelog/release metadata khi cần.
+- Câu từ chuyên nghiệp rõ ràng không lan man.
+- Có viết là đang chạy trên các port nào, tmux nào, v.v.v
 
 ## Bố Cục Khuyến Nghị
 

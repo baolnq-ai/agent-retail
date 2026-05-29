@@ -1,0 +1,1178 @@
+﻿{
+  "generatedAt": "2026-05-27T01:37:15.163Z",
+  "suite": "benchmark-100-pipeline-audit",
+  "apiBaseUrl": "http://127.0.0.1:7010",
+  "casesPath": "C:\\code\\my source\\AI-Agent-retail\\tests\\benchmark-100\\cases\\variant-a.json",
+  "runId": "variant-a-fixcheck-auth-history-1-v2",
+  "delayMs": 3000,
+  "requestTimeoutMs": 90000,
+  "total": 10,
+  "pass": 8,
+  "warn": 1,
+  "fail": 1,
+  "inProgress": false,
+  "avgLatencyMs": 3547,
+  "p95LatencyMs": 4933,
+  "topIssueCodes": [
+    {
+      "code": "cart_operation_trace_review:confirm_pending:none",
+      "count": 1
+    },
+    {
+      "code": "cart_operation_trace_review:increment_quantity:set_quantity",
+      "count": 1
+    },
+    {
+      "code": "cart_operation_without_completed_or_pending_tool",
+      "count": 1
+    }
+  ],
+  "results": [
+    {
+      "id": "A021",
+      "group": "auth-history-1",
+      "mode": "auth",
+      "category": "product",
+      "prompt": "Tư vấn 3 máy lọc không khí cho phòng ngủ 20m2, ưu tiên êm và dễ thay màng.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 4125,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "recommend",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Mình đang giữ lại Máy lọc không khí Levoit Core 200S 26W trong khung gợi ý vì sản phẩm này khớp nhất với dữ liệu hiện có. Bạn có thể xem thông tin trên thẻ hoặc nói thêm tiêu chí để mình lọc lại chính xác hơn.",
+      "textPreview": "Mình đang giữ lại Máy lọc không khí Levoit Core 200S 26W trong khung gợi ý vì sản phẩm này khớp nhất với dữ liệu hiện có. Bạn có thể xem thông tin trên thẻ hoặc nói thêm tiêu chí để mình lọc lại chính xác hơn.",
+      "productIds": [
+        "prod_air_16"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpne7viy0000joul86iqg9si-1779845772720",
+        "version": 1,
+        "status": "active",
+        "items": [],
+        "subtotal": 0,
+        "grandTotal": 0
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 63,
+        "playbackCount": 63,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 0,
+          "rollingSummaryLength": 0,
+          "recentRecommendationIds": [],
+          "preferenceKeys": []
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_air_16",
+            "prod_air_10",
+            "prod_fresh_home_mini_20",
+            "prod_air_03",
+            "prod_air_clean_p35",
+            "prod_air_04",
+            "prod_air_06",
+            "prod_air_07"
+          ],
+          "selectedProductIds": [
+            "prod_air_16"
+          ],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            2.076172
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A022",
+      "group": "auth-history-1",
+      "mode": "auth",
+      "category": "history_compare",
+      "prompt": "So sánh hai sản phẩm đầu tiên ở trên, nói ngắn gọn cái nào hợp phòng ngủ hơn.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 4933,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "compare",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Chào bạn, hai sản phẩm này là Camera IP Ezviz C6N và Máy sấy tóc Xiaomi Mijia H300.\nNếu bạn muốn dùng cho phòng ngủ, thì Camera IP Ezviz C6N có thể hữu ích để giám sát an ninh. Còn Máy sấy tóc Xiaomi Mijia H300 thì dùng để chăm sóc cá nhân. Tùy vào nhu cầu của bạn là cần giám sát hay cần làm đẹp cá nhân nhé.",
+      "textPreview": "Chào bạn, hai sản phẩm này là Camera IP Ezviz C6N và Máy sấy tóc Xiaomi Mijia H300.\nNếu bạn muốn dùng cho phòng ngủ, thì Camera IP Ezviz C6N có thể hữu ích để giám sát an ninh. Còn Máy sấy tóc Xiaomi Mijia H300 thì dùng để chăm sóc cá nhân. Tùy vào nhu cầu của bạn là cần giám sát hay cần làm đẹp cá nhân nhé.",
+      "productIds": [
+        "prod_smart_05",
+        "prod_care_05"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpne7viy0000joul86iqg9si-1779845772720",
+        "version": 1,
+        "status": "active",
+        "items": [],
+        "subtotal": 0,
+        "grandTotal": 0
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 63,
+        "playbackCount": 63,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 2,
+          "rollingSummaryLength": 298,
+          "recentRecommendationIds": [
+            "prod_air_16"
+          ],
+          "preferenceKeys": [
+            "rolling_summary",
+            "recent_recommendations",
+            "recent_categories",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_smart_05",
+            "prod_care_05",
+            "prod_fresh_home_mini_20",
+            "prod_care_07",
+            "prod_air_03",
+            "prod_kitchen_06",
+            "prod_climate_13",
+            "prod_care_04"
+          ],
+          "selectedProductIds": [
+            "prod_smart_05",
+            "prod_care_05"
+          ],
+          "contextDocumentCount": 2,
+          "rerankTopScores": [
+            1.717773,
+            1.097656
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A023",
+      "group": "auth-history-1",
+      "mode": "auth",
+      "category": "history_cart",
+      "prompt": "Thêm cái thứ hai vào giỏ hàng giúp tôi.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 2885,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_action",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Đã thêm 1 × Bàn chải điện Oral-B Pro 1 vào giỏ hàng.\nChào bạn, tôi đã thêm sản phẩm thứ hai vào giỏ hàng giúp bạn rồi nhé. Hiện tại giỏ hàng của bạn đang có Bàn chải điện Oral-B Pro 1. Bạn cần tôi hỗ trợ thêm về sản phẩm nào khác không?",
+      "textPreview": "Đã thêm 1 × Bàn chải điện Oral-B Pro 1 vào giỏ hàng.\nChào bạn, tôi đã thêm sản phẩm thứ hai vào giỏ hàng giúp bạn rồi nhé. Hiện tại giỏ hàng của bạn đang có Bàn chải điện Oral-B Pro 1. Bạn cần tôi hỗ trợ thêm về sản phẩm nào khác không?",
+      "productIds": [
+        "prod_care_06"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpne7viy0000joul86iqg9si-1779845772720",
+        "version": 2,
+        "status": "active",
+        "items": [
+          {
+            "productId": "prod_care_06",
+            "quantity": 1,
+            "unitPrice": 990000,
+            "lineTotal": 990000
+          }
+        ],
+        "subtotal": 990000,
+        "grandTotal": 990000
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 35,
+        "edgeCount": 71,
+        "playbackCount": 71,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:lookup:completed",
+          "cart-manager-agent:plan:completed",
+          "cart-manager-agent:execute:completed",
+          "cart-manager-agent:verify:completed",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [
+          {
+            "tool": "cart.add",
+            "status": "completed",
+            "productIds": [
+              "prod_care_06"
+            ],
+            "beforeQuantity": 0,
+            "afterQuantity": 1,
+            "cartVersionBefore": 1,
+            "cartVersionAfter": 2,
+            "result": "Đã thêm 1 × Bàn chải điện Oral-B Pro 1 vào giỏ hàng."
+          }
+        ],
+        "cartActionType": "add",
+        "cartResolvedProductIds": [
+          "prod_care_06"
+        ],
+        "memory": {
+          "recentTurnCount": 4,
+          "rollingSummaryLength": 700,
+          "recentRecommendationIds": [
+            "prod_smart_05",
+            "prod_care_05"
+          ],
+          "preferenceKeys": [
+            "rolling_summary",
+            "recent_recommendations",
+            "recent_categories",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_care_08",
+            "prod_care_06",
+            "prod_care_07",
+            "prod_smart_13",
+            "prod_care_04",
+            "prod_care_09",
+            "prod_smart_01",
+            "prod_blender_04"
+          ],
+          "selectedProductIds": [
+            "prod_care_06"
+          ],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            2.298828
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A024",
+      "group": "auth-history-1",
+      "mode": "auth",
+      "category": "cart_status",
+      "prompt": "Giỏ hàng hiện tại có đúng món vừa thêm không, tổng tiền bao nhiêu?",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 3015,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_status",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Chào bạn, giỏ hàng của bạn hiện có 1 sản phẩm là Bàn chải điện Oral-B Pro 1 với tổng cộng là 990.000 đồng. Bạn cần tôi hỗ trợ thêm thông tin gì về sản phẩm này không ạ?",
+      "textPreview": "Chào bạn, giỏ hàng của bạn hiện có 1 sản phẩm là Bàn chải điện Oral-B Pro 1 với tổng cộng là 990.000 đồng. Bạn cần tôi hỗ trợ thêm thông tin gì về sản phẩm này không ạ?",
+      "productIds": [],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpne7viy0000joul86iqg9si-1779845772720",
+        "version": 2,
+        "status": "active",
+        "items": [
+          {
+            "productId": "prod_care_06",
+            "quantity": 1,
+            "unitPrice": 990000,
+            "lineTotal": 990000
+          }
+        ],
+        "subtotal": 990000,
+        "grandTotal": 990000
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "rag-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 63,
+        "playbackCount": 63,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 6,
+          "rollingSummaryLength": 991,
+          "recentRecommendationIds": [
+            "prod_care_08"
+          ],
+          "preferenceKeys": [
+            "rolling_summary",
+            "recent_recommendations",
+            "recent_categories",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_care_06"
+          ],
+          "selectedProductIds": [],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            0.366455
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A025",
+      "group": "auth-history-1",
+      "mode": "auth",
+      "category": "history_cart",
+      "prompt": "Tăng số lượng nó lên 2.",
+      "grade": "warn",
+      "score": 94,
+      "elapsedMs": 3693,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_action",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Đã cập nhật Bàn chải điện Oral-B Pro 1 thành số lượng 2.\nChào bạn, tôi đã cập nhật số lượng Bàn chải điện Oral-B Pro 1 lên 2 sản phẩm theo yêu cầu của bạn rồi nhé. Hiện tại, tổng giá trị trong giỏ hàng của bạn là 1.980.000 đồng. Bạn cần tôi hỗ trợ thêm thông tin gì về sản phẩm này hay muốn xem thêm sản phẩm nào khác không ạ?",
+      "textPreview": "Đã cập nhật Bàn chải điện Oral-B Pro 1 thành số lượng 2.\nChào bạn, tôi đã cập nhật số lượng Bàn chải điện Oral-B Pro 1 lên 2 sản phẩm theo yêu cầu của bạn rồi nhé. Hiện tại, tổng giá trị trong giỏ hàng của bạn là 1.980.000 đồng. Bạn cần tôi hỗ trợ thêm thông tin gì về sản phẩm này hay muốn xem thêm sản phẩm nào khác không ạ?",
+      "productIds": [
+        "prod_care_06"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpne7viy0000joul86iqg9si-1779845772720",
+        "version": 3,
+        "status": "active",
+        "items": [
+          {
+            "productId": "prod_care_06",
+            "quantity": 2,
+            "unitPrice": 990000,
+            "lineTotal": 1980000
+          }
+        ],
+        "subtotal": 1980000,
+        "grandTotal": 1980000
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 35,
+        "edgeCount": 71,
+        "playbackCount": 71,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:lookup:completed",
+          "cart-manager-agent:plan:completed",
+          "cart-manager-agent:execute:completed",
+          "cart-manager-agent:verify:completed",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [
+          {
+            "tool": "cart.setQuantity",
+            "status": "completed",
+            "productIds": [
+              "prod_care_06"
+            ],
+            "beforeQuantity": 1,
+            "afterQuantity": 2,
+            "cartVersionBefore": 2,
+            "cartVersionAfter": 3,
+            "result": "Đã cập nhật Bàn chải điện Oral-B Pro 1 thành số lượng 2."
+          }
+        ],
+        "cartActionType": "set_quantity",
+        "cartResolvedProductIds": [
+          "prod_care_06"
+        ],
+        "memory": {
+          "recentTurnCount": 6,
+          "rollingSummaryLength": 1241,
+          "recentRecommendationIds": [
+            "prod_care_06"
+          ],
+          "preferenceKeys": [
+            "rolling_summary",
+            "recent_recommendations",
+            "recent_categories",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_care_06",
+            "prod_smart_05",
+            "prod_care_05"
+          ],
+          "selectedProductIds": [
+            "prod_care_06"
+          ],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            1.600586
+          ]
+        },
+        "errors": []
+      },
+      "issues": [
+        {
+          "severity": "warn",
+          "code": "cart_operation_trace_review:increment_quantity:set_quantity"
+        }
+      ]
+    },
+    {
+      "id": "A026",
+      "group": "auth-history-1",
+      "mode": "auth",
+      "category": "history_cart",
+      "prompt": "Xóa món đó khỏi giỏ hàng.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 4846,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_action",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Đã xoá Bàn chải điện Oral-B Pro 1 khỏi giỏ hàng.\nTôi đã xóa sản phẩm Bàn chải điện Oral-B Pro 1 khỏi giỏ hàng của bạn rồi nhé. Hiện tại, giỏ hàng của bạn đã trống. Bạn có muốn tôi hỗ trợ tìm kiếm hoặc tư vấn thêm sản phẩm nào khác không ạ?",
+      "textPreview": "Đã xoá Bàn chải điện Oral-B Pro 1 khỏi giỏ hàng.\nTôi đã xóa sản phẩm Bàn chải điện Oral-B Pro 1 khỏi giỏ hàng của bạn rồi nhé. Hiện tại, giỏ hàng của bạn đã trống. Bạn có muốn tôi hỗ trợ tìm kiếm hoặc tư vấn thêm sản phẩm nào khác không ạ?",
+      "productIds": [
+        "prod_care_06"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpne7viy0000joul86iqg9si-1779845772720",
+        "version": 4,
+        "status": "active",
+        "items": [],
+        "subtotal": 0,
+        "grandTotal": 0
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 35,
+        "edgeCount": 71,
+        "playbackCount": 71,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:lookup:completed",
+          "cart-manager-agent:plan:completed",
+          "cart-manager-agent:execute:completed",
+          "cart-manager-agent:verify:completed",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [
+          {
+            "tool": "cart.remove",
+            "status": "completed",
+            "productIds": [
+              "prod_care_06"
+            ],
+            "beforeQuantity": 2,
+            "afterQuantity": 0,
+            "cartVersionBefore": 3,
+            "cartVersionAfter": 4,
+            "result": "Đã xoá Bàn chải điện Oral-B Pro 1 khỏi giỏ hàng."
+          }
+        ],
+        "cartActionType": "remove",
+        "cartResolvedProductIds": [
+          "prod_care_06"
+        ],
+        "memory": {
+          "recentTurnCount": 6,
+          "rollingSummaryLength": 1606,
+          "recentRecommendationIds": [
+            "prod_care_06"
+          ],
+          "preferenceKeys": [
+            "rolling_summary",
+            "recent_recommendations",
+            "recent_categories",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_care_06"
+          ],
+          "selectedProductIds": [
+            "prod_care_06"
+          ],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            3.003906
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A027",
+      "group": "auth-history-1",
+      "mode": "auth",
+      "category": "history_followup",
+      "prompt": "Nếu không mua mẫu đó thì có mẫu nào rẻ hơn nhưng vẫn ổn cho phòng ngủ không?",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 3674,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "recommend",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Chào bạn, nếu bạn muốn tìm mẫu phòng ngủ có mức giá phải chăng hơn mà vẫn đảm bảo chất lượng, tôi gợi ý bạn xem qua Bóng đèn Philips Hue White Ambiance E27 nhé. Sản phẩm này rất phù hợp cho không gian phòng ngủ. Bạn có muốn tôi tìm thêm các lựa chọn khác không ạ?",
+      "textPreview": "Chào bạn, nếu bạn muốn tìm mẫu phòng ngủ có mức giá phải chăng hơn mà vẫn đảm bảo chất lượng, tôi gợi ý bạn xem qua Bóng đèn Philips Hue White Ambiance E27 nhé. Sản phẩm này rất phù hợp cho không gian phòng ngủ. Bạn có muốn tôi tìm thêm các lựa chọn khác không ạ?",
+      "productIds": [
+        "prod_smart_14"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpne7viy0000joul86iqg9si-1779845772720",
+        "version": 4,
+        "status": "active",
+        "items": [],
+        "subtotal": 0,
+        "grandTotal": 0
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 63,
+        "playbackCount": 63,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 6,
+          "rollingSummaryLength": 1886,
+          "recentRecommendationIds": [
+            "prod_care_06"
+          ],
+          "preferenceKeys": [
+            "rolling_summary",
+            "recent_recommendations",
+            "recent_categories",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_smart_14",
+            "prod_air_03",
+            "prod_air_16",
+            "prod_air_04",
+            "prod_smart_05",
+            "prod_smart_08",
+            "prod_fresh_home_mini_20",
+            "prod_chefmax_af55"
+          ],
+          "selectedProductIds": [
+            "prod_smart_14"
+          ],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            3.578125
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A028",
+      "group": "auth-history-1",
+      "mode": "auth",
+      "category": "history_cart",
+      "prompt": "Thêm 2 sản phẩm ở trên vào giỏ, nếu cần xác nhận thì hỏi tôi trước.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 2139,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_action",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Đã thêm 2 × Bóng đèn Philips Hue White Ambiance E27 vào giỏ hàng.\nChào bạn, tôi đã thêm 2 Bóng đèn Philips Hue White Ambiance E27 vào giỏ hàng giúp bạn rồi nhé. Hiện tại, giỏ hàng của bạn có tổng cộng 1.380.000 đồng. Bạn cần tôi hỗ trợ thêm thông tin gì về sản phẩm này hay muốn tìm kiếm thêm món nào khác không ạ?",
+      "textPreview": "Đã thêm 2 × Bóng đèn Philips Hue White Ambiance E27 vào giỏ hàng.\nChào bạn, tôi đã thêm 2 Bóng đèn Philips Hue White Ambiance E27 vào giỏ hàng giúp bạn rồi nhé. Hiện tại, giỏ hàng của bạn có tổng cộng 1.380.000 đồng. Bạn cần tôi hỗ trợ thêm thông tin gì về sản phẩm này hay muốn tìm kiếm thêm món nào khác không ạ?",
+      "productIds": [
+        "prod_smart_14"
+      ],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpne7viy0000joul86iqg9si-1779845772720",
+        "version": 5,
+        "status": "active",
+        "items": [
+          {
+            "productId": "prod_smart_14",
+            "quantity": 2,
+            "unitPrice": 690000,
+            "lineTotal": 1380000
+          }
+        ],
+        "subtotal": 1380000,
+        "grandTotal": 1380000
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "recommendation-agent",
+          "rag-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 35,
+        "edgeCount": 71,
+        "playbackCount": 71,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:lookup:completed",
+          "cart-manager-agent:plan:completed",
+          "cart-manager-agent:execute:completed",
+          "cart-manager-agent:verify:completed",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [
+          {
+            "tool": "cart.add",
+            "status": "completed",
+            "productIds": [
+              "prod_smart_14"
+            ],
+            "beforeQuantity": 0,
+            "afterQuantity": 2,
+            "cartVersionBefore": 4,
+            "cartVersionAfter": 5,
+            "result": "Đã thêm 2 × Bóng đèn Philips Hue White Ambiance E27 vào giỏ hàng."
+          }
+        ],
+        "cartActionType": "add",
+        "cartResolvedProductIds": [
+          "prod_smart_14"
+        ],
+        "memory": {
+          "recentTurnCount": 6,
+          "rollingSummaryLength": 2241,
+          "recentRecommendationIds": [
+            "prod_smart_14"
+          ],
+          "preferenceKeys": [
+            "rolling_summary",
+            "recent_recommendations",
+            "recent_categories",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_smart_14",
+            "prod_care_06"
+          ],
+          "selectedProductIds": [
+            "prod_smart_14"
+          ],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            1.825195
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    },
+    {
+      "id": "A029",
+      "group": "auth-history-1",
+      "mode": "auth",
+      "category": "confirm_pending",
+      "prompt": "Đúng, xác nhận.",
+      "grade": "fail",
+      "score": 74,
+      "elapsedMs": 2844,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_action",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Chào bạn, tôi đã thêm 2 Bóng đèn Philips Hue White Ambiance E27 vào giỏ hàng giúp bạn rồi nhé. Hiện tại, giỏ hàng của bạn có tổng cộng 1.380.000 đồng. Bạn cần tôi hỗ trợ thêm thông tin gì về sản phẩm này hay muốn tìm kiếm thêm món nào khác không ạ?",
+      "textPreview": "Chào bạn, tôi đã thêm 2 Bóng đèn Philips Hue White Ambiance E27 vào giỏ hàng giúp bạn rồi nhé. Hiện tại, giỏ hàng của bạn có tổng cộng 1.380.000 đồng. Bạn cần tôi hỗ trợ thêm thông tin gì về sản phẩm này hay muốn tìm kiếm thêm món nào khác không ạ?",
+      "productIds": [],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpne7viy0000joul86iqg9si-1779845772720",
+        "version": 5,
+        "status": "active",
+        "items": [
+          {
+            "productId": "prod_smart_14",
+            "quantity": 2,
+            "unitPrice": 690000,
+            "lineTotal": 1380000
+          }
+        ],
+        "subtotal": 1380000,
+        "grandTotal": 1380000
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 32,
+        "edgeCount": 58,
+        "playbackCount": 58,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 6,
+          "rollingSummaryLength": 2638,
+          "recentRecommendationIds": [
+            "prod_smart_14"
+          ],
+          "preferenceKeys": [
+            "rolling_summary",
+            "recent_recommendations",
+            "recent_categories",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [],
+          "selectedProductIds": [],
+          "contextDocumentCount": 0,
+          "rerankTopScores": []
+        },
+        "errors": []
+      },
+      "issues": [
+        {
+          "severity": "warn",
+          "code": "cart_operation_trace_review:confirm_pending:none"
+        },
+        {
+          "severity": "fail",
+          "code": "cart_operation_without_completed_or_pending_tool"
+        }
+      ]
+    },
+    {
+      "id": "A030",
+      "group": "auth-history-1",
+      "mode": "auth",
+      "category": "cart_status",
+      "prompt": "Tóm tắt giỏ hàng sau các thao tác vừa rồi.",
+      "grade": "pass",
+      "score": 100,
+      "elapsedMs": 3317,
+      "model": "google/gemma-4-E4B-it",
+      "intent": "cart_status",
+      "blockTypes": [
+        "text",
+        "product_list",
+        "policy_answer",
+        "cart_summary",
+        "quick_replies"
+      ],
+      "text": "Chào bạn, giỏ hàng của bạn hiện có 2 Bóng đèn Philips Hue White Ambiance E27 với tổng giá trị là 1.380.000 đồng. Bạn cần tôi hỗ trợ thêm thông tin gì về sản phẩm này hay muốn tìm kiếm thêm món nào khác không ạ?",
+      "textPreview": "Chào bạn, giỏ hàng của bạn hiện có 2 Bóng đèn Philips Hue White Ambiance E27 với tổng giá trị là 1.380.000 đồng. Bạn cần tôi hỗ trợ thêm thông tin gì về sản phẩm này hay muốn tìm kiếm thêm món nào khác không ạ?",
+      "productIds": [],
+      "policyIds": [],
+      "cart": {
+        "id": "user-cart-cmpne7viy0000joul86iqg9si-1779845772720",
+        "version": 5,
+        "status": "active",
+        "items": [
+          {
+            "productId": "prod_smart_14",
+            "quantity": 2,
+            "unitPrice": 690000,
+            "lineTotal": 1380000
+          }
+        ],
+        "subtotal": 1380000,
+        "grandTotal": 1380000
+      },
+      "flow": {
+        "agents": [
+          "lead-agent",
+          "storage-memory-agent",
+          "history-agent",
+          "search-agent",
+          "rag-agent",
+          "cart-agent",
+          "security-agent",
+          "sales-agent"
+        ],
+        "nodeCount": 33,
+        "edgeCount": 63,
+        "playbackCount": 63,
+        "pipeline": [
+          "memory-agent:lookup:completed",
+          "memory-agent:investigate:completed",
+          "user-analysis-agent:analyze:completed",
+          "product-manager-agent:lookup:completed",
+          "recommendation-agent:handoff:completed",
+          "memory-agent:evaluate:completed",
+          "user-analysis-agent:evaluate:completed",
+          "product-manager-agent:evaluate:completed",
+          "cart-manager-agent:evaluate:completed",
+          "recommendation-agent:evaluate:completed",
+          "cart-agent:plan:completed",
+          "cart-manager-agent:analyze:completed",
+          "cart-manager-agent:plan:skipped",
+          "cart-agent:verify:completed",
+          "sales-evaluator-agent:evaluate:error",
+          "sales-agent:revise:completed",
+          "sales-evaluator-agent:evaluate:completed"
+        ],
+        "toolResults": [],
+        "cartActionType": "none",
+        "cartResolvedProductIds": [],
+        "memory": {
+          "recentTurnCount": 6,
+          "rollingSummaryLength": 2917,
+          "recentRecommendationIds": [],
+          "preferenceKeys": [
+            "rolling_summary",
+            "agent_history:sales-evaluator-agent",
+            "agent_history:recommendation-agent",
+            "agent_history:cart-manager-agent",
+            "agent_history:cart-agent",
+            "agent_history:product-manager-agent",
+            "agent_history:user-analysis-agent",
+            "agent_history:memory-agent"
+          ]
+        },
+        "retrieval": {
+          "lexicalCandidateIds": [
+            "prod_smart_14",
+            "prod_care_06"
+          ],
+          "selectedProductIds": [],
+          "contextDocumentCount": 1,
+          "rerankTopScores": [
+            1.239258
+          ]
+        },
+        "errors": []
+      },
+      "issues": []
+    }
+  ]
+}

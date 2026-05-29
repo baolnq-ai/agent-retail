@@ -1,6 +1,6 @@
-# Index Tài Liệu
+﻿# Index Tài Liệu
 
-- Cập nhật: 2026-05-28
+- Cập nhật: 2026-05-29
 - Phạm vi: tài liệu kỹ thuật của dự án RetailHome AI Agent.
 
 ## Nên Đọc Trước
@@ -20,6 +20,8 @@
 | [core/operations.md](core/operations.md) | Setup/stop/clean, port, Docker Compose, log vận hành |
 | [core/development.md](core/development.md) | Workflow local, script, test, checklist phát triển |
 | [core/ci-cd.md](core/ci-cd.md) | CI/CD và checklist trước khi push |
+| [backend/README.md](backend/README.md) | Index service backend và validation mới nhất |
+| [frontend/README.md](frontend/README.md) | Index module frontend và validation mới nhất |
 
 ## Agent Pipeline
 
@@ -37,8 +39,11 @@
 | [task/readme-banner-ci-polish-20260528.md](task/readme-banner-ci-polish-20260528.md) | Làm lại banner GIF, polish README và sửa CI |
 | [task/docker-hub-multiarch-compose-20260528.md](task/docker-hub-multiarch-compose-20260528.md) | Đóng gói Docker Hub multi-arch và Compose một file |
 | [task/docs-readme-sync-and-release-push-20260528.md](task/docs-readme-sync-and-release-push-20260528.md) | Đồng bộ README/docs/logs/plans trước khi push |
+| [task/source-clean-skill-alignment-20260529.md](task/source-clean-skill-alignment-20260529.md) | Clean source theo skill, chuẩn hóa tests/benchmark và config |
+| [task/setup-port-range-3100-3150-20260529.md](task/setup-port-range-3100-3150-20260529.md) | Chuyển setup/runtime sang port 3100-3150 và fix 502 |
+| [task/setup-port-process-cleanup-20260529.md](task/setup-port-process-cleanup-20260529.md) | Sửa setup tự dọn process/port cũ của dự án |
 | [task/setup-linux-tmux-port-cleanup-20260527.md](task/setup-linux-tmux-port-cleanup-20260527.md) | Setup Linux/tmux, port 6800-6850 và cleanup source |
-| [task/benmark-100-pipeline-audit-20260527.md](task/benmark-100-pipeline-audit-20260527.md) | Benchmark 100 câu và audit pipeline |
+| [task/benchmark-100-pipeline-audit-20260527.md](task/benchmark-100-pipeline-audit-20260527.md) | Benchmark 100 câu và audit pipeline |
 | [task/frontend-branding-dashboard-prompt-20260526.md](task/frontend-branding-dashboard-prompt-20260526.md) | Branding, dashboard và prompt settings |
 | [task/agent-dashboard-cluster-flow-20260526-v1.md](task/agent-dashboard-cluster-flow-20260526-v1.md) | Logic dashboard agent, node/edge/flow |
 | [task/nginx-tunnel-compose-20260526-v1.md](task/nginx-tunnel-compose-20260526-v1.md) | Nginx Docker Compose để tunnel một cổng |
@@ -48,10 +53,15 @@
 | Tài liệu | Nội dung |
 | --- | --- |
 | [reports/production-architecture-audit-20260526.md](reports/production-architecture-audit-20260526.md) | Audit Docker, DB, vector search và readiness production |
-| [../test/docker-full-compose-evidence-2026-05-28/README.md](../test/docker-full-compose-evidence-2026-05-28/README.md) | Evidence Docker full compose từ Docker Hub |
-| [../test/benmark-100/](../test/benmark-100/) | Benchmark chatbot 100 câu |
-| [../test/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/README.md](../test/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/README.md) | Benchmark 20 câu khó và audit flow |
-| [../test/agent-dashboard-icon-legend-density-evidence-2026-05-26/README.md](../test/agent-dashboard-icon-legend-density-evidence-2026-05-26/README.md) | Evidence dashboard icon/legend/flow |
+| [../tests/backend tests/source-clean/README.md](<../tests/backend tests/source-clean/README.md>) | Evidence backend source clean 2026-05-29 |
+| [../tests/backend tests/setup-port-3100-3150/README.md](<../tests/backend tests/setup-port-3100-3150/README.md>) | Evidence backend setup port 3100-3150 |
+| [../tests/backend tests/setup-port-process-cleanup/README.md](<../tests/backend tests/setup-port-process-cleanup/README.md>) | Evidence setup port/process cleanup 2026-05-29 |
+| [../tests/frontend tests/setup-port-3100-3150/README.md](<../tests/frontend tests/setup-port-3100-3150/README.md>) | Evidence frontend setup port 3100-3150 |
+| [../tests/frontend tests/source-clean/README.md](<../tests/frontend tests/source-clean/README.md>) | Evidence frontend source clean 2026-05-29 |
+| [../tests/docker-full-compose-evidence-2026-05-28/README.md](../tests/docker-full-compose-evidence-2026-05-28/README.md) | Evidence Docker full compose từ Docker Hub |
+| [../tests/benchmark-100/](../tests/benchmark-100/) | Benchmark chatbot 100 câu |
+| [../tests/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/README.md](../tests/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/README.md) | Benchmark 20 câu khó và audit flow |
+| [../tests/agent-dashboard-icon-legend-density-evidence-2026-05-26/README.md](../tests/agent-dashboard-icon-legend-density-evidence-2026-05-26/README.md) | Evidence dashboard icon/legend/flow |
 
 ## Quy Tắc
 

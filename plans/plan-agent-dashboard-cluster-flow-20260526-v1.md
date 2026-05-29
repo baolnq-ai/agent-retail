@@ -1,4 +1,4 @@
-# Plan: agent-dashboard-cluster-flow
+﻿# Plan: agent-dashboard-cluster-flow
 
 - Created: 2026-05-26 07:47
 - Updated: 2026-05-26 08:23
@@ -33,7 +33,7 @@ Làm dashboard agent phản ánh đúng pipeline dùng chung history/task/sessio
 | 2 | Audit node/edge/detail theo pipeline mong muốn | done | Log updated |
 | 3 | Implement clustered canvas và click details | done | Frontend/backend diff and tests |
 | 4 | Verify contract backend/frontend | done | API/web test output |
-| 5 | Chụp và đọc lại evidence UI | done | `test/agent-dashboard-cluster-flow-evidence-2026-05-26/` |
+| 5 | Chụp và đọc lại evidence UI | done | `tests/agent-dashboard-cluster-flow-evidence-2026-05-26/` |
 | 6 | Đóng doc/log/plan theo format skill mới | done | Updated plan/log/doc/evidence README |
 
 ## Verification

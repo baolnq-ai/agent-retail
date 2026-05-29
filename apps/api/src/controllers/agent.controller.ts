@@ -68,7 +68,7 @@ function writeStreamCorsHeaders(reply: FastifyReply, statusCode: number, headers
 }
 
 function readCorsOrigins(): string[] {
-  const fallback = 'http://127.0.0.1:6800,http://localhost:6800,http://127.0.0.1:6820,http://localhost:6820';
+  const fallback = 'http://127.0.0.1:3100,http://localhost:3100,http://127.0.0.1:3120,http://localhost:3120';
   return (process.env.CORS_ORIGINS ?? fallback)
     .split(',')
     .map((origin) => origin.trim().replace(/\/$/, ''))

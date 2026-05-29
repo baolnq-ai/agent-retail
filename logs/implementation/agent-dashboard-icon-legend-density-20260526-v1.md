@@ -1,4 +1,4 @@
-# Agent Dashboard Icon Legend Density Log - 2026-05-26
+﻿# Agent Dashboard Icon Legend Density Log - 2026-05-26
 
 - Started: 2026-05-26 11:20
 - Status: done
@@ -27,7 +27,7 @@
 - Reworked proximity layout so agent/tool/infra nodes sit closer together without drawing any highlighted region behind them.
 - Updated legend to use the same compact code badges instead of oversized distorted glyph CSS.
 - Captured frontend screenshot evidence with Chrome CDP:
-  - `test/agent-dashboard-icon-legend-density-evidence-2026-05-26/app/02-dashboard-recommendation-single-canvas-fixed.png`
+  - `tests/agent-dashboard-icon-legend-density-evidence-2026-05-26/app/02-dashboard-recommendation-single-canvas-fixed.png`
   - DOM audit: 16 nodes, 37 edges, 0 cluster regions, 0 extra trace boards, 0 overlap pairs, max icon 36px, step font 10.5px.
 - Verification passed:
   - `corepack pnpm --filter @retail-agent/web test`
@@ -46,7 +46,7 @@
 - Added edge data attributes (`data-from`, `data-to`, `data-direction`) for future flow audits.
 - Enlarged hover/popup copy for readability.
 - Final evidence:
-  - `test/agent-dashboard-icon-legend-density-evidence-2026-05-26/app/06-dashboard-svg-icons-final.png`
+  - `tests/agent-dashboard-icon-legend-density-evidence-2026-05-26/app/06-dashboard-svg-icons-final.png`
   - Final audit: 20 nodes, 45 edges, 20 SVG icons, 0 cluster regions, 0 extra trace boards, 0 overlap pairs, max icon 36px, max SVG 21px.
 - Verification passed again after the correction:
   - `corepack pnpm --filter @retail-agent/web test`
@@ -70,7 +70,7 @@
   - tool calls get a visible tool return edge when the trace lacks that visual edge;
   - Lead-to-agent calls get visible agent write-back to task and task return to Lead when needed.
 - Final CDP evidence:
-  - `test/agent-dashboard-icon-legend-density-evidence-2026-05-26/app/08-dashboard-flow-checked-meaningful-icons.png`
+  - `tests/agent-dashboard-icon-legend-density-evidence-2026-05-26/app/08-dashboard-flow-checked-meaningful-icons.png`
   - Audit: 20 nodes, 48 edges, 20 SVG icons, 0 overlap, 0 unresolved call paths, 0 cluster regions, 0 extra trace boards, animation `6.13s`, step font `11.5px`.
 
 ## 2026-05-26 trimmed legend and hard-flow benchmark
@@ -81,20 +81,20 @@
   - node icon/shape meanings: Flow, Agent, Lead, DB, Tool, LLM, Task, His chung, His agent, Phản hồi.
 - Added source-level frontend tests to prevent the removed legend entries from returning.
 - Added hard benchmark:
-  - `test/agent-pipeline/retail-chatbot-hard-flow-benchmark-20/README.md`
-  - `test/agent-pipeline/retail-chatbot-hard-flow-benchmark-20/runtime-chatbot-hard-flow-benchmark-20.mjs`
-  - evidence root `test/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/`
+  - `tests/agent-pipeline/retail-chatbot-hard-flow-benchmark-20/README.md`
+  - `tests/agent-pipeline/retail-chatbot-hard-flow-benchmark-20/runtime-chatbot-hard-flow-benchmark-20.mjs`
+  - evidence root `tests/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/`
 - Benchmark result after correcting evaluator semantics for `history-agent` as support history read via `storage-memory-agent`:
   - 20/20 completed, 19 pass, 1 warn, 0 fail;
   - `flowFail=0`;
   - avg/p50/p95 latency: 2701/2608/4703 ms.
 - Dashboard CDP audit after legend trim:
-  - screenshot `test/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/app/09-dashboard-legend-trimmed-hard-flow.png`;
-  - audit `test/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/app/audit-legend-trimmed-hard-flow.json`;
+  - screenshot `tests/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/app/09-dashboard-legend-trimmed-hard-flow.png`;
+  - audit `tests/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/app/audit-legend-trimmed-hard-flow.json`;
   - 20 nodes, 48 edges, 0 overlap, 0 unresolved call paths, legend has call/return/Flow and no data/write/guard entries.
 - Verification passed:
   - `corepack pnpm --filter @retail-agent/web typecheck`
   - `corepack pnpm --filter @retail-agent/web test`
   - `corepack pnpm --filter @retail-agent/api build`
   - `node --test apps/api/tests/agent-trace-contract.test.mjs apps/api/tests/pipeline-trace-bridge.test.mjs`
-  - `node test/agent-pipeline/retail-chatbot-hard-flow-benchmark-20/runtime-chatbot-hard-flow-benchmark-20.mjs`
+  - `node tests/agent-pipeline/retail-chatbot-hard-flow-benchmark-20/runtime-chatbot-hard-flow-benchmark-20.mjs`

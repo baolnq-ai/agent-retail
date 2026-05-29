@@ -1,4 +1,4 @@
-# Log: Retail Chatbot 30Q Benchmark And Dashboard Fix
+﻿# Log: Retail Chatbot 30Q Benchmark And Dashboard Fix
 
 - Created: 2026-05-25 08:42 +07:00
 - Type: planning/frontend-backend-testing
@@ -44,6 +44,6 @@ Run a stricter benchmark and fix real dashboard/status/pipeline problems instead
 
 ### Evidence
 
-- `test/retail-chatbot-30q-benchmark-evidence-2026-05-25/README.md`
-- `test/retail-chatbot-30q-benchmark-evidence-2026-05-25/reports/benchmark-30-report.md`
-- `test/retail-chatbot-30q-benchmark-evidence-2026-05-25/frontend-cdp-audit.json`
+- `tests/retail-chatbot-30q-benchmark-evidence-2026-05-25/README.md`
+- `tests/retail-chatbot-30q-benchmark-evidence-2026-05-25/reports/benchmark-30-report.md`
+- `tests/retail-chatbot-30q-benchmark-evidence-2026-05-25/frontend-cdp-audit.json`

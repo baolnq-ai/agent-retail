@@ -1,11 +1,11 @@
-# Customer Support Agent
+﻿# Customer Support Agent
 
 - Status: planned
 - Plan: `plan.md`
 - Status log: `status.md`
 - Checklist: `checklist.md`
 - Design doc: `docs/agent-pipeline/agents/customer-support-agent/design.md`
-- Tests: `test/agent-pipeline/agents/customer-support-agent/cases.md`, `test/agent-pipeline/agents/customer-support-agent/real-request-100-cases.md`
+- Tests: `tests/agent-pipeline/agents/customer-support-agent/cases.md`, `tests/agent-pipeline/agents/customer-support-agent/real-request-100-cases.md`
 - Planning log: `logs/log-plan-agent-pipeline/customer-support-agent.md`
 - Mirror log: `logs/planning/agent-pipeline/agents/customer-support-agent.md`
 

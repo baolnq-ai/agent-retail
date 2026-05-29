@@ -1,30 +1,49 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
+import { loadEnvironment } from '../config/environment.js';
 import type { Product } from '../models/catalog.models.js';
 import { PrismaService } from './prisma.service.js';
+import { RedisCacheService } from './redis-cache.service.js';
 
 type DbProduct = Prisma.ProductGetPayload<Record<string, never>>;
 
 @Injectable()
 export class CatalogService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly environment = loadEnvironment();
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly redisCache: RedisCacheService,
+  ) {}
 
   async listProducts(): Promise<Product[]> {
+    const cachedProducts = await this.redisCache.getJson<Product[]>(CATALOG_PRODUCTS_CACHE_KEY);
+    if (cachedProducts) return cachedProducts;
+
     const products = await this.prisma.client.product.findMany({ orderBy: { title: 'asc' } });
-    return products.map(toProduct);
+    const catalogProducts = products.map(toProduct);
+    await this.redisCache.setJson(CATALOG_PRODUCTS_CACHE_KEY, catalogProducts, this.environment.catalogCacheTtlSeconds);
+    return catalogProducts;
   }
 
   async getProduct(productId: string): Promise<Product | undefined> {
+    const cacheKey = `${CATALOG_PRODUCT_CACHE_KEY_PREFIX}${productId}`;
+    const cachedProduct = await this.redisCache.getJson<Product>(cacheKey);
+    if (cachedProduct) return cachedProduct;
+
     const product = await this.prisma.client.product.findUnique({ where: { id: productId } });
-    return product ? toProduct(product) : undefined;
+    if (!product) return undefined;
+
+    const catalogProduct = toProduct(product);
+    await this.redisCache.setJson(cacheKey, catalogProduct, this.environment.catalogCacheTtlSeconds);
+    return catalogProduct;
   }
 
   async searchProducts(query: string): Promise<Product[]> {
-    const products = await this.prisma.client.product.findMany();
+    const products = await this.listProducts();
     const normalizedQuery = normalize(query);
     const constraints = parseProductConstraints(normalizedQuery);
     return products
-      .map((product) => toProduct(product))
       .filter((product) => constraints.maxPrice === undefined || product.price <= constraints.maxPrice)
       .filter((product) => constraints.minPrice === undefined || product.price >= constraints.minPrice)
       .map((product) => ({ product, score: scoreProduct(product, normalizedQuery, constraints) }))
@@ -33,6 +52,9 @@ export class CatalogService {
       .map((item) => item.product);
   }
 }
+
+const CATALOG_PRODUCTS_CACHE_KEY = 'catalog:products:v1';
+const CATALOG_PRODUCT_CACHE_KEY_PREFIX = 'catalog:product:v1:';
 
 function toProduct(product: DbProduct): Product {
   return {

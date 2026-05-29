@@ -1,4 +1,4 @@
-# Plan: Product Discovery Agent
+﻿# Plan: Product Discovery Agent
 
 - Created: 2026-05-21 17:20
 - Updated: 2026-05-21 17:52
@@ -6,7 +6,7 @@
 - Related log: `logs/log-plan-agent-pipeline/product-discovery-agent.md`
 - Mirror log: `logs/planning/agent-pipeline/agents/product-discovery-agent.md`
 - Related doc: `docs/agent-pipeline/agents/product-discovery-agent/design.md`
-- Related tests: `test/agent-pipeline/agents/product-discovery-agent/cases.md`, `test/agent-pipeline/agents/product-discovery-agent/real-request-100-cases.md`
+- Related tests: `tests/agent-pipeline/agents/product-discovery-agent/cases.md`, `tests/agent-pipeline/agents/product-discovery-agent/real-request-100-cases.md`
 - Job status: `plans/agent-pipeline/agents/product-discovery-agent/status.md`
 - Job checklist: `plans/agent-pipeline/agents/product-discovery-agent/checklist.md`
 

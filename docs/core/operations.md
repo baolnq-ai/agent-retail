@@ -1,18 +1,18 @@
 # Operations
 
-- Updated: 2026-05-26
+- Updated: 2026-05-29
 - Scope: local runtime, environment, setup/stop, terminal/tmux workflow, ports, and logs.
 
 ## Default local endpoints
 
 | Service | URL |
 | --- | --- |
-| Web | `http://127.0.0.1:6800` |
-| API | `http://127.0.0.1:6810` |
-| nginx/tunnel | `http://127.0.0.1:6820` |
-| API health | `http://127.0.0.1:6810/health` |
-| PostgreSQL | `127.0.0.1:6832` |
-| Redis | `127.0.0.1:6839` |
+| Web | `http://127.0.0.1:3100` |
+| API | `http://127.0.0.1:3110` |
+| nginx/tunnel | `http://127.0.0.1:3120` |
+| API health | `http://127.0.0.1:3110/health` |
+| PostgreSQL | `127.0.0.1:3132` |
+| Redis | `127.0.0.1:3139` |
 
 ## Environment
 
@@ -21,16 +21,16 @@ Use `.env.example` as the template and keep `.env` local.
 Important variables:
 
 ```txt
-API_PORT=6810
-WEB_PORT=6800
-NGINX_PORT=6820
-POSTGRES_PORT=6832
-REDIS_PORT=6839
-QDRANT_PORT=6833
-QDRANT_GRPC_PORT=6834
-DATABASE_URL=postgresql://retail:retail_password@localhost:6832/retail_agent?schema=public
-REDIS_URL=redis://localhost:6839
-QDRANT_URL=http://localhost:6833
+API_PORT=3110
+WEB_PORT=3100
+NGINX_PORT=3120
+POSTGRES_PORT=3132
+REDIS_PORT=3139
+QDRANT_PORT=3133
+QDRANT_GRPC_PORT=3134
+DATABASE_URL=postgresql://retail:retail_password@localhost:3132/retail_agent?schema=public
+REDIS_URL=redis://localhost:3139
+QDRANT_URL=http://localhost:3133
 TMUX_SESSION=egnt-retail
 CHAT_MODEL_BASE_URL=http://<openai-compatible-host>
 CHAT_MODEL_ID=<model-id>
@@ -89,7 +89,7 @@ SETUP_TERMINAL_MODE=tmux ./setup.sh
 
 ```bash
 SETUP_TERMINAL_MODE=background ./setup.sh
-tail -f logs/runtime/backend/api-6810.log logs/runtime/frontend/web-6800.log
+tail -f logs/runtime/backend/api-3110.log logs/runtime/frontend/web-3100.log
 ```
 
 ### Windows PowerShell
@@ -109,8 +109,8 @@ $env:SETUP_TERMINAL_MODE='hidden'
 Follow logs manually:
 
 ```powershell
-Get-Content -Path .\logs\runtime\backend\api-6810.log -Wait
-Get-Content -Path .\logs\runtime\frontend\web-6800.log -Wait
+Get-Content -Path .\logs\runtime\backend\api-3110.log -Wait
+Get-Content -Path .\logs\runtime\frontend\web-3100.log -Wait
 ```
 
 At the end, setup prints the opened ports, dashboard URL, health URL, log files, terminal/tmux details, and stop command.
@@ -129,7 +129,7 @@ Windows:
 .\stop.ps1
 ```
 
-Stop scripts are project-scoped. Bash stops the `egnt-retail` tmux session and old `retail-agent` session when present, clears project ports in the `6800-6850` range, and stops repo-scoped runtime processes. PowerShell stops repo-scoped PowerShell/Corepack/Next runtime processes and clears the same project ports.
+Stop scripts are project-scoped. Bash stops the `egnt-retail` tmux session and old `retail-agent` session when present, clears project ports in the `3100-3150` range, and stops repo-scoped runtime processes. PowerShell stops repo-scoped PowerShell/Corepack/Next runtime processes and clears the same project ports.
 
 ## Logs
 

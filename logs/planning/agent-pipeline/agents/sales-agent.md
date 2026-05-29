@@ -1,4 +1,4 @@
-# Log: Sales Agent Plan
+﻿# Log: Sales Agent Plan
 
 - Created: 2026-05-21 19:02
 - Updated: 2026-05-21 19:02
@@ -13,7 +13,7 @@ Lập plan Sales Agent để trả lời user từ dữ liệu Lead đã tìm đ
 
 ### Work done
 
-- Tạo plan/doc/test/log/status/checklist cho Sales Agent.
+- Tạo plan/doc/tests/log/status/checklist cho Sales Agent.
 - Chốt Sales Agent nhận câu hỏi gốc + Lead summary + referenced/recommended/companion products.
 - Chốt Sales Agent có nhiệm vụ viết câu trả lời bán hàng tự nhiên và build product blocks.
 - Chốt guardrail: text và product cards phải cùng product ids.

@@ -1,4 +1,4 @@
-# History Agent Job
+﻿# History Agent Job
 
 - Created: 2026-05-21 18:42
 - Updated: 2026-05-21 18:42
@@ -18,8 +18,8 @@
 | Type | Path |
 | --- | --- |
 | Design doc | [docs/agent-pipeline/agents/history-agent/design.md](../../../../docs/agent-pipeline/agents/history-agent/design.md) |
-| Test cases | [test/agent-pipeline/agents/history-agent/cases.md](../../../../test/agent-pipeline/agents/history-agent/cases.md) |
-| Real request 100 | [test/agent-pipeline/agents/history-agent/real-request-100-cases.md](../../../../test/agent-pipeline/agents/history-agent/real-request-100-cases.md) |
+| Test cases | [tests/agent-pipeline/agents/history-agent/cases.md](../../../../tests/agent-pipeline/agents/history-agent/cases.md) |
+| Real request 100 | [tests/agent-pipeline/agents/history-agent/real-request-100-cases.md](../../../../tests/agent-pipeline/agents/history-agent/real-request-100-cases.md) |
 | Job log | [logs/log-plan-agent-pipeline/history-agent.md](../../../../logs/log-plan-agent-pipeline/history-agent.md) |
 | Planning log mirror | [logs/planning/agent-pipeline/agents/history-agent.md](../../../../logs/planning/agent-pipeline/agents/history-agent.md) |
 

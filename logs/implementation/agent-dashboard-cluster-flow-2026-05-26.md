@@ -1,11 +1,11 @@
-# Agent Dashboard Cluster Flow Log - 2026-05-26
+﻿# Agent Dashboard Cluster Flow Log - 2026-05-26
 
 - Started: 2026-05-26 07:47
 - Finished: 2026-05-26 08:23
 - Status: completed
 - Plan: `plans/plan-agent-dashboard-cluster-flow-20260526-v1.md`
 - Doc: `docs/task/agent-dashboard-cluster-flow-20260526-v1.md`
-- Evidence: `test/agent-dashboard-cluster-flow-evidence-2026-05-26/`
+- Evidence: `tests/agent-dashboard-cluster-flow-evidence-2026-05-26/`
 
 ## 2026-05-26 07:47
 
@@ -33,7 +33,7 @@
 ## 2026-05-26 08:12
 
 - Đã chỉnh tool rendering: tool node riêng gây nhiễu, nên detail tool được thể hiện qua cụm `Tools`; agent/DB/task/context nodes vẫn explicit.
-- Đã chụp 6 evidence screenshots trong `test/agent-dashboard-cluster-flow-evidence-2026-05-26/app/`.
+- Đã chụp 6 evidence screenshots trong `tests/agent-dashboard-cluster-flow-evidence-2026-05-26/app/`.
 - CDP assertions pass: không overflow, không node clipping, không node overlap, không hidden step text, không floating step badges, có route lines, có particle canvas, popup detail hiện cho Session/Task/History.
 - Full verification pass: API build, API trace tests, web tests và web typecheck.
 

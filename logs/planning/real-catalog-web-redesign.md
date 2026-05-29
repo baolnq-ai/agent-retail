@@ -1,4 +1,4 @@
-# Real Catalog Web Redesign Log
+﻿# Real Catalog Web Redesign Log
 
 - Started: 2026-05-25 10:33
 - Plan: plans/frontend/real-catalog-web-redesign.md
@@ -28,9 +28,9 @@ Replace fake product data with 100 sourced real products and redesign the custom
 - Web typecheck passed: `corepack pnpm --filter @retail-agent/web typecheck`.
 - API build/test passed: `corepack pnpm --filter @retail-agent/api test` (94/94).
 - Runtime catalog HTTP test passed: `node apps/api/tests/runtime-catalog-knowledge.mjs`.
-- Web test/build passed: `corepack pnpm --filter @retail-agent/web test`, `corepack pnpm --filter @retail-agent/web build`.
-- Production copy pass verification passed: `@retail-agent/web` typecheck/test/build, DB seed, and browser screenshot review at `.tmp/production-copy-home.png`.
-- Evidence folder: `test/real-catalog-web-redesign-evidence-2026-05-25/`.
+- Web tests/build passed: `corepack pnpm --filter @retail-agent/web test`, `corepack pnpm --filter @retail-agent/web build`.
+- Production copy pass verification passed: `@retail-agent/web` typecheck/tests/build, DB seed, and browser screenshot review at `.tmp/production-copy-home.png`.
+- Evidence folder: `tests/real-catalog-web-redesign-evidence-2026-05-25/`.
 - Evidence hygiene passed: no duplicate screenshot hashes, all evidence subfolders have README files, secret scan found no matches.
 
 ## Result

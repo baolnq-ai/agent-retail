@@ -28,7 +28,7 @@ test('agent chat stream emits status, token, and final events', async () => {
       headers: { 'content-type': 'application/json; charset=utf-8' },
       body: JSON.stringify({
         cartId: `agent-stream-${Date.now()}`,
-        message: 'So sÃ¡nh mÃ¡y lá»c khÃ´ng khÃ­ phÃ²ng 25m2 dÆ°á»›i 4 triá»‡u vÃ  chÃ­nh sÃ¡ch Ä‘á»•i tráº£.',
+        message: 'So sánh máy lọc không khí phòng 25m2 dưới 4 triệu và chính sách đổi trả.',
       }),
     });
 

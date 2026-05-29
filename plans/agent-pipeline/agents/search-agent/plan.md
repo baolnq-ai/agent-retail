@@ -1,11 +1,11 @@
-# Plan: Search Agent
+﻿# Plan: Search Agent
 
 - Created: 2026-05-21 17:40
 - Updated: 2026-05-22 15:10
 - Status: passed
 - Related log: `logs/log-plan-agent-pipeline/search-agent.md`
 - Related doc: `docs/agent-pipeline/agents/search-agent/design.md`
-- Related tests: `test/agent-pipeline/agents/search-agent/cases.md`
+- Related tests: `tests/agent-pipeline/agents/search-agent/cases.md`
 
 ## Goal
 

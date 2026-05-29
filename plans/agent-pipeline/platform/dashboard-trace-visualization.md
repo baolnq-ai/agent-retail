@@ -1,11 +1,11 @@
-# Plan: Dashboard Trace Visualization
+﻿# Plan: Dashboard Trace Visualization
 
 - Created: 2026-05-21 20:10
 - Updated: 2026-05-22 10:17
 - Status: completed
 - Related log: `logs/planning/agent-pipeline/dashboard-trace.md`
 - Related doc: `docs/agent-pipeline/platform/dashboard-trace-visualization.md`
-- Related tests: `test/agent-pipeline/platform/dashboard-trace-cases.md`
+- Related tests: `tests/agent-pipeline/platform/dashboard-trace-cases.md`
 
 ## Goal
 
@@ -254,7 +254,7 @@ cart-db
 
 ## Close Criteria
 
-- `test/agent-pipeline/platform/dashboard-trace-cases.md` is converted into automated web/API tests where possible.
+- `tests/agent-pipeline/platform/dashboard-trace-cases.md` is converted into automated web/API tests where possible.
 - Dashboard renders at least one complete sample trace for:
   - product search/recommendation;
   - cart mutation;

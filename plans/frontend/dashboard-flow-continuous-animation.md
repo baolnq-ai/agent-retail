@@ -1,4 +1,4 @@
-# Plan: Dashboard Flow Continuous Animation
+﻿# Plan: Dashboard Flow Continuous Animation
 
 - Created: 2026-05-25 11:20
 - Updated: 2026-05-25 12:50
@@ -25,10 +25,10 @@ Clean up the agent dashboard network graph so it matches the requested compact d
 | Phase | Goal | Status | Evidence |
 | --- | --- | --- | --- |
 | 1 | Remove sequential playback controls and convert graph to continuous flow | done | `TracePlaybackCanvas`; CSS `agentFlowDash` |
-| 2 | Fix visual semantics: no arrows, green outbound, blue return, particles only | done | `test/dashboard-flow-continuous-evidence-2026-05-25/app/08-live-dashboard-particles-only.png` |
+| 2 | Fix visual semantics: no arrows, green outbound, blue return, particles only | done | `tests/dashboard-flow-continuous-evidence-2026-05-25/app/08-live-dashboard-particles-only.png` |
 | 3 | Prove graph edges are backed by backend trace data | done | `reports/dashboard-edge-dom-backend-report.json` |
 | 4 | Capture animation proof and fix reduced-motion freeze | done | `app/dashboard-flow-animation.gif`; `reports/dashboard-animation-motion-report.json` |
-| 5 | Run frontend checks and close | done | Web typecheck/test/runtime dashboard pass |
+| 5 | Run frontend checks and close | done | Web typecheck/tests/runtime dashboard pass |
 
 ## Verification
 
@@ -49,7 +49,7 @@ Clean up the agent dashboard network graph so it matches the requested compact d
 ## Close Summary
 
 - Closed: 2026-05-25 11:54 +07:00.
-- Evidence: `test/dashboard-flow-continuous-evidence-2026-05-25/`.
+- Evidence: `tests/dashboard-flow-continuous-evidence-2026-05-25/`.
 - DOM/backend checks passed: API graph edges 29, rendered DOM edges 12, marker count 0, canvas count 1, all checks true.
 - Follow-up fix 2026-05-25 12:09: canvas animation no longer freezes under reduced-motion; rendered motion report shows `animationFrameChanged: true` and marker count 0.
 - Follow-up fix 2026-05-25 12:50: SVG route strokes are hidden; dashboard now shows only moving particles. Motion report shows `svgPathHidden: true`.

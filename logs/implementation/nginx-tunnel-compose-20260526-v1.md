@@ -1,4 +1,4 @@
-# Log: Nginx Tunnel Compose - 2026-05-26
+﻿# Log: Nginx Tunnel Compose - 2026-05-26
 
 - Bắt đầu: 2026-05-26
 - Trạng thái: completed
@@ -27,7 +27,7 @@ Dựng nginx bằng Docker Compose để tunnel dự án qua một cổng duy nh
 - `/` proxy sang web `WEB_PORT`.
 - `/api/v1/*`, `/health`, `/model-gateway/*` proxy sang API `API_PORT`.
 - Web client tự dùng same-origin khi mở qua tunnel domain.
-- README đã viết lại bằng tiếng Việt có dấu, có port, setup, Docker/nginx, kiến trúc, API format và test/evidence.
+- README đã viết lại bằng tiếng Việt có dấu, có port, setup, Docker/nginx, kiến trúc, API format và tests/evidence.
 
 ## Verify
 

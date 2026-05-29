@@ -1,4 +1,4 @@
-# Log dashboard prompt và Qdrant search 2026-05-26
+﻿# Log dashboard prompt và Qdrant search 2026-05-26
 
 - Bắt đầu: 2026-05-26
 - Kết thúc: 2026-05-26
@@ -25,7 +25,7 @@
 - `apps/web/src/app/styles.css`
 - `README.md`
 - `docs/reports/production-architecture-audit-20260526.md`
-- `test/agent-dashboard-prompt-qdrant-evidence-2026-05-26/README.md`
+- `tests/agent-dashboard-prompt-qdrant-evidence-2026-05-26/README.md`
 
 ## Verify
 
@@ -36,7 +36,7 @@
 - `corepack pnpm --filter @retail-agent/api test`: pass 94/94.
 - `docker compose -f infra/docker/docker-compose.yml config --quiet`: pass.
 - `git diff --check`: pass, chỉ có cảnh báo CRLF Windows.
-- Chrome headless screenshot: `test/agent-dashboard-prompt-qdrant-evidence-2026-05-26/app/dashboard-legend-right-fixed.png`.
+- Chrome headless screenshot: `tests/agent-dashboard-prompt-qdrant-evidence-2026-05-26/app/dashboard-legend-right-fixed.png`.
 
 ## Rủi ro còn lại
 

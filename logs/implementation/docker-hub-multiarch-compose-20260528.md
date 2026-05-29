@@ -1,4 +1,4 @@
-# Log triển khai Docker Hub multi-arch
+﻿# Log triển khai Docker Hub multi-arch
 
 Ngày: 2026-05-28
 
@@ -42,4 +42,4 @@ DOCKER_IMAGE_REPO=baonguyen3568/ai-agent-retail IMAGE_TAG=v0.1.0-20260528 sh scr
 - HTTP qua nginx `6820`: `/health`, `/api/v1/products`, `/agent-dashboard` đều trả `200`.
 - Auth/cart API: tạo user test, thêm sản phẩm vào giỏ, `cartItems=1`, `grandTotal=790000`.
 
-Evidence ảnh: `test/docker-full-compose-evidence-2026-05-28/`.
+Evidence ảnh: `tests/docker-full-compose-evidence-2026-05-28/`.

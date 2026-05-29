@@ -1,4 +1,4 @@
-# CI/CD and push workflow
+﻿# CI/CD and push workflow
 
 - Updated: 2026-05-18
 - Scope: automated validation and push readiness.
@@ -37,7 +37,7 @@ corepack pnpm test:runtime
 
 1. Review changed files and ensure no unrelated edits are included.
 2. Confirm `.env`, runtime `.log` files, build outputs, and secrets are not staged.
-3. Run typecheck/test/build checks listed above.
+3. Run typecheck/tests/build checks listed above.
 4. Update canonical docs under `docs/` if behavior or operations changed.
 5. Add concise markdown task log under `logs/implementation/`.
 6. Use a clear commit message with date/context if the user explicitly asks for a commit.

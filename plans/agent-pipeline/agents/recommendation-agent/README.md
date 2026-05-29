@@ -1,4 +1,4 @@
-# Recommendation Agent Job
+﻿# Recommendation Agent Job
 
 - Created: 2026-05-21 17:40
 - Updated: 2026-05-21 17:40
@@ -18,7 +18,7 @@
 | Type | Path |
 | --- | --- |
 | Design doc | [docs/agent-pipeline/agents/recommendation-agent/design.md](../../../../docs/agent-pipeline/agents/recommendation-agent/design.md) |
-| Test cases | [test/agent-pipeline/agents/recommendation-agent/cases.md](../../../../test/agent-pipeline/agents/recommendation-agent/cases.md) |
+| Test cases | [tests/agent-pipeline/agents/recommendation-agent/cases.md](../../../../tests/agent-pipeline/agents/recommendation-agent/cases.md) |
 | Job log | [logs/log-plan-agent-pipeline/recommendation-agent.md](../../../../logs/log-plan-agent-pipeline/recommendation-agent.md) |
 
 ## Current Decision

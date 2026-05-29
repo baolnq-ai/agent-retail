@@ -1,4 +1,4 @@
-# Plan: Dashboard Chatbot QA Redesign
+﻿# Plan: Dashboard Chatbot QA Redesign
 
 - Created: 2026-05-25 08:02
 - Updated: 2026-05-25 08:34
@@ -33,9 +33,9 @@ Make the agent dashboard easier to read, move noisy lower trace descriptions int
 | Phase | Goal | Status | Evidence |
 | --- | --- | --- | --- |
 | 1 | Capture current UX issues and create plan/log | done | This plan + session log |
-| 2 | Redesign dashboard graph, details and route animation | done | `test/dashboard-chatbot-qa-evidence-2026-05-25/app/01-dashboard-compact-graph.png` |
-| 3 | Improve chat loading/status UI | done | `test/dashboard-chatbot-qa-evidence-2026-05-25/function/03-chat-loading-status-dots.png` |
-| 4 | Add 20-question chatbot QA list and output evaluator | done | `test/agent-pipeline/chatbot-qa/cases.md`; QA report JSON |
+| 2 | Redesign dashboard graph, details and route animation | done | `tests/dashboard-chatbot-qa-evidence-2026-05-25/app/01-dashboard-compact-graph.png` |
+| 3 | Improve chat loading/status UI | done | `tests/dashboard-chatbot-qa-evidence-2026-05-25/function/03-chat-loading-status-dots.png` |
+| 4 | Add 20-question chatbot QA list and output evaluator | done | `tests/agent-pipeline/chatbot-qa/cases.md`; QA report JSON |
 | 5 | Run verification and package evidence | done | Evidence README + PNGs + test output |
 
 ## Verification
@@ -44,7 +44,7 @@ Make the agent dashboard easier to read, move noisy lower trace descriptions int
 - `corepack pnpm --filter @retail-agent/web test`
 - `corepack pnpm --filter @retail-agent/api test`
 - `corepack pnpm --filter @retail-agent/web build`
-- `node test/agent-pipeline/chatbot-qa/runtime-chatbot-qa-20.mjs`
+- `node tests/agent-pipeline/chatbot-qa/runtime-chatbot-qa-20.mjs`
 - Browser screenshot evidence for:
   - compact dashboard graph without node overlap;
   - detail popup;

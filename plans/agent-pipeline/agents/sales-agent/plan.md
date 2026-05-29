@@ -1,4 +1,4 @@
-# Plan: Sales Agent
+﻿# Plan: Sales Agent
 
 - Created: 2026-05-21 19:02
 - Updated: 2026-05-21 19:02
@@ -6,7 +6,7 @@
 - Related log: `logs/log-plan-agent-pipeline/sales-agent.md`
 - Mirror log: `logs/planning/agent-pipeline/agents/sales-agent.md`
 - Related doc: `docs/agent-pipeline/agents/sales-agent/design.md`
-- Related tests: `test/agent-pipeline/agents/sales-agent/cases.md`, `test/agent-pipeline/agents/sales-agent/real-request-100-cases.md`
+- Related tests: `tests/agent-pipeline/agents/sales-agent/cases.md`, `tests/agent-pipeline/agents/sales-agent/real-request-100-cases.md`
 - Job status: `plans/agent-pipeline/agents/sales-agent/status.md`
 - Job checklist: `plans/agent-pipeline/agents/sales-agent/checklist.md`
 

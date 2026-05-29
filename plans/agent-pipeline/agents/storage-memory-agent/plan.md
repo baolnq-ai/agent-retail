@@ -1,4 +1,4 @@
-# Plan: Storage/Memory Agent
+﻿# Plan: Storage/Memory Agent
 
 - Created: 2026-05-21 18:18
 - Updated: 2026-05-22 14:20
@@ -6,7 +6,7 @@
 - Related log: `logs/log-plan-agent-pipeline/storage-memory-agent.md`
 - Mirror log: `logs/planning/agent-pipeline/agents/storage-memory-agent.md`
 - Related doc: `docs/agent-pipeline/agents/storage-memory-agent/design.md`
-- Related tests: `test/agent-pipeline/agents/storage-memory-agent/cases.md`, `test/agent-pipeline/agents/storage-memory-agent/real-request-100-cases.md`
+- Related tests: `tests/agent-pipeline/agents/storage-memory-agent/cases.md`, `tests/agent-pipeline/agents/storage-memory-agent/real-request-100-cases.md`
 - Job status: `plans/agent-pipeline/agents/storage-memory-agent/status.md`
 - Job checklist: `plans/agent-pipeline/agents/storage-memory-agent/checklist.md`
 

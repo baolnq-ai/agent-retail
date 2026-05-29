@@ -1,4 +1,4 @@
-# Sales Agent Job
+﻿# Sales Agent Job
 
 - Created: 2026-05-21 19:02
 - Updated: 2026-05-21 19:02
@@ -18,8 +18,8 @@
 | Type | Path |
 | --- | --- |
 | Design doc | [docs/agent-pipeline/agents/sales-agent/design.md](../../../../docs/agent-pipeline/agents/sales-agent/design.md) |
-| Test cases | [test/agent-pipeline/agents/sales-agent/cases.md](../../../../test/agent-pipeline/agents/sales-agent/cases.md) |
-| Real request 100 | [test/agent-pipeline/agents/sales-agent/real-request-100-cases.md](../../../../test/agent-pipeline/agents/sales-agent/real-request-100-cases.md) |
+| Test cases | [tests/agent-pipeline/agents/sales-agent/cases.md](../../../../tests/agent-pipeline/agents/sales-agent/cases.md) |
+| Real request 100 | [tests/agent-pipeline/agents/sales-agent/real-request-100-cases.md](../../../../tests/agent-pipeline/agents/sales-agent/real-request-100-cases.md) |
 | Job log | [logs/log-plan-agent-pipeline/sales-agent.md](../../../../logs/log-plan-agent-pipeline/sales-agent.md) |
 | Planning log mirror | [logs/planning/agent-pipeline/agents/sales-agent.md](../../../../logs/planning/agent-pipeline/agents/sales-agent.md) |
 

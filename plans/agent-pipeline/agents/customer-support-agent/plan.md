@@ -1,4 +1,4 @@
-# Plan: Customer Support Agent
+﻿# Plan: Customer Support Agent
 
 - Created: 2026-05-21 19:55
 - Updated: 2026-05-21 19:55
@@ -6,7 +6,7 @@
 - Related log: `logs/log-plan-agent-pipeline/customer-support-agent.md`
 - Mirror log: `logs/planning/agent-pipeline/agents/customer-support-agent.md`
 - Related doc: `docs/agent-pipeline/agents/customer-support-agent/design.md`
-- Related tests: `test/agent-pipeline/agents/customer-support-agent/cases.md`, `test/agent-pipeline/agents/customer-support-agent/real-request-100-cases.md`
+- Related tests: `tests/agent-pipeline/agents/customer-support-agent/cases.md`, `tests/agent-pipeline/agents/customer-support-agent/real-request-100-cases.md`
 - Job status: `plans/agent-pipeline/agents/customer-support-agent/status.md`
 - Job checklist: `plans/agent-pipeline/agents/customer-support-agent/checklist.md`
 

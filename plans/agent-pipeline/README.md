@@ -1,4 +1,4 @@
-# Agent Pipeline Plans
+﻿# Agent Pipeline Plans
 
 - Created: 2026-05-21 13:46
 - Updated: 2026-05-22 02:30
@@ -13,7 +13,7 @@ This folder owns the rebuild plan for a lead-agent driven chatbot pipeline with 
 
 - Every plan must link its related log, doc, and tests.
 - Every implementation phase must update status and evidence.
-- Every pipeline code change must have a test in `test/agent-pipeline/` or the relevant app test folder.
+- Every pipeline code change must have a test in `tests/agent-pipeline/` or the relevant app test folder.
 - Main project log: `logs/planning/agent-pipeline/rebuild.md`.
 - Main architecture doc: `docs/agent-pipeline/architecture/system-definition.md`.
 

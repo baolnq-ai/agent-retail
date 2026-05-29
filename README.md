@@ -1,4 +1,4 @@
-<div align="center">
+﻿<div align="center">
 
 <img src="apps/web/public/banner.gif" alt="RetailHome AI Agent dashboard trace" width="100%" />
 
@@ -30,7 +30,7 @@ Trợ lý bán hàng retail dùng pipeline nhiều agent, trace dashboard, Qdran
 <table>
   <tr>
     <td><strong>Cập nhật</strong></td>
-    <td>2026-05-28</td>
+    <td>2026-05-29</td>
     <td><strong>Docker image</strong></td>
     <td><code>v0.1.0-20260528</code></td>
   </tr>
@@ -38,7 +38,7 @@ Trợ lý bán hàng retail dùng pipeline nhiều agent, trace dashboard, Qdran
     <td><strong>Docker Hub</strong></td>
     <td><code>baonguyen3568/ai-agent-retail</code></td>
     <td><strong>Runtime ports</strong></td>
-    <td><code>6800-6850</code></td>
+    <td><code>3100-3150</code></td>
   </tr>
 </table>
 
@@ -56,7 +56,7 @@ Trợ lý bán hàng retail dùng pipeline nhiều agent, trace dashboard, Qdran
         <tr><td><strong>Pipeline</strong></td><td><code>multi-agent</code></td></tr>
         <tr><td><strong>Vector</strong></td><td><code>Qdrant + embedding</code></td></tr>
         <tr><td><strong>Memory</strong></td><td><code>PostgreSQL</code></td></tr>
-        <tr><td><strong>Entry</strong></td><td><code>nginx :6820</code></td></tr>
+        <tr><td><strong>Entry</strong></td><td><code>nginx :3120</code></td></tr>
       </table>
     </td>
   </tr>
@@ -99,7 +99,7 @@ Repo này là hệ thống retail chatbot có web storefront, chat widget, giỏ
   </tr>
 </table>
 
-Search Agent dùng embedding API và Qdrant cho nhánh semantic khi exact/lexical search không đủ recall. PostgreSQL vẫn là nguồn fact chính cho giá, tồn kho, catalog, user, cart và memory.
+Search Agent dùng embedding API và Qdrant cho nhánh semantic khi exact/lexical search không đủ recall. PostgreSQL vẫn là nguồn fact chính cho giá, tồn kho, catalog, user, cart và memory; Redis cache catalog public để giảm độ trễ tải web.
 
 ## Giao Diện Và Evidence
 
@@ -165,9 +165,9 @@ Mở nhanh sau khi stack healthy:
     <th>API health</th>
   </tr>
   <tr>
-    <td><code>http://127.0.0.1:6820</code></td>
-    <td><code>http://127.0.0.1:6820/agent-dashboard</code></td>
-    <td><code>http://127.0.0.1:6820/health</code></td>
+    <td><code>http://127.0.0.1:3120</code></td>
+    <td><code>http://127.0.0.1:3120/agent-dashboard</code></td>
+    <td><code>http://127.0.0.1:3120/health</code></td>
   </tr>
 </table>
 
@@ -177,17 +177,17 @@ Root `docker-compose.yml` là bản full Docker 100%, có đủ backend, fronten
 
 | Service | URL |
 | --- | --- |
-| Web trực tiếp | `http://127.0.0.1:6800` |
-| API trực tiếp | `http://127.0.0.1:6810` |
-| nginx/tunnel entry | `http://127.0.0.1:6820` |
-| Dashboard agent | `http://127.0.0.1:6820/agent-dashboard` |
-| API health | `http://127.0.0.1:6820/health` |
-| PostgreSQL | `127.0.0.1:6832` |
-| Redis | `127.0.0.1:6839` |
-| Qdrant HTTP | `http://127.0.0.1:6833` |
-| Qdrant gRPC | `127.0.0.1:6834` |
+| Web trực tiếp | `http://127.0.0.1:3100` |
+| API trực tiếp | `http://127.0.0.1:3110` |
+| nginx/tunnel entry | `http://127.0.0.1:3120` |
+| Dashboard agent | `http://127.0.0.1:3120/agent-dashboard` |
+| API health | `http://127.0.0.1:3120/health` |
+| PostgreSQL | `127.0.0.1:3132` |
+| Redis | `127.0.0.1:3139` |
+| Qdrant HTTP | `http://127.0.0.1:3133` |
+| Qdrant gRPC | `127.0.0.1:3134` |
 
-Toàn bộ port mặc định nằm trong dải `6800-6850`. Khi cần tunnel, trỏ tunnel vào `http://127.0.0.1:6820`.
+Toàn bộ port mặc định nằm trong dải `3100-3150`. Khi cần tunnel, trỏ tunnel vào `http://127.0.0.1:3120`.
 
 ## Chạy Bằng Setup Script
 
@@ -221,10 +221,12 @@ SETUP_RUN_MODE=source ./setup.sh
 
 Với `source`, script đọc `.env`, cài workspace bằng `pnpm`, chạy hạ tầng dev, generate/push/seed Prisma, build API, dọn process cũ trong dải port dự án, rồi chạy API và Web. Linux/macOS mặc định dùng tmux session `egnt-retail`:
 
+Windows PowerShell cũng tự dọn runtime cũ trước khi start: `setup.ps1` load `.env`, gọi `stop.ps1`, dừng PID/process tree của API/Web thuộc repo, down các Compose project của repo (`retail_agent_provider`, `retail_agent_dev`, `retail_agent_full`), rồi mới start lại. Nếu Docker Desktop chưa sẵn sàng, setup sẽ fail sớm ở bước Docker Compose thay vì chờ DB timeout.
+
 | Window | Nội dung |
 | --- | --- |
-| `egnt-retail:api` | NestJS API trên `6810` |
-| `egnt-retail:web` | Next.js web trên `6800` |
+| `egnt-retail:api` | NestJS API trên `3110` |
+| `egnt-retail:web` | Next.js web trên `3100` |
 
 ## Docker Hub / Multi-Arch
 
@@ -254,10 +256,14 @@ DOCKER_IMAGE_REPO=baonguyen3568/ai-agent-retail IMAGE_TAG=v0.1.0-20260528 sh scr
 Khi chạy qua tunnel/domain:
 
 ```env
+TUNNEL_PUBLIC_URL=https://domain-cua-ban
 NEXT_PUBLIC_SITE_URL=https://domain-cua-ban
 NEXT_PUBLIC_API_BASE_URL=https://domain-cua-ban
 CORS_ORIGINS=https://domain-cua-ban
+NEXT_ALLOWED_DEV_ORIGINS=*.trycloudflare.com,domain-cua-ban
 ```
+
+Với Cloudflare Quick Tunnel, trỏ tunnel vào nginx entry `http://127.0.0.1:3120`, đặt `TUNNEL_PUBLIC_URL` bằng URL `https://...trycloudflare.com`, rồi chạy lại `.\setup.ps1`. Setup sẽ truyền domain public cho Web/API để metadata, browser API base và CORS không còn giữ `127.0.0.1`.
 
 Không commit `.env`, token hoặc credential Docker Hub.
 
@@ -284,12 +290,16 @@ Không commit `.env`, token hoặc credential Docker Hub.
 | `PLATFORMS` | `linux/amd64,linux/arm64` | Kiến trúc buildx khi push multi-arch |
 | `DOCKER_COMPOSE_PROJECT_NAME` | `retail_agent_full` | Project Compose full Docker |
 | `COMPOSE_PROJECT_NAME` | `retail_agent_dev` | Project Compose dev infra |
-| `CHAT_MODEL_BASE_URL` | `https://replace-with-your-vllm-gateway.example.invalid` | API vLLM/chat model |
+| `CHAT_MODEL_BASE_URL` | placeholder trong `.env.example` | API vLLM/chat model |
 | `CHAT_MODEL_ID` | `google/gemma-4-E4B-it` | Model chat mặc định |
-| `EMBED_RERANK_BASE_URL` | `https://replace-with-your-embed-rerank-gateway.example.invalid` | API embedding/rerank |
+| `EMBED_RERANK_BASE_URL` | placeholder trong `.env.example` | API embedding/rerank |
 | `CORS_ORIGINS` | localhost ports | Origin browser được phép gọi API |
-| `NEXT_PUBLIC_API_BASE_URL` | `http://127.0.0.1:6820` | API public cho browser |
-| `NEXT_PUBLIC_SITE_URL` | `http://127.0.0.1:6820` | URL site cho metadata/share link |
+| `NEXT_PUBLIC_API_BASE_URL` | `http://127.0.0.1:3120` | API public cho browser |
+| `NEXT_PUBLIC_SITE_URL` | `http://127.0.0.1:3120` | URL site cho metadata/share link |
+| `NEXT_ALLOWED_DEV_ORIGINS` | `*.trycloudflare.com` | Origin dev server Next.js cho tunnel |
+| `TUNNEL_PUBLIC_URL` | trống | URL public tunnel; khi có giá trị setup tự dùng cho `NEXT_PUBLIC_*` và CORS |
+| `REDIS_URL` | `redis://localhost:3139` | Redis runtime cho cache catalog public |
+| `CATALOG_CACHE_TTL_SECONDS` | `120` | TTL cache danh sách/chi tiết sản phẩm, tính bằng giây |
 | `TMUX_SESSION` | `egnt-retail` | Session tmux runtime source |
 | `RUN_DB_PUSH` | `1` | Container API tự chạy `prisma db push` khi start |
 | `RUN_DB_SEED` | `1` | Container API tự seed dữ liệu khi start |
@@ -298,9 +308,9 @@ Không commit `.env`, token hoặc credential Docker Hub.
 
 ```mermaid
 flowchart LR
-  User[Người dùng] --> Nginx[nginx 6820]
-  Nginx --> Web[Next.js web 6800]
-  Nginx --> API[NestJS API 6810]
+  User[Người dùng] --> Nginx[nginx 3120]
+  Nginx --> Web[Next.js web 3100]
+  Nginx --> API[NestJS API 3110]
   Web --> API
   API --> Agent[Agent pipeline]
   Agent --> Lead[Lead agent]
@@ -382,10 +392,10 @@ Evidence chính:
 
 | Bộ test | Evidence |
 | --- | --- |
-| Docker full compose | [`test/docker-full-compose-evidence-2026-05-28/README.md`](test/docker-full-compose-evidence-2026-05-28/README.md) |
-| Benchmark 100 câu | [`test/benmark-100/`](test/benmark-100/) |
-| Hard flow 20 câu | [`test/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/README.md`](test/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/README.md) |
-| Dashboard flow | [`test/agent-dashboard-icon-legend-density-evidence-2026-05-26/README.md`](test/agent-dashboard-icon-legend-density-evidence-2026-05-26/README.md) |
+| Docker full compose | [`tests/docker-full-compose-evidence-2026-05-28/README.md`](tests/docker-full-compose-evidence-2026-05-28/README.md) |
+| Benchmark 100 câu | [`tests/benchmark-100/`](tests/benchmark-100/) |
+| Hard flow 20 câu | [`tests/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/README.md`](tests/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/README.md) |
+| Dashboard flow | [`tests/agent-dashboard-icon-legend-density-evidence-2026-05-26/README.md`](tests/agent-dashboard-icon-legend-density-evidence-2026-05-26/README.md) |
 
 ## Production Readiness
 
@@ -410,7 +420,7 @@ Evidence chính:
 | `docs/` | Tài liệu kiến trúc, task, báo cáo |
 | `plans/` | Plan theo phase và theo agent |
 | `logs/` | Log triển khai, planning, testing |
-| `test/` | Test case, benchmark, evidence ảnh/report |
+| `tests/` | Test case, benchmark, evidence ảnh/report |
 | `setup.*`, `stop.*`, `clean.*` | Script vận hành local |
 
 ## Tài Liệu Liên Quan

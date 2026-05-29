@@ -1,4 +1,4 @@
-# Plan: Security Moderation Agent
+﻿# Plan: Security Moderation Agent
 
 - Created: 2026-05-21 19:55
 - Updated: 2026-05-21 19:55
@@ -6,7 +6,7 @@
 - Related log: `logs/log-plan-agent-pipeline/security-agent.md`
 - Mirror log: `logs/planning/agent-pipeline/agents/security-agent.md`
 - Related doc: `docs/agent-pipeline/agents/security-agent/design.md`
-- Related tests: `test/agent-pipeline/agents/security-agent/cases.md`, `test/agent-pipeline/agents/security-agent/real-request-100-cases.md`
+- Related tests: `tests/agent-pipeline/agents/security-agent/cases.md`, `tests/agent-pipeline/agents/security-agent/real-request-100-cases.md`
 - Job status: `plans/agent-pipeline/agents/security-agent/status.md`
 - Job checklist: `plans/agent-pipeline/agents/security-agent/checklist.md`
 

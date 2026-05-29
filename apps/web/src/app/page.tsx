@@ -1,4 +1,5 @@
 import { productImageUrl, productSourceName, productSpec, productUseCase } from './product-media.js';
+import { HomeProductShowcase } from './home-product-showcase.js';
 
 interface Product {
   id: string;
@@ -12,56 +13,67 @@ interface Product {
   description: string;
 }
 
-const apiBaseUrl = process.env.API_BASE_URL ?? 'http://127.0.0.1:6810';
+const apiBaseUrl = process.env.API_BASE_URL ?? 'http://127.0.0.1:3110';
 
 export default async function HomePage() {
   const products = await loadProducts();
-  const featuredProducts = products.slice(0, 8);
+  const featuredProducts = products.slice(0, 10);
   const heroProduct = featuredProducts[0];
-  const categories = Array.from(new Set(products.map((product) => product.category))).slice(0, 6);
+  const heroSlides = featuredProducts.slice(0, 4);
+  const spotlightProducts = featuredProducts.slice(1, 4);
+  const categories = Array.from(new Set(products.map((product) => product.category))).slice(0, 7);
+  const heroCategory = heroProduct?.category ?? 'Gia dụng chọn lọc';
 
   return (
     <>
-      <section className="storefront-hero" aria-label="Trang chủ NTC AI Retail">
-        <div className="storefront-hero-copy">
-          <p className="eyebrow">NTC AI Retail</p>
-          <h1>Catalog gia dụng vận hành cùng retail agent.</h1>
-          <p className="hero-lead">Tra cứu sản phẩm, kiểm tồn kho, thao tác giỏ hàng và theo dõi pipeline AI từ cùng một hệ thống bán lẻ.</p>
+      <section className="storefront-hero commerce-banner motion-stage product-led-home" aria-label="Trang chủ NTC Store">
+        <div className="home-watermark" aria-hidden="true">{heroCategory}</div>
+        <div className="home-showcase-nav" aria-label="Danh mục nổi bật">
+          {categories.slice(0, 5).map((category) => <a href={`/products?category=${encodeURIComponent(category)}`} key={category}>{category}</a>)}
+        </div>
+
+        <HomeProductShowcase products={heroSlides} />
+        <div className="home-utility-panel">
           <form className="storefront-search" action="/products">
-            <input name="q" aria-label="Tìm sản phẩm" placeholder="Tìm máy lọc, robot hút bụi, nồi chiên..." />
+            <input name="q" aria-label="Tìm sản phẩm" placeholder="Tìm sản phẩm, thương hiệu, nhu cầu..." />
             <button type="submit">Tìm</button>
           </form>
-          <a className="primary-commerce-link hero-cta" href="/products">Mua sắm ngay</a>
-          <div className="home-category-row" aria-label="Danh mục nổi bật">
-            {categories.map((category) => <a href={`/products?category=${encodeURIComponent(category)}`} key={category}>{category}</a>)}
+          <div className="stage-mini-products" aria-label="Gợi ý nhanh">
+            {spotlightProducts.map((product) => (
+              <a href={`/products/${product.id}`} key={product.id}>
+                <img src={productImageUrl(product)} alt={product.title} />
+                <span>{product.category}</span>
+              </a>
+            ))}
           </div>
         </div>
-
-        {heroProduct ? (
-          <a className="hero-product-tile" href={`/products/${heroProduct.id}`} aria-label={`Xem ${heroProduct.title}`}>
-            <img src={productImageUrl(heroProduct)} alt={heroProduct.title} />
-            <span>{heroProduct.category}</span>
-            <strong>{heroProduct.title}</strong>
-            <em>{formatMoney(heroProduct.price)}</em>
-          </a>
-        ) : (
-          <aside className="hero-product-tile empty-state">Danh sách sản phẩm đang được cập nhật.</aside>
-        )}
       </section>
 
-      <section className="deal-strip" aria-label="Năng lực hệ thống">
-        <strong>Catalog retail có kiểm tồn</strong>
-        <span>Chat agent bám dữ liệu sản phẩm và giỏ hàng</span>
-        <span>Dashboard trace cho từng lượt xử lý</span>
-        <a href="/products">Xem tất cả</a>
-      </section>
-
-      <section className="home-section-heading">
+      <section className="deal-strip retail-marquee" aria-label="Ưu đãi mua sắm">
         <div>
-          <p className="eyebrow">Đang nổi bật</p>
-          <h2>Gợi ý nổi bật cho nhu cầu hằng ngày</h2>
+          <a className="deal-chip-active" href="/products"><strong>Hàng chọn lọc</strong></a>
+          <a href="/products">Tư vấn theo nhu cầu</a>
+          <a href="/products">So sánh nhanh</a>
+          <a href="/cart">Giỏ hàng theo tài khoản</a>
+          <a href="/products">Xem tất cả</a>
         </div>
-        <a href="/products">Xem danh mục</a>
+      </section>
+
+      <section className="home-product-carousel motion-carousel" aria-label="Sản phẩm đang được quan tâm">
+        <div className="section-intro">
+          <p className="commerce-kicker">Đang được quan tâm</p>
+          <h2>Lướt nhanh vài lựa chọn nổi bật</h2>
+          <a href="/products">Mở catalog</a>
+        </div>
+        <div className="carousel-track">
+          {featuredProducts.slice(0, 5).map((product) => (
+            <a className="carousel-card" href={`/products/${product.id}`} key={product.id}>
+              <img src={productImageUrl(product)} alt={product.title} loading="lazy" />
+              <span>{product.category}</span>
+              <strong>{product.title}</strong>
+            </a>
+          ))}
+        </div>
       </section>
 
       <section className="commerce-grid storefront-grid" aria-label="Sản phẩm nổi bật trên trang chủ">
@@ -78,10 +90,10 @@ export default async function HomePage() {
             <footer>
               <strong>{formatMoney(product.price)}</strong>
               <details className="product-popover">
-                <summary>Chi tiết</summary>
+                <summary>Xem nhanh</summary>
                 <div>
                   <b>{productUseCase(product)}</b>
-                  <span>Dữ liệu catalog: {productSourceName(product)}</span>
+                  <span>Nguồn: {productSourceName(product)}</span>
                   <span>Còn {product.inventory} sản phẩm</span>
                 </div>
               </details>
@@ -95,7 +107,7 @@ export default async function HomePage() {
 
 async function loadProducts(): Promise<Product[]> {
   try {
-    const response = await fetch(`${apiBaseUrl}/api/v1/products`, { cache: 'no-store' });
+    const response = await fetch(`${apiBaseUrl}/api/v1/products`, { next: { revalidate: 20 } });
     if (!response.ok) throw new Error(`Không tải được sản phẩm: ${response.status}`);
     const payload = await response.json() as { items: Product[] };
     return payload.items;

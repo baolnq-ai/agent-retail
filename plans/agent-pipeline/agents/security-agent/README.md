@@ -1,11 +1,11 @@
-# Security Moderation Agent
+﻿# Security Moderation Agent
 
 - Status: planned
 - Plan: `plan.md`
 - Status log: `status.md`
 - Checklist: `checklist.md`
 - Design doc: `docs/agent-pipeline/agents/security-agent/design.md`
-- Tests: `test/agent-pipeline/agents/security-agent/cases.md`, `test/agent-pipeline/agents/security-agent/real-request-100-cases.md`
+- Tests: `tests/agent-pipeline/agents/security-agent/cases.md`, `tests/agent-pipeline/agents/security-agent/real-request-100-cases.md`
 - Planning log: `logs/log-plan-agent-pipeline/security-agent.md`
 - Mirror log: `logs/planning/agent-pipeline/agents/security-agent.md`
 

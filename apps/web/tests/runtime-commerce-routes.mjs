@@ -53,13 +53,13 @@ test('commerce web routes render against a real API server', async () => {
     assert.equal(productPayload.items.length > 0, true);
     const productId = productPayload.items[0].id;
 
-    await assertRoute('/', [/RetailHome/, /Mua sáº¯m ngay/, /Sáº£n pháº©m/]);
-    await assertRoute('/products', [/Danh má»¥c sáº£n pháº©m/, /Danh sÃ¡ch sáº£n pháº©m/, new RegExp(escapeRegex(productPayload.items[0].title.slice(0, 12)))]);
-    await assertRoute(`/products/${productId}`, [/Chi tiáº¿t/, /ThÃªm vÃ o giá»|ÄÄƒng nháº­p Ä‘á»ƒ thÃªm giá»/]);
-    await assertRoute('/cart', [/cart-page-shell/, /Äang táº£i giá» hÃ ng|Giá» hÃ ng/, /initialProducts/]);
-    await assertRoute('/account', [/account-auth-page/, /Äang kiá»ƒm tra phiÃªn Ä‘Äƒng nháº­p|TÃ i khoáº£n/, /AccountClient/]);
-    await assertRoute('/test-api', [/Model|API|Endpoint|Provider|Kiá»ƒm tra/]);
-    await assertRoute('/agent-settings', [/Model|API|Endpoint|Provider|Kiá»ƒm tra/]);
+    await assertRoute('/', [/RetailHome/, /Mua sắm ngay/, /Sản phẩm/]);
+    await assertRoute('/products', [/Danh mục sản phẩm/, /Danh sách sản phẩm/, new RegExp(escapeRegex(productPayload.items[0].title.slice(0, 12)))]);
+    await assertRoute(`/products/${productId}`, [/Chi tiết/, /Thêm vào giỏ|Đăng nhập để thêm giỏ/]);
+    await assertRoute('/cart', [/cart-page-shell/, /Đang tải giỏ hàng|Giỏ hàng/, /initialProducts/]);
+    await assertRoute('/account', [/account-auth-page/, /Đang kiểm tra phiên đăng nhập|Tài khoản/, /AccountClient/]);
+    await assertRoute('/test-api', [/Model|API|Endpoint|Provider|Kiểm tra/]);
+    await assertRoute('/agent-settings', [/Model|API|Endpoint|Provider|Kiểm tra/]);
     await assertRoute('/agent-dashboard?demoTrace=dense', [/agent-dashboard-shell|Agent Ops|Dashboard agent/]);
   } finally {
     web.kill('SIGTERM');

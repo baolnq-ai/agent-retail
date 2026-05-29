@@ -1,4 +1,4 @@
-# Running Plans
+﻿# Running Plans
 
 - Cập nhật: 2026-05-28
 - Phạm vi: các plan đang chạy, chưa đạt close criteria hoặc chưa được đóng log/doc cuối.
@@ -13,6 +13,6 @@
 
 | Plan | Nội dung |
 | --- | --- |
-| [plan-benmark-100-pipeline-audit-20260527-v1.md](plan-benmark-100-pipeline-audit-20260527-v1.md) | Benchmark 100 câu, audit pipeline/cart/history |
+| [plan-benchmark-100-pipeline-audit-20260527-v1.md](plan-benchmark-100-pipeline-audit-20260527-v1.md) | Benchmark 100 câu, audit pipeline/cart/history |
 | [plan-agent-dashboard-icon-legend-density-20260526-v1.md](plan-agent-dashboard-icon-legend-density-20260526-v1.md) | Dashboard icon/legend/density follow-up |
 | [plan-nginx-tunnel-compose-readme-sync-20260526-v1.md](plan-nginx-tunnel-compose-readme-sync-20260526-v1.md) | nginx/dev compose follow-up |

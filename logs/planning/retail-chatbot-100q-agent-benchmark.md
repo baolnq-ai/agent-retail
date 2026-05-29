@@ -1,4 +1,4 @@
-# Log: Retail Chatbot 100Q Agent Benchmark
+﻿# Log: Retail Chatbot 100Q Agent Benchmark
 
 - Created: 2026-05-25 09:31 +07:00
 - Type: planning/frontend-backend-testing
@@ -26,8 +26,8 @@ Expand the prior 30-question validation to a stricter 100-question benchmark, wh
 
 ### Progress
 
-- Added `test/agent-pipeline/retail-chatbot-benchmark-100/runtime-chatbot-benchmark-100.mjs`.
-- Added `test/agent-pipeline/retail-chatbot-benchmark-100/frontend-dashboard-evidence-cdp.mjs`.
+- Added `tests/agent-pipeline/retail-chatbot-benchmark-100/runtime-chatbot-benchmark-100.mjs`.
+- Added `tests/agent-pipeline/retail-chatbot-benchmark-100/frontend-dashboard-evidence-cdp.mjs`.
 - Both scripts passed `node --check`.
 - API health and web home route are reachable before baseline.
 
@@ -87,6 +87,6 @@ Expand the prior 30-question validation to a stricter 100-question benchmark, wh
 
 ### Evidence
 
-- `test/retail-chatbot-100q-agent-evidence-2026-05-25/README.md`
-- `test/retail-chatbot-100q-agent-evidence-2026-05-25/reports/benchmark-100-e-report.md`
-- `test/retail-chatbot-100q-agent-evidence-2026-05-25/frontend-dashboard-cdp-audit.json`
+- `tests/retail-chatbot-100q-agent-evidence-2026-05-25/README.md`
+- `tests/retail-chatbot-100q-agent-evidence-2026-05-25/reports/benchmark-100-e-report.md`
+- `tests/retail-chatbot-100q-agent-evidence-2026-05-25/frontend-dashboard-cdp-audit.json`
