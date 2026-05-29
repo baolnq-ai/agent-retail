@@ -45,7 +45,8 @@ export function detectSalesIntent(message: string): SalesAgentIntent {
   const asciiMessage = stripVietnameseTone(normalizedMessage);
   if (isAmbiguousNoise(asciiMessage) && !isNoisyShoppingNeed(asciiMessage)) return 'smalltalk';
   if (isUnsafeOrOutOfScopeInstruction(asciiMessage)) return 'smalltalk';
-  if (/san pham\s+(nay|do|hien tai)?.*bao hanh|bao hanh.*san pham\s+(nay|do|hien tai)?/.test(asciiMessage)) return 'smalltalk';
+  if (/san pham\s+(nay|do|hien tai)?.*bao hanh|bao hanh.*san pham\s+(nay|do|hien tai)?/.test(asciiMessage)
+    && !/(doi tra|tra hang|hoan tien|chinh sach|quy trinh|sau\s+\d+\s+ngay|loi|hong|khieu nai)/.test(asciiMessage)) return 'smalltalk';
   if (isPolicySupportRequest(asciiMessage)) return 'policy';
   if (isCartClearRequest(asciiMessage)) return 'cart_action';
   if (isCartStatusRequest(asciiMessage)) return 'cart_status';
@@ -64,6 +65,7 @@ export function detectSalesIntent(message: string): SalesAgentIntent {
   if (/(cai|san pham|mon).*(re nhat|dat nhat|nay|do|o tren|trong cac mon).*(nhuoc diem|uu diem|co tot|co on|phu hop|dung duoc|thong so|chi tiet)|(?:nhuoc diem|uu diem|co tot|co on|phu hop|dung duoc).*(cai|san pham|mon).*(re nhat|dat nhat|nay|do|o tren|trong cac mon)/.test(asciiMessage)) return 'product_detail';
   if (/(may|noi|robot|camera|den|quat|bep|thiet bi|hut bui|loc|cam bien|bao dong|smart home|ban chai|cham soc ca nhan|lam mat).*(co phu hop|phu hop .* khong|co on khong|co du|dung duoc|nhuoc diem|uu diem)/.test(asciiMessage)) return 'product_detail';
   if (/chi tiet|thong so|mo ta|bao hanh.*san pham/.test(asciiMessage)) return 'product_detail';
+  if (isProductUseCaseRequest(asciiMessage)) return 'recommend';
   if (isNoisyShoppingNeed(asciiMessage)) return 'recommend';
   if (/(san pham|mon|do dien|do gia dung|do|may|noi|robot|camera|den|quat|bep|thiet bi|hut bui|loc|cam bien|bao dong|smart home|ban chai|cham soc ca nhan|lam mat|phong|nha|can ho|chung cu|van phong|qua).*(nao|hop|tot|gia|duoi|tren|dung tich|bao hanh|ngan sach|can|muon|lap dat|qua app|co gi|dang mua|uu tien|nho gon|mang di|cong tac|tam \d|dung duoc|dong nghiep)|(?:nao|hop|tot|gia|duoi|tren|dung tich|bao hanh|ngan sach|can|muon|lap dat|qua app|co gi|dang mua|uu tien|nho gon|mang di|cong tac|tam \d|dung duoc|dong nghiep).*(san pham|mon|do dien|do gia dung|do|may|noi|robot|camera|den|quat|bep|thiet bi|hut bui|loc|cam bien|bao dong|smart home|ban chai|cham soc ca nhan|lam mat|phong|nha|can ho|chung cu|van phong|qua)/.test(asciiMessage)) return 'recommend';
   if (/(goi y|de xuat|tu van|tim|chon|loc|lua chon|combo|di kem|phu kien|re hon|gia mem|dang tien|nen uu tien|nen mua|phu hop|hop voi|thoi quen|qua tang|hang tiet kiem dien|mon nao|san pham nao)/.test(asciiMessage)) return 'recommend';
@@ -112,8 +114,8 @@ function isPolicyOnlyRequest(normalizedMessage: string): boolean {
 }
 
 function isPolicySupportRequest(asciiMessage: string): boolean {
-  const hasPolicyTopic = /doi tra|tra duoc|doi san pham|sua doi san pham|doi sang mau|doi sang san pham|don da giao|da giao|chua nhan|hoan tien|bao hanh|van chuyen|chinh sach|khieu nai|ho tro|san pham loi|hang loi|loi cam bien|phat tieng on|tieng on la|giao hang|phi giao|mien phi giao|giao noi thanh|giao ngoai noi thanh|giao cham|kiem tra hang|mat phu kien|thieu phu kien|thieu sac|huy don|hoa don|vat|sai mau|nhan sai|giao sai|doi hang|nhan nham|nham phien ban|dat hang|doi dia chi|goi lai|cskh|cham soc khach hang|don hang lon/.test(asciiMessage);
-  if (hasPolicyTopic && /(chinh sach|doi tra|hoan tien|bao hanh|quy trinh|cskh|cham soc khach hang|nhan nham|dat hang|loi cam bien|sau khi nhan)/.test(asciiMessage)) return true;
+  const hasPolicyTopic = /gioi thieu cua hang|ve cua hang|retailhome la gi|cua hang ban gi|dia chi|lien he|hotline|tong dai|khuyen mai|uu dai|voucher|hau mai|cham soc sau ban|doi tra|tra duoc|doi san pham|sua doi san pham|doi sang mau|doi sang san pham|don da giao|da giao|chua nhan|hoan tien|bao hanh|van chuyen|chinh sach|khieu nai|ho tro|san pham loi|hang loi|loi cam bien|phat tieng on|tieng on la|giao hang|phi giao|mien phi giao|giao noi thanh|giao ngoai noi thanh|giao cham|kiem tra hang|mat phu kien|thieu phu kien|thieu sac|huy don|hoa don|vat|sai mau|nhan sai|giao sai|doi hang|nhan nham|nham phien ban|dat hang|doi dia chi|goi lai|cskh|cham soc khach hang|don hang lon|thanh toan|tra gop|cod|chuyen khoan/.test(asciiMessage);
+  if (hasPolicyTopic && /(gioi thieu|cua hang|retailhome|dia chi|lien he|hotline|tong dai|khuyen mai|uu dai|voucher|hau mai|chinh sach|doi tra|hoan tien|bao hanh|quy trinh|cskh|cham soc khach hang|nhan nham|dat hang|loi cam bien|sau khi nhan|thanh toan|tra gop|cod)/.test(asciiMessage)) return true;
   if (/phi giao|mien phi giao|giao hang|giao noi thanh|ngoai noi thanh|noi thanh|don da giao|da giao|chua nhan|giao cham|huy don|hoa don|vat/.test(asciiMessage)) return hasPolicyTopic;
   const asksProductRecommendation = /(nao|tot|goi y|de xuat|tu van|tim|chon|nen mua).*(san pham|may|noi|robot|camera|den|quat|bep|thiet bi|hut bui|loc|cam bien|ban chai)|(?:san pham|may|noi|robot|camera|den|quat|bep|thiet bi|hut bui|loc|cam bien|ban chai).*(nao|tot|goi y|de xuat|tu van|tim|chon|nen mua)/.test(asciiMessage);
   if (/khong chen goi y san pham|khong can|chi dua thong tin chinh sach|co can cu/.test(asciiMessage)) return hasPolicyTopic;
@@ -138,6 +140,15 @@ function isAmbiguousNoise(asciiMessage: string): boolean {
 
 function isNoisyShoppingNeed(asciiMessage: string): boolean {
   return /(nha sach|lam nha sach|may loc|loc khong khi|bui|tre nho|em be|mui bep|nha nong|mua gi|duoi \d|tam \d|can .* san pham|goi y|tu van)/.test(asciiMessage);
+}
+
+function isProductUseCaseRequest(asciiMessage: string): boolean {
+  const productTerm = /\b(san pham|mon|do gia dung|may|noi|robot|camera|den|quat|bep|thiet bi|hut bui|loc|cam bien|bao dong|smart home|ban chai|cham soc ca nhan|lam mat|dieu hoa|may lanh|noi com|noi chien|may xay)\b/.test(asciiMessage);
+  if (!productTerm) return false;
+  const useCaseSignal = /\b(cho|dung cho|de|phong|nha|can ho|chung cu|van phong|bep|tre|em be|nguoi lon tuoi|thu cung|meo|cho nha|dien tich)\b/.test(asciiMessage);
+  const areaSignal = /\b\d+\s*(?:m2|m vuong|met vuong|m²)\b/.test(asciiMessage);
+  const explicitProductNeed = /\b(can|muon|tim|kiem|mua|chon|tu van|goi y|de xuat|co)\b/.test(asciiMessage);
+  return (useCaseSignal || areaSignal) && (explicitProductNeed || /\b(dieu hoa|may lanh|lam mat|quat|may loc|noi com|noi chien|robot|camera)\b/.test(asciiMessage));
 }
 
 function isCartStatusRequest(asciiMessage: string): boolean {

@@ -4,6 +4,7 @@
 
 | Ngày | Nội dung |
 | --- | --- |
+| 2026-05-29 | Agent pipeline RAG 100Q hardening: [agent-pipeline-rag-100q.md](agent-pipeline-rag-100q.md). Benchmark cuối 100/100 tại [variant-a-full-100-pipeline-rag-v11-report.md](../../tests/benchmark-100/reports/variant-a-full-100-pipeline-rag-v11-report.md). |
 | 2026-05-29 | Redis catalog cache cho storefront/search: [redis-catalog-cache-20260529.md](redis-catalog-cache-20260529.md). Validation request thật ghi tại [tests/backend tests/redis-catalog-cache/validation.md](../../tests/backend%20tests/redis-catalog-cache/validation.md). |
 
 - Cập nhật: 2026-05-29
@@ -24,6 +25,7 @@
 | Tài liệu | Nội dung |
 | --- | --- |
 | [source-clean.md](source-clean.md) | Clean source backend theo skill và validation liên quan |
+| [agent-pipeline-rag-100q.md](agent-pipeline-rag-100q.md) | Hardening pipeline chatbot/RAG/search bằng benchmark 100 câu thực tế |
 
 ## Validation Mới Nhất
 
@@ -37,5 +39,13 @@
 - Config nhạy cảm đọc từ `.env` hoặc `.env.example`, không hardcode trong service.
 - Runtime test thật nằm trong `apps/api/tests/runtime-*.mjs`; report tổng hợp mới đặt dưới `tests/backend/`.
 - Khi thêm service backend mới, cập nhật bảng service và log triển khai tương ứng.
+
+## Business RAG Agent 2026-05-29
+
+- Tài liệu: [business-rag-agent.md](business-rag-agent.md).
+- Source: `apps/api/src/services/agents/business-rag-agent.service.ts`.
+- Nguồn dữ liệu: bảng `KnowledgeDocument`, seed từ `apps/api/prisma/seed.ts`.
+- Retrieval: embedding qua model gateway, Qdrant collection `business_knowledge`, rerank qua model gateway.
+- Validation: `corepack pnpm --filter @retail-agent/api test` pass 106/106; request thật lưu tại `tests/backend-business-rag-results.json`.
 
 dev by ambrouse

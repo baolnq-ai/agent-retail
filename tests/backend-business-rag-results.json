@@ -1,0 +1,40 @@
+﻿{
+    "chat":  [
+                 {
+                     "message":  "Giới thiệu cửa hàng RetailHome cho tôi, mua đồ gia dụng thì được hỗ trợ gì?",
+                     "text":  "Chào bạn, RetailHome là cửa hàng chuyên cung cấp các sản phẩm đồ gia dụng và smart-home đa dạng. Khi mua sắm tại đây, chúng tôi sẽ hỗ trợ bạn từ khâu tư vấn sản phẩm phù hợp nhất với nhu cầu, diện tích và ngân sách của bạn. Ngoài ra, chúng tôi còn có các chính sách rõ ràng về thanh toán, giao nhận và bảo hành để bạn hoàn toàn yên tâm khi sử dụng sản phẩm. Bạn đang quan tâm đến dòng sản phẩm nào cụ thể không ạ?",
+                     "policyIds":  "store_profile_retailhome,policy_payment_methods",
+                     "embeddingDimensions":  2048,
+                     "rerankTopScore":  5.503906,
+                     "contextDocuments":  6,
+                     "agents":  "lead-agent,storage-memory-agent,history-agent,rag-agent,security-agent,customer-support-agent,sales-agent"
+                 },
+                 {
+                     "message":  "Máy lọc không khí bên bạn bảo hành như thế nào, lõi lọc có được bảo hành không?",
+                     "text":  "Chào bạn, về chính sách bảo hành máy lọc không khí, thân máy, cảm biến và bo mạch sẽ được bảo hành theo quy định của hãng. Còn lõi lọc thì được xem là vật tư tiêu hao nên sẽ không được bảo hành hao mòn thông thường ạ. Nếu máy có bất kỳ dấu hiệu bất thường nào, bạn vui lòng tham khảo chính sách bảo hành để được hỗ trợ chi tiết hơn nhé.",
+                     "policyIds":  "policy_warranty_air_purifier_filters,policy_warranty_standard",
+                     "embeddingDimensions":  2048,
+                     "rerankTopScore":  8.296875,
+                     "contextDocuments":  6,
+                     "agents":  "lead-agent,storage-memory-agent,history-agent,rag-agent,security-agent,customer-support-agent,sales-agent"
+                 },
+                 {
+                     "message":  "Nếu tôi nhận sai mẫu hoặc thiếu phụ kiện thì đổi trả và hoàn tiền ra sao?",
+                     "text":  "Chào bạn, nếu bạn nhận sai mẫu, thiếu phụ kiện hoặc sản phẩm có lỗi, bạn hoàn toàn có thể đổi trả và được hoàn tiền theo chính sách của RetailHome. Bạn vui lòng giữ lại hóa đơn và các phụ kiện đi kèm để làm thủ tục nhé.",
+                     "policyIds":  "policy_returns_7_days,store_contact_channels",
+                     "embeddingDimensions":  2048,
+                     "rerankTopScore":  7.332031,
+                     "contextDocuments":  6,
+                     "agents":  "lead-agent,storage-memory-agent,history-agent,rag-agent,security-agent,customer-support-agent,sales-agent"
+                 },
+                 {
+                     "message":  "Mua robot hút bụi có hậu mãi hay combo phụ kiện gì không?",
+                     "text":  "Chào bạn, về chính sách hậu mãi cho robot hút bụi, trong 30 ngày đầu, bạn có thể nhắn lại để được hướng dẫn sử dụng, vệ sinh và xử lý các vấn đề liên quan. Ngoài ra, các sản phẩm này thường có bảo hành tiêu chuẩn từ 12 đến 24 tháng theo hãng. Về combo phụ kiện, khi mua robot hút bụi, bạn có thể được gợi ý các vật tư như chổi quét hoặc túi bụi, bạn vui lòng kiểm tra ưu đãi hiện hành trong giỏ hàng nhé.",
+                     "policyIds":  "promotion_bundle_filters,policy_after_sales_30_days",
+                     "embeddingDimensions":  2048,
+                     "rerankTopScore":  4.226562,
+                     "contextDocuments":  6,
+                     "agents":  "lead-agent,storage-memory-agent,history-agent,rag-agent,security-agent,customer-support-agent,sales-agent"
+                 }
+             ]
+}

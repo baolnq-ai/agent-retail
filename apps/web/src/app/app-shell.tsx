@@ -44,16 +44,44 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    setAgentDashboard(window.location.pathname === '/agent-dashboard');
-    const requestedTheme = new URL(window.location.href).searchParams.get('theme');
-    const storedTheme = window.localStorage.getItem('retail-theme');
-    const initialTheme = requestedTheme === 'light' || requestedTheme === 'dark'
-      ? requestedTheme
-      : storedTheme === 'light' || storedTheme === 'dark'
-        ? storedTheme
-      : window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-    setTheme(initialTheme);
-    document.documentElement.dataset.theme = initialTheme;
+    function applyRouteState() {
+      setAgentDashboard(window.location.pathname === '/agent-dashboard');
+      const requestedTheme = new URL(window.location.href).searchParams.get('theme');
+      const storedTheme = window.localStorage.getItem('retail-theme');
+      const nextTheme = requestedTheme === 'light' || requestedTheme === 'dark'
+        ? requestedTheme
+        : storedTheme === 'light' || storedTheme === 'dark'
+          ? storedTheme
+          : window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      setTheme(nextTheme);
+      document.documentElement.dataset.theme = nextTheme;
+    }
+
+    const originalPushState = window.history.pushState;
+    const originalReplaceState = window.history.replaceState;
+    window.history.pushState = function pushStateWithRouteEvent(...args) {
+      const result = originalPushState.apply(this, args);
+      window.dispatchEvent(new Event('retail-route-changed'));
+      return result;
+    };
+    window.history.replaceState = function replaceStateWithRouteEvent(...args) {
+      const result = originalReplaceState.apply(this, args);
+      window.dispatchEvent(new Event('retail-route-changed'));
+      return result;
+    };
+
+    applyRouteState();
+    window.addEventListener('popstate', applyRouteState);
+    window.addEventListener('retail-route-changed', applyRouteState);
+    return () => {
+      window.history.pushState = originalPushState;
+      window.history.replaceState = originalReplaceState;
+      window.removeEventListener('popstate', applyRouteState);
+      window.removeEventListener('retail-route-changed', applyRouteState);
+    };
+  }, []);
+
+  useEffect(() => {
     void refreshSession();
     void refreshProducts();
 

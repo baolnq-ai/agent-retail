@@ -53,5 +53,6 @@ test('lead agent can delegate to every specialist while specialists stay bounded
   assert.ok(getPipelineV2AgentDefinition('cart-agent').reads.includes('postgres'));
   assert.ok(getPipelineV2AgentDefinition('cart-agent').writes.includes('postgres'));
   assert.ok(getPipelineV2AgentDefinition('rag-agent').reads.includes('qdrant'));
-  assert.ok(getPipelineV2AgentDefinition('search-agent').reads.includes('qdrant'));
+  assert.ok(getPipelineV2AgentDefinition('search-agent').reads.includes('postgres'));
+  assert.equal(getPipelineV2AgentDefinition('search-agent').reads.includes('qdrant'), false);
 });

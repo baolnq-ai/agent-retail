@@ -14,7 +14,7 @@ const env = {
   EMBED_RERANK_BASE_URL: 'https://replace-with-your-embed-rerank-gateway.example.invalid',
 };
 
-test('agent chat uses real LLM, embedding, rerank, DB catalog, and cart context', async () => {
+test('agent chat uses real LLM, hard catalog search, DB catalog, and cart context', async () => {
   const child = spawn(process.execPath, ['dist/main.js'], {
     cwd: new URL('..', import.meta.url),
     env,
@@ -31,7 +31,7 @@ test('agent chat uses real LLM, embedding, rerank, DB catalog, and cart context'
     assert.equal(typeof response.messageId, 'string');
     assert.equal(typeof response.model, 'string');
     assert.notEqual(response.model, 'safe-fallback');
-    assert.equal(response.diagnostics.embeddingDimensions > 0, true);
+    assert.equal(response.diagnostics.embeddingDimensions, 0);
     assert.equal(response.diagnostics.contextDocuments > 0, true);
 
     const textBlock = response.blocks.find((block) => block.type === 'text');

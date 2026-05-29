@@ -43,18 +43,54 @@ export class CatalogService {
     const products = await this.listProducts();
     const normalizedQuery = normalize(query);
     const constraints = parseProductConstraints(normalizedQuery);
+    const queryPlan = buildProductQueryPlan(normalizedQuery, products);
+    const scopedProducts = products
+      .filter((product) => constraints.maxPrice === undefined || product.price <= constraints.maxPrice)
+      .filter((product) => constraints.minPrice === undefined || product.price >= constraints.minPrice)
+      .filter((product) => productMatchesQueryPlan(product, queryPlan));
+
+    const strictMatches = scopedProducts
+      .map((product) => ({ product, score: scoreProduct(product, normalizedQuery, constraints, queryPlan, 'strict') }))
+      .filter((item) => item.score > 0)
+      .sort(sortScoredProducts);
+    if (strictMatches.length > 0) return strictMatches.map((item) => item.product);
+
+    const relaxedPlan = relaxQueryPlan(queryPlan);
     return products
       .filter((product) => constraints.maxPrice === undefined || product.price <= constraints.maxPrice)
       .filter((product) => constraints.minPrice === undefined || product.price >= constraints.minPrice)
-      .map((product) => ({ product, score: scoreProduct(product, normalizedQuery, constraints) }))
+      .filter((product) => productMatchesQueryPlan(product, relaxedPlan))
+      .map((product) => ({ product, score: scoreProduct(product, `${normalizedQuery} ${relaxedPlan.expansion ?? ''}`, constraints, relaxedPlan, 'relaxed') }))
       .filter((item) => item.score > 0)
-      .sort((left, right) => right.score - left.score || left.product.price - right.product.price)
+      .sort(sortScoredProducts)
       .map((item) => item.product);
   }
 }
 
 const CATALOG_PRODUCTS_CACHE_KEY = 'catalog:products:v1';
 const CATALOG_PRODUCT_CACHE_KEY_PREFIX = 'catalog:product:v1:';
+
+interface ProductConstraints {
+  minPrice?: number;
+  maxPrice?: number;
+  roomSizeM2?: number;
+}
+
+interface ProductQueryPlan {
+  expansion?: string;
+  requiredBrand?: string;
+  requiredFamily?: ProductFamily;
+}
+
+interface ProductFamily {
+  key: 'air_purifier' | 'air_cooling' | 'rice_cooker' | 'air_fryer' | 'vacuum' | 'camera' | 'health_scale' | 'personal_care' | 'blender';
+  expansion: string;
+  productPattern: RegExp;
+  intentPattern: RegExp;
+  exactProductPattern?: RegExp;
+}
+
+type MatchMode = 'strict' | 'relaxed';
 
 function toProduct(product: DbProduct): Product {
   return {
@@ -70,74 +106,123 @@ function toProduct(product: DbProduct): Product {
   };
 }
 
-interface ProductConstraints {
-  minPrice?: number;
-  maxPrice?: number;
+function buildProductQueryPlan(normalizedQuery: string, products: Product[]): ProductQueryPlan {
+  const requiredFamily = detectProductFamily(normalizedQuery);
+  const requiredBrand = detectBrandFacet(normalizedQuery, products);
+  return { requiredBrand, requiredFamily, expansion: requiredFamily?.expansion };
 }
 
-function scoreProduct(product: Product, normalizedQuery: string, constraints: ProductConstraints): number {
-  const haystack = normalize(`${product.title} ${product.brand} ${product.category} ${product.description} ${Object.values(product.attributes).join(' ')}`);
-  const meaningfulTokens = normalizedQuery
-    .split(/\s+/)
-    .filter((token) => token.length > 1 && !['sản', 'phẩm', 'dưới', 'trên', 'tầm', 'khoảng', 'triệu', 'tr'].includes(token));
-  const tokenScore = meaningfulTokens.reduce((score, token) => score + (haystack.includes(token) ? 1 : 0), 0);
-  const roomScore = normalizedQuery.includes('25m2') && haystack.includes('25-35m2') ? 5 : 0;
-  const budgetScore = constraints.maxPrice !== undefined ? 3 : 0;
-  const flagshipAirScore = normalizedQuery.includes('máy lọc') && normalizedQuery.includes('25m2') && normalize(product.title).includes('airoclean p35') ? 8 : 0;
+function relaxQueryPlan(queryPlan: ProductQueryPlan): ProductQueryPlan {
+  if (!queryPlan.requiredFamily) return queryPlan;
+  return { ...queryPlan, requiredBrand: undefined };
+}
 
-  return tokenScore + roomScore + budgetScore + flagshipAirScore;
+function productMatchesQueryPlan(product: Product, queryPlan: ProductQueryPlan): boolean {
+  if (queryPlan.requiredBrand && normalize(product.brand) !== queryPlan.requiredBrand) return false;
+  if (queryPlan.requiredFamily && !productMatchesFamily(product, queryPlan.requiredFamily)) return false;
+  return true;
+}
+
+function scoreProduct(product: Product, normalizedQuery: string, constraints: ProductConstraints, queryPlan: ProductQueryPlan, mode: MatchMode): number {
+  const haystack = normalize(productText(product));
+  const haystackTokens = new Set(haystack.split(/\s+/));
+  const meaningfulTokens = queryTokens(normalizedQuery);
+  const tokenScore = meaningfulTokens.reduce((score, token) => score + (haystackTokens.has(token) ? 2 : haystack.includes(token) && token.length >= 4 ? 1 : 0), 0);
+  const familyScore = queryPlan.requiredFamily && productMatchesFamily(product, queryPlan.requiredFamily) ? 16 : 0;
+  const exactProductScore = queryPlan.requiredFamily?.exactProductPattern?.test(haystack) ? 18 : 0;
+  const needFitScore = scoreNeedFit(haystack, normalizedQuery);
+  const brandScore = queryPlan.requiredBrand && normalize(product.brand) === queryPlan.requiredBrand ? 14 : 0;
+  const roomScore = constraints.roomSizeM2 ? scoreRoomFit(haystack, constraints.roomSizeM2) : 0;
+  const budgetScore = constraints.maxPrice !== undefined && (tokenScore > 0 || familyScore > 0 || brandScore > 0) ? 3 : 0;
+  const relaxedPenalty = mode === 'relaxed' ? -4 : 0;
+  return tokenScore + familyScore + exactProductScore + needFitScore + brandScore + roomScore + budgetScore + relaxedPenalty;
+}
+
+function sortScoredProducts(left: { product: Product; score: number }, right: { product: Product; score: number }): number {
+  return right.score - left.score || left.product.price - right.product.price;
+}
+
+function detectProductFamily(normalizedQuery: string): ProductFamily | undefined {
+  return PRODUCT_FAMILIES.find((family) => family.intentPattern.test(normalizedQuery));
+}
+
+function detectBrandFacet(normalizedQuery: string, products: Product[]): string | undefined {
+  const brands = [...new Set(products.map((product) => normalize(product.brand)).filter((brand) => brand.length > 1))]
+    .sort((left, right) => right.length - left.length);
+  return brands.find((brand) => new RegExp(`(?:^|\\s)${escapeRegExp(brand)}(?:\\s|$)`).test(normalizedQuery));
+}
+
+function productMatchesFamily(product: Product, family: ProductFamily): boolean {
+  return family.productPattern.test(normalize(productText(product)));
+}
+
+function productText(product: Product): string {
+  return `${product.title} ${product.brand} ${product.category} ${product.description} ${Object.values(product.attributes).join(' ')}`;
 }
 
 function parseProductConstraints(normalizedQuery: string): ProductConstraints {
   return {
     minPrice: parseMinPrice(normalizedQuery),
     maxPrice: parseMaxPrice(normalizedQuery),
+    roomSizeM2: parseRoomSize(normalizedQuery),
   };
 }
 
+function parseRoomSize(normalizedQuery: string): number | undefined {
+  const match = normalizedQuery.match(/(\d+)\s*(?:m2|m²|m vuong|met vuong)\b/);
+  return match ? Number.parseInt(match[1], 10) : undefined;
+}
+
+function scoreRoomFit(haystack: string, roomSizeM2: number): number {
+  const rangeMatch = haystack.match(/(\d+)\s*-\s*(\d+)\s*m2/);
+  if (rangeMatch) {
+    const min = Number.parseInt(rangeMatch[1], 10);
+    const max = Number.parseInt(rangeMatch[2], 10);
+    if (roomSizeM2 >= min && roomSizeM2 <= max) return 8;
+    if (Math.abs(roomSizeM2 - max) <= 5 || Math.abs(roomSizeM2 - min) <= 5) return 4;
+  }
+  const underMatch = haystack.match(/(?:duoi|toi da)\s*(\d+)\s*m2/);
+  if (underMatch) {
+    const max = Number.parseInt(underMatch[1], 10);
+    if (roomSizeM2 <= max) return 6;
+    if (roomSizeM2 <= max + 5) return 2;
+  }
+  if (roomSizeM2 >= 22 && /phong ngu vua|can ho can lam mat nhanh|phong khach thong thoang|30 lit|40 lit|45 lit|50 lit/.test(haystack)) return 4;
+  return 0;
+}
+
+function scoreNeedFit(haystack: string, normalizedQuery: string): number {
+  if (/(canh bao|bao dong|cua ra vao|cam bien|mo cua|theo doi cua)/.test(normalizedQuery)
+    && /(cam bien cua|door|window sensor|aqara|matter|thread)/.test(haystack)) return 24;
+  if (/(cham soc ca nhan|bo me|nguoi lon tuoi|de dung|it thao tac|suc khoe)/.test(normalizedQuery)
+    && /(can suc khoe|can thong minh|body composition|beurer|ban chai|may say toc)/.test(haystack)) return 12;
+  return 0;
+}
+
 function parseMinPrice(normalizedQuery: string): number | undefined {
-  const asciiMillionMatch = normalizedQuery.match(/(?:tren|hon|lon hon|>=|tu)\s*(\d+(?:[,.]\d+)?)\s*(?:trieu|tr)\b/);
-  if (asciiMillionMatch) {
-    return Math.round(Number.parseFloat(asciiMillionMatch[1].replace(',', '.')) * 1_000_000);
-  }
+  const millionMatch = normalizedQuery.match(/(?:tren|hon|lon hon|>=|tu)\s*(\d+(?:[,.]\d+)?)\s*(?:trieu|tr)\b/);
+  if (millionMatch) return Math.round(Number.parseFloat(millionMatch[1].replace(',', '.')) * 1_000_000);
 
-  const millionMatch = normalizedQuery.match(/(?:trên|hơn|lớn hơn|>=|từ)\s*(\d+(?:[,.]\d+)?)\s*(?:triệu|tr)\b/);
-  if (millionMatch) {
-    return Math.round(Number.parseFloat(millionMatch[1].replace(',', '.')) * 1_000_000);
-  }
-
-  const vndMatch = normalizedQuery.match(/(?:trên|hơn|lớn hơn|>=|từ)\s*(\d{1,3}(?:[.,]\d{3})+)\s*(?:đ|vnd|vnđ)?/);
-  if (vndMatch) {
-    return Number.parseInt(vndMatch[1].replace(/[.,]/g, ''), 10);
-  }
-
-  return undefined;
+  const vndMatch = normalizedQuery.match(/(?:tren|hon|lon hon|>=|tu)\s*(\d{1,3}(?:[.,]\d{3})+)\s*(?:d|vnd|vnd)?/);
+  return vndMatch ? Number.parseInt(vndMatch[1].replace(/[.,]/g, ''), 10) : undefined;
 }
 
 function parseMaxPrice(normalizedQuery: string): number | undefined {
   if (/(?:tren|hon|lon hon|>=|tu)\s*\d/.test(normalizedQuery)) return undefined;
-  const asciiMillionMatch = normalizedQuery.match(/(?:duoi|khong qua|toi da|<=|it hon|tam|khoang)?\s*(\d+(?:[,.]\d+)?)\s*(?:trieu|tr)\b/);
-  if (asciiMillionMatch) {
-    return Math.round(Number.parseFloat(asciiMillionMatch[1].replace(',', '.')) * 1_000_000);
-  }
+  const millionMatch = normalizedQuery.match(/(?:duoi|khong qua|toi da|<=|it hon|tam|khoang)?\s*(\d+(?:[,.]\d+)?)\s*(?:trieu|tr)\b/);
+  if (millionMatch) return Math.round(Number.parseFloat(millionMatch[1].replace(',', '.')) * 1_000_000);
 
-  if (/(?:trên|hơn|lớn hơn|>=|từ)\s*\d/.test(normalizedQuery)) return undefined;
-  const millionMatch = normalizedQuery.match(/(?:dưới|không quá|tối đa|<=|ít hơn|tầm|khoảng)?\s*(\d+(?:[,.]\d+)?)\s*(?:triệu|tr)\b/);
-  if (millionMatch) {
-    return Math.round(Number.parseFloat(millionMatch[1].replace(',', '.')) * 1_000_000);
-  }
+  const compactMatch = normalizedQuery.match(/(?:duoi|khong qua|toi da|<=|it hon|tam|khoang)?\s*(\d+)\s*tr\b/);
+  if (compactMatch) return Number.parseInt(compactMatch[1], 10) * 1_000_000;
 
-  const compactMatch = normalizedQuery.match(/(?:dưới|không quá|tối đa|<=|ít hơn|tầm|khoảng)?\s*(\d+)\s*tr\b/);
-  if (compactMatch) {
-    return Number.parseInt(compactMatch[1], 10) * 1_000_000;
-  }
+  const vndMatch = normalizedQuery.match(/(?:duoi|khong qua|toi da|<=|it hon|tam|khoang)?\s*(\d{1,3}(?:[.,]\d{3})+)\s*(?:d|vnd|vnd)?/);
+  return vndMatch ? Number.parseInt(vndMatch[1].replace(/[.,]/g, ''), 10) : undefined;
+}
 
-  const vndMatch = normalizedQuery.match(/(?:dưới|không quá|tối đa|<=|ít hơn|tầm|khoảng)?\s*(\d{1,3}(?:[.,]\d{3})+)\s*(?:đ|vnd|vnđ)?/);
-  if (vndMatch) {
-    return Number.parseInt(vndMatch[1].replace(/[.,]/g, ''), 10);
-  }
-
-  return undefined;
+function queryTokens(value: string): string[] {
+  return value
+    .split(/\s+/)
+    .filter((token) => token.length > 1 && !STOP_WORDS.has(token) && !/^\d+$/.test(token));
 }
 
 function normalize(value: string): string {
@@ -146,6 +231,101 @@ function normalize(value: string): string {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'd')
     .replace(/\s+/g, ' ')
     .trim();
 }
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+const STOP_WORDS = new Set([
+  'ban',
+  'cho',
+  'toi',
+  'minh',
+  'can',
+  'muon',
+  'tim',
+  'kiem',
+  'vai',
+  've',
+  'di',
+  'tam',
+  'khoang',
+  'duoi',
+  'tren',
+  'hon',
+  'san',
+  'pham',
+  'cai',
+  'mon',
+  'nha',
+  'nguoi',
+  'cua',
+  'hang',
+  'trieu',
+  'tr',
+]);
+
+const PRODUCT_FAMILIES: ProductFamily[] = [
+  {
+    key: 'rice_cooker',
+    expansion: 'noi com dien rice cooker nau com bep dien',
+    intentPattern: /\b(noi com|rice cooker)\b/,
+    productPattern: /\b(noi com|rice cooker)\b/,
+    exactProductPattern: /\bnoi com dien\b/,
+  },
+  {
+    key: 'air_fryer',
+    expansion: 'noi chien khong dau air fryer chien nuong nha bep',
+    intentPattern: /\b(noi chien|air fryer)\b/,
+    productPattern: /\b(noi chien|air fryer)\b/,
+  },
+  {
+    key: 'air_cooling',
+    expansion: 'quat dieu hoa quat lam mat lam mat phong',
+    intentPattern: /\b(may lanh|dieu hoa|air conditioner|cooling|lam mat|quat|nong|oi|hoi bi|bi nong|bi oi|mua nong|tiet kiem dien)\b/,
+    productPattern: /\b(quat|quat dieu hoa|quat lam mat|lam mat bay hoi|cooling|cool|30 lit|40 lit|45 lit|50 lit|remote|dao gio)\b/,
+    exactProductPattern: /\b(quat dieu hoa|quat lam mat)\b/,
+  },
+  {
+    key: 'vacuum',
+    expansion: 'may hut bui robot hut bui ve sinh nha cua lau nha',
+    intentPattern: /\b(hut bui|robot hut|lau nha|vacuum|nha sach|lam sach nha|lam sach san|don nha|don dep|san nha|san gach|nen nha|long thu cung|toc rung|meo|thu cung|ve sinh nha)\b/,
+    productPattern: /\b(hut bui|robot hut|ve sinh|lau nha|vacuum)\b/,
+  },
+  {
+    key: 'air_purifier',
+    expansion: 'may loc khong khi loc bui hepa pm2 5 phong ngu phong khach',
+    intentPattern: /\b(may loc|loc khong khi|air purifier|bui|min|pm2|di ung|khong khi|mui|tre so sinh|em be|nom am|phong kin|phong ngu)\b/,
+    productPattern: /\b(may loc|loc khong khi|loc khi|khong khi|hepa|pm2|air purifier)\b/,
+    exactProductPattern: /\bmay loc khong khi\b/,
+  },
+  {
+    key: 'camera',
+    expansion: 'camera wifi an ninh quan sat trong nha',
+    intentPattern: /\b(camera|quan sat|an ninh|smart home|bao dong|canh bao|cua ra vao|cam bien|qua app|dien thoai)\b/,
+    productPattern: /\b(camera|wifi|an ninh|cam bien cua|bao dong|doorbell|chuong hinh|aqara|tp-link|tapo|ezviz|imou|homekit|zigbee|matter|thread)\b/,
+    exactProductPattern: /\b(camera|cam bien cua|doorbell|chuong hinh|aqara|tapo|ezviz|imou|homekit|zigbee|matter|thread)\b/,
+  },
+  {
+    key: 'health_scale',
+    expansion: 'can suc khoe can thong minh theo doi co the',
+    intentPattern: /\b(can suc khoe|can thong minh|body composition|scale|nguoi lon tuoi|suc khoe|chu to|it thao tac|de dung)\b/,
+    productPattern: /\b(can suc khoe|can thong minh|body composition|scale)\b/,
+  },
+  {
+    key: 'personal_care',
+    expansion: 'cham soc ca nhan may say toc ban chai dien can suc khoe qua tang bo me',
+    intentPattern: /\b(cham soc ca nhan|bo me|qua tang nho gon|cong tac|du lich|may say toc|ban chai dien)\b/,
+    productPattern: /\b(cham soc ca nhan|may say toc|say toc|ban chai|can suc khoe|can thong minh|body composition|oral|beurer|dyson|philips hp|panasonic eh)\b/,
+  },
+  {
+    key: 'blender',
+    expansion: 'may xay sinh to may ep xay da nha bep',
+    intentPattern: /\b(may xay|may ep|xay sinh to|blender)\b/,
+    productPattern: /\b(may xay|may ep|xay sinh to|blender)\b/,
+  },
+];

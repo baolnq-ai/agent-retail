@@ -30,7 +30,7 @@ try {
       if (index <= 20) return exactCase(index);
       if (index <= 40) return filterCase(index);
       if (index <= 60) return lexicalCase(index);
-      if (index <= 80) return semanticFallbackCase(index);
+      if (index <= 80) return broadLexicalCase(index);
       if (index <= 90) return noResultCase(index);
       return historyCase(index);
     });
@@ -74,13 +74,13 @@ async function lexicalCase(index) {
   assert.equal(result.candidates[0].productId, productIds.kitchen);
 }
 
-async function semanticFallbackCase(index) {
-  const result = await search.runGoal({ requestId: req(index), userId, query: `may lam sach bui phong ngu z${index}99`, fallbackPolicy: 'embedding_if_low_recall' });
+async function broadLexicalCase(index) {
+  const result = await search.runGoal({ requestId: req(index), userId, query: `may lam sach bui phong ngu z${index}99`, fallbackPolicy: 'broad_lexical_if_low_recall' });
   assert.equal(result.status, 'completed');
-  assert.equal(result.matchType, 'semantic_fallback');
-  assert.equal(result.usedLanes.includes('embedding'), true);
-  assert.equal(result.issues.some((issue) => issue.code === 'qdrant_embedding_used'), true);
-  assert.match(result.handoff.leadInstruction, /no exact product\/name was found/i);
+  assert.equal(result.matchType, 'strong_lexical');
+  assert.equal(result.usedLanes.includes('embedding'), false);
+  assert.equal(result.usedLanes.includes('lexical'), true);
+  assert.equal(result.candidates.some((item) => item.productId === productIds.airMini), true);
 }
 
 async function noResultCase(index) {

@@ -27,8 +27,6 @@ export const PIPELINE_SERVER_TOOLS: PipelineToolRegistryDefinition[] = [
   tool('history.resolve_reference', 'history-agent', 'none', true, false, 3000, 'read_retry', 'history reference resolution'),
   tool('catalog.resolve_product', 'search-agent', 'none', false, false, 3000, 'read_retry', 'catalog product resolution'),
   tool('catalog.search_hard', 'search-agent', 'none', false, false, 3000, 'read_retry', 'hard catalog search'),
-  tool('catalog.search_semantic', 'search-agent', 'none', false, false, 5000, 'read_retry', 'semantic catalog fallback'),
-  tool('catalog.rerank', 'search-agent', 'none', false, false, 5000, 'read_retry', 'candidate rerank'),
   tool('recommendation.score', 'recommendation-agent', 'none', true, false, 5000, 'read_retry', 'recommendation scoring'),
   tool('rag.search_policy', 'rag-agent', 'none', false, false, 5000, 'read_retry', 'rag policy search'),
   tool('rag.review_path', 'rag-agent', 'none', false, false, 8000, 'read_retry', 'rag path review'),

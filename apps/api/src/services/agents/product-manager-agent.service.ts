@@ -54,11 +54,14 @@ export class ProductManagerAgentService {
       };
     }
 
-    const searchedProducts = await this.catalogService.searchProducts(query);
+    const relatedFamily = detectRelatedProductFamily(params.message);
+    const searchQuery = relatedFamily ? `${query} ${relatedFamily.expansion}` : query;
+    const searchedProducts = await this.catalogService.searchProducts(searchQuery);
     const excludedProductIds = buildExcludedProductIds(params.analysis, params.memoryInvestigation, params.cart);
+    const familyScopedProducts = relatedFamily ? searchedProducts.filter((product) => productMatchesFamily(product, relatedFamily)) : searchedProducts;
     const candidates = params.analysis.retrievalMode === 'alternatives'
-      ? searchedProducts.filter((product) => !excludedProductIds.includes(product.id))
-      : searchedProducts;
+      ? familyScopedProducts.filter((product) => !excludedProductIds.includes(product.id))
+      : familyScopedProducts;
     const cappedCandidates = candidates.slice(0, 8);
     const selectedProducts = ensureProductSelection(selectProductsForRequest(params.message, cappedCandidates, params.analysis), cappedCandidates, params.message, params.analysis);
 
@@ -69,10 +72,11 @@ export class ProductManagerAgentService {
       selectedProducts,
       excludedProductIds,
       evidence: [
-        `Query: ${query}`,
+        `Query: ${searchQuery}`,
+        relatedFamily ? `Related family: ${relatedFamily.key}` : '',
         `Candidates: ${cappedCandidates.length}`,
         selectedProducts.length ? `Selected: ${selectedProducts.map((product) => product.title).join(', ')}` : 'Không chọn được sản phẩm phù hợp.',
-      ],
+      ].filter(Boolean),
       confidence: selectedProducts.length > 0 ? 0.78 : 0.3,
     };
   }
@@ -161,10 +165,91 @@ function uniqueStrings(values: string[]): string[] {
   return [...new Set(values)];
 }
 
+type RelatedProductFamily = {
+  key: 'air_purifier' | 'air_cooling' | 'rice_cooker' | 'air_fryer' | 'vacuum' | 'camera' | 'health_scale' | 'personal_care' | 'blender';
+  expansion: string;
+  productPattern: RegExp;
+  intentPattern: RegExp;
+};
+
+function detectRelatedProductFamily(message: string): RelatedProductFamily | undefined {
+  const normalizedMessage = stripVietnamese(normalize(message));
+  return PRODUCT_FAMILIES.find((family) => family.intentPattern.test(normalizedMessage));
+}
+
+function productMatchesFamily(product: Product, family: RelatedProductFamily): boolean {
+  return family.productPattern.test(stripVietnamese(normalize(`${product.title} ${product.brand} ${product.category} ${product.description} ${Object.values(product.attributes).join(' ')}`)));
+}
+
+const PRODUCT_FAMILIES: RelatedProductFamily[] = [
+  {
+    key: 'rice_cooker',
+    expansion: 'noi com dien rice cooker nau com bep dien',
+    intentPattern: /\b(noi com|rice cooker)\b/,
+    productPattern: /\b(noi com|rice cooker)\b/,
+  },
+  {
+    key: 'air_fryer',
+    expansion: 'noi chien khong dau air fryer chien nuong nha bep',
+    intentPattern: /\b(noi chien|air fryer)\b/,
+    productPattern: /\b(noi chien|air fryer)\b/,
+  },
+  {
+    key: 'air_cooling',
+    expansion: 'quat dieu hoa quat lam mat lam mat phong',
+    intentPattern: /\b(may lanh|dieu hoa|air conditioner|cooling|lam mat|quat|nong|oi|hoi bi|bi nong|bi oi|mua nong|tiet kiem dien)\b/,
+    productPattern: /\b(quat|quat dieu hoa|quat lam mat|lam mat bay hoi|cooling|cool|30 lit|40 lit|45 lit|50 lit|remote|dao gio)\b/,
+  },
+  {
+    key: 'vacuum',
+    expansion: 'may hut bui robot hut bui ve sinh nha cua lau nha',
+    intentPattern: /\b(hut bui|robot hut|lau nha|vacuum|nha sach|lam sach nha|lam sach san|don nha|don dep|san nha|san gach|nen nha|long thu cung|toc rung|meo|thu cung|ve sinh nha)\b/,
+    productPattern: /\b(hut bui|robot hut|ve sinh|lau nha|vacuum)\b/,
+  },
+  {
+    key: 'air_purifier',
+    expansion: 'may loc khong khi loc bui hepa pm2 5 phong ngu phong khach',
+    intentPattern: /\b(may loc|loc khong khi|air purifier|bui|min|pm2|di ung|khong khi|mui|tre so sinh|em be|nom am|phong kin|phong ngu)\b/,
+    productPattern: /\b(may loc|loc khong khi|loc khi|khong khi|hepa|pm2|air purifier)\b/,
+  },
+  {
+    key: 'camera',
+    expansion: 'camera wifi an ninh quan sat trong nha',
+    intentPattern: /\b(camera|quan sat|an ninh|smart home|bao dong|canh bao|cua ra vao|cam bien|qua app|dien thoai)\b/,
+    productPattern: /\b(camera|wifi|an ninh|cam bien cua|bao dong|doorbell|chuong hinh|aqara|tp-link|tapo|ezviz|imou|homekit|zigbee|matter|thread)\b/,
+  },
+  {
+    key: 'health_scale',
+    expansion: 'can suc khoe can thong minh theo doi co the',
+    intentPattern: /\b(can suc khoe|can thong minh|body composition|scale|nguoi lon tuoi|suc khoe|chu to|it thao tac|de dung)\b/,
+    productPattern: /\b(can suc khoe|can thong minh|body composition|scale)\b/,
+  },
+  {
+    key: 'personal_care',
+    expansion: 'cham soc ca nhan may say toc ban chai dien can suc khoe qua tang bo me',
+    intentPattern: /\b(cham soc ca nhan|bo me|qua tang nho gon|cong tac|du lich|may say toc|ban chai dien)\b/,
+    productPattern: /\b(cham soc ca nhan|may say toc|say toc|ban chai|can suc khoe|can thong minh|body composition|oral|beurer|dyson|philips hp|panasonic eh)\b/,
+  },
+  {
+    key: 'blender',
+    expansion: 'may xay sinh to may ep xay da nha bep',
+    intentPattern: /\b(may xay|may ep|xay sinh to|blender)\b/,
+    productPattern: /\b(may xay|may ep|xay sinh to|blender)\b/,
+  },
+];
+
 function extractProductIds(value: string): string[] {
   return uniqueStrings(value.match(/prod_[a-z0-9_]+/gi)?.map((productId) => productId.toLocaleLowerCase('vi-VN')) ?? []);
 }
 
 function normalize(value: string): string {
   return value.toLocaleLowerCase('vi-VN').replace(/\s+/g, ' ').trim();
+}
+
+function stripVietnamese(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'd');
 }

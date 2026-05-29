@@ -4,7 +4,9 @@
 
 | Ngày | Service | Log |
 | --- | --- | --- |
+| 2026-05-29 | agent-pipeline-rag-100q | [logs-coding/agent-pipeline-rag-100q-20260529.md](logs-coding/agent-pipeline-rag-100q-20260529.md) |
 | 2026-05-29 | redis-catalog-cache | [logs-coding/redis-catalog-cache-20260529.md](logs-coding/redis-catalog-cache-20260529.md) |
+| 2026-05-29 | business-rag-agent | [logs-coding/business-rag-agent-20260529.md](logs-coding/business-rag-agent-20260529.md) |
 
 - Cập nhật: 2026-05-29
 - Phạm vi: logs thông tin cho backend, không phải log lỗi/runtime raw.

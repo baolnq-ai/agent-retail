@@ -8378,3 +8378,157 @@ body::-webkit-scrollbar:horizontal {
     display: none !important;
   }
 }
+
+/* Light-mode readability and retail typography cleanup. */
+.commerce-brand strong,
+.commerce-nav a,
+.commerce-account-actions a,
+.commerce-account-actions button,
+.app-shell:has(.product-led-home) .commerce-brand strong,
+.app-shell:has(.product-led-home) .commerce-nav a,
+.app-shell:has(.product-led-home) .commerce-account-actions a,
+.app-shell:has(.product-led-home) .commerce-account-actions button {
+  font-weight: 680 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.commerce-brand strong,
+.app-shell:has(.product-led-home) .commerce-brand strong {
+  font-size: 14px !important;
+  font-weight: 720 !important;
+}
+
+.commerce-nav a,
+.commerce-account-actions a,
+.commerce-account-actions button,
+.auth-tabs button,
+.account-auth-form label,
+.memory-metrics span,
+.trace-metric span,
+.trace-list-block > span,
+.agent-dashboard-tabs button,
+.prompt-editor-actions button,
+.trace-flow-agents button {
+  font-weight: 620 !important;
+  text-transform: none !important;
+}
+
+.eyebrow {
+  font-weight: 650 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: none !important;
+}
+
+.account-auth-copy h1,
+.agent-dashboard-hero h1 {
+  max-width: 720px !important;
+  font-size: clamp(30px, 4.2vw, 48px) !important;
+  font-weight: 650 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.08 !important;
+}
+
+.account-auth-copy > p,
+.agent-dashboard-hero p {
+  max-width: 640px !important;
+  font-size: clamp(14px, 1.15vw, 16px) !important;
+  line-height: 1.65 !important;
+}
+
+.auth-form-heading h2,
+.agent-graph-card .section-heading h2,
+.trace-panel h3 {
+  font-weight: 650 !important;
+  letter-spacing: 0 !important;
+}
+
+.account-benefits span,
+.account-auth-form input,
+.account-auth-card button,
+.agent-dashboard-hero button,
+.trace-metric strong {
+  font-weight: 650 !important;
+}
+
+:root[data-theme='light'] .commerce-main:has(.account-auth-page),
+:root[data-theme='light'] .commerce-main:has(.agent-dashboard-shell) {
+  color: #0d1f17 !important;
+}
+
+:root[data-theme='light'] .account-auth-copy,
+:root[data-theme='light'] .account-auth-card,
+:root[data-theme='light'] .agent-dashboard-hero,
+:root[data-theme='light'] .agent-trace-summary,
+:root[data-theme='light'] .agent-graph-card,
+:root[data-theme='light'] .trace-panel {
+  border-color: rgba(13, 148, 91, 0.18) !important;
+  color: #f3fff8 !important;
+  background: linear-gradient(145deg, rgba(15, 42, 30, 0.96), rgba(6, 22, 15, 0.96)) !important;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.16) !important;
+}
+
+:root[data-theme='light'] .account-auth-copy h1,
+:root[data-theme='light'] .auth-form-heading h2,
+:root[data-theme='light'] .account-dashboard-card h2,
+:root[data-theme='light'] .agent-dashboard-hero h1,
+:root[data-theme='light'] .agent-graph-card .section-heading h2,
+:root[data-theme='light'] .trace-panel h3 {
+  color: #f8fff9 !important;
+}
+
+:root[data-theme='light'] .account-auth-copy p,
+:root[data-theme='light'] .auth-form-heading p,
+:root[data-theme='light'] .account-auth-form label,
+:root[data-theme='light'] .account-auth-form small,
+:root[data-theme='light'] .status-text,
+:root[data-theme='light'] .account-memory-card small,
+:root[data-theme='light'] .agent-dashboard-hero p,
+:root[data-theme='light'] .agent-graph-card .section-heading span,
+:root[data-theme='light'] .trace-metric span,
+:root[data-theme='light'] .trace-list-block > span,
+:root[data-theme='light'] .trace-panel p {
+  color: rgba(231, 255, 241, 0.74) !important;
+}
+
+:root[data-theme='light'] .account-benefits span,
+:root[data-theme='light'] .account-memory-card,
+:root[data-theme='light'] .trace-metric {
+  border-color: rgba(125, 211, 168, 0.18) !important;
+  color: #f3fff8 !important;
+  background: rgba(3, 17, 11, 0.38) !important;
+}
+
+:root[data-theme='light'] .account-auth-form input,
+:root[data-theme='light'] .api-settings-card input {
+  border-color: rgba(13, 148, 91, 0.18) !important;
+  color: #102217 !important;
+  background: rgba(248, 255, 251, 0.96) !important;
+}
+
+:root[data-theme='light'] .auth-tabs {
+  border-color: rgba(13, 148, 91, 0.18) !important;
+  background: rgba(248, 255, 251, 0.92) !important;
+}
+
+:root[data-theme='light'] .auth-tabs button:not(.active) {
+  color: #4d6258 !important;
+}
+
+:root[data-theme='light'] .memory-metrics span,
+:root[data-theme='light'] .trace-metric strong {
+  color: #34e889 !important;
+}
+
+:root[data-theme='light'] .agent-dashboard-tabs button,
+:root[data-theme='light'] .prompt-editor-actions button,
+:root[data-theme='light'] .trace-flow-agents button {
+  color: #eafff3 !important;
+  background: rgba(3, 17, 11, 0.72) !important;
+}
+
+:root[data-theme='light'] .agent-dashboard-tabs button.active,
+:root[data-theme='light'] .prompt-editor-actions button.primary {
+  color: #03110b !important;
+  background: var(--green) !important;
+}

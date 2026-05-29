@@ -28,16 +28,24 @@ export class QdrantService {
   }
 
   async search(collection: string, vector: number[], limit: number): Promise<Array<{ productId: string; score: number }>> {
+    const hits = await this.searchPayload(collection, vector, limit);
+    return hits.flatMap((item) => {
+      const productId = typeof item.payload.productId === 'string' ? item.payload.productId : undefined;
+      return productId ? [{ productId, score: item.score }] : [];
+    });
+  }
+
+  async searchPayload(collection: string, vector: number[], limit: number): Promise<Array<{ score: number; payload: Record<string, unknown> }>> {
     const response = await fetch(`${this.baseUrl}/collections/${collection}/points/search`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ vector, limit, with_payload: true }),
     });
     if (!response.ok) throw new Error(`qdrant search failed: ${response.status}`);
-    const payload = await response.json() as { result?: Array<{ score?: number; payload?: { productId?: string } }> };
-    return (payload.result ?? []).flatMap((item) => {
-      const productId = item.payload?.productId;
-      return productId ? [{ productId, score: Number(item.score ?? 0) }] : [];
-    });
+    const payload = await response.json() as { result?: Array<{ score?: number; payload?: Record<string, unknown> }> };
+    return (payload.result ?? []).map((item) => ({
+      score: Number(item.score ?? 0),
+      payload: item.payload ?? {},
+    }));
   }
 }

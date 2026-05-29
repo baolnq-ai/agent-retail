@@ -13,6 +13,29 @@ test('detectSalesIntent does not recommend from product mention alone', () => {
   assert.equal(detectSalesIntent('sản phẩm trong giỏ hiện tại có gì?'), 'cart_status');
   assert.equal(detectSalesIntent('sản phẩm này bảo hành thế nào?'), 'smalltalk');
   assert.equal(detectSalesIntent('gợi ý 2 sản phẩm dưới 4 triệu'), 'recommend');
+  assert.equal(detectSalesIntent('Sản phẩm lỗi sau 20 ngày thì còn đổi trả hay chỉ bảo hành?'), 'policy');
+  assert.equal(detectSalesIntent('quạt điều hoà cho phòng 24 mét vuông'), 'recommend');
+});
+
+test('user analysis keeps room-area cooling request as product recommendation', async () => {
+  const service = new UserAnalysisAgentService();
+  const analysis = await service.analyze({
+    message: 'quạt điều hoà cho phòng 24 mét vuông',
+    memoryInvestigation: {
+      requiresHistory: false,
+      resolvedReference: 'none',
+      referenceProductIds: [],
+      lastSelectedProductIds: [],
+      lastCartActionProductIds: [],
+      confidence: 0.9,
+    },
+  });
+
+  assert.equal(analysis.intent, 'recommend');
+  assert.equal(analysis.retrievalMode, 'fresh');
+  assert.equal(analysis.shouldShowProducts, true);
+  assert.match(analysis.constraints.category, /quạt|quat/);
+  assert.equal(analysis.constraints.roomSize, '24m2');
 });
 
 test('user analysis resolves new product from memory investigation', async () => {
@@ -407,6 +430,51 @@ test('product manager treats budget number as price not product count', async ()
   });
 
   assert.deepEqual(result.selectedProducts.map((item) => item.id), ['fresh-mini']);
+});
+
+test('product manager maps air conditioner search to air-family products only', async () => {
+  const products = [
+    { id: 'cool-1', title: 'Quat dieu hoa Daikiosan DKA-04000A', brand: 'Daikiosan', category: 'Lam mat', price: 3990000, currency: 'VND', inventory: 3, attributes: { power: '120W' }, description: 'quat lam mat khong khi phong khach' },
+    { id: 'fresh-mini', title: 'FreshHome Mini 20', brand: 'FreshHome', category: 'May loc khong khi', price: 1990000, currency: 'VND', inventory: 3, attributes: { roomSize: '15-22m2' }, description: 'may loc khong khi nho gon phong ngu' },
+    { id: 'kitchen-af', title: 'ChefMax AF55', brand: 'ChefMax', category: 'Thiet bi nha bep', price: 2290000, currency: 'VND', inventory: 3, attributes: { capacity: '5.5L' }, description: 'noi chien khong dau' },
+  ];
+  const catalog = {
+    async searchProducts(query) {
+      assert.match(query, /quat dieu hoa/);
+      return products;
+    },
+  };
+  const service = new ProductManagerAgentService(catalog);
+  const result = await service.resolveProducts({
+    message: 'toi muon tim may lanh',
+    analysis: { intent: 'recommend', retrievalMode: 'fresh', shouldShowProducts: true, references: {}, constraints: { category: 'may lanh' }, confidence: 0.8 },
+    memoryInvestigation: { requiresHistory: false, referenceProductIds: [], lastSelectedProductIds: ['kitchen-af'], lastCartActionProductIds: [], confidence: 0.7 },
+    cart: emptyCart(),
+    allProducts: products,
+  });
+
+  assert.deepEqual(result.candidates.map((item) => item.id), ['cool-1']);
+  assert.deepEqual(result.selectedProducts.map((item) => item.id), ['cool-1']);
+  assert.equal(result.evidence.some((item) => item.includes('air_cooling')), true);
+});
+
+test('product manager rejects blender when customer asks for air purifier', async () => {
+  const products = [
+    { id: 'blender', title: 'May xay sinh to Philips HR2051', brand: 'Philips', category: 'Thiet bi nha bep', price: 690000, currency: 'VND', inventory: 4, attributes: {}, description: 'may xay co ban' },
+    { id: 'air-clean', title: 'May loc khong khi Xiaomi Smart Air Purifier', brand: 'Xiaomi', category: 'May loc khong khi', price: 2990000, currency: 'VND', inventory: 4, attributes: { roomSize: '25m2' }, description: 'loc bui PM2.5 cho phong ngu' },
+  ];
+  const catalog = { async searchProducts() { return products; } };
+  const service = new ProductManagerAgentService(catalog);
+  const result = await service.resolveProducts({
+    message: 'may loc cho nha 4 nguoi',
+    analysis: { intent: 'recommend', retrievalMode: 'fresh', shouldShowProducts: true, references: {}, constraints: { category: 'may loc' }, confidence: 0.8 },
+    memoryInvestigation: { requiresHistory: false, referenceProductIds: [], lastSelectedProductIds: [], lastCartActionProductIds: [], confidence: 0.7 },
+    cart: emptyCart(),
+    allProducts: products,
+  });
+
+  assert.deepEqual(result.candidates.map((item) => item.id), ['air-clean']);
+  assert.deepEqual(result.selectedProducts.map((item) => item.id), ['air-clean']);
 });
 
 test('product manager excludes recent and cart products for alternatives', async () => {

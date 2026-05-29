@@ -99,8 +99,15 @@ function evaluateWithGuardrails(draft: string, products: Product[]): SalesEvalua
   const complaints: string[] = [];
   if (/Recommendation-agent handoff|status=|shouldShowProducts=|presentationIntent=|displayReason=|mustMentionProductIds=/i.test(draft)) complaints.push('Draft lộ internal recommendation handoff/debug.');
   const productTitles = products.map((product) => product.title.toLocaleLowerCase('vi-VN'));
+  const normalizedDraft = draft.toLocaleLowerCase('vi-VN');
+  const mentionsVisibleProduct = products.length === 0
+    || productTitles.some((title) => normalizedDraft.includes(title))
+    || products.some((product) => normalizedDraft.includes(product.brand.toLocaleLowerCase('vi-VN')));
+  if (products.length > 0 && !mentionsVisibleProduct && /cho mình biết thêm|cho tôi biết thêm|nói thêm|ngân sách|tư vấn chính xác|lọc tiếp|nhu cầu cụ thể/i.test(draft)) {
+    complaints.push('Draft hỏi lại chung chung dù product rail đã có sản phẩm đủ tin cậy.');
+  }
   const mentionedOutside = /AiroClean|LumiAir|Windy|ThermoCare|CoolMate|HeatHome/i.test(draft)
-    && productTitles.every((title) => !draft.toLocaleLowerCase('vi-VN').includes(title));
+    && productTitles.every((title) => !normalizedDraft.includes(title));
   if (mentionedOutside) complaints.push('Draft có vẻ nhắc sản phẩm không nằm trong product rail.');
   const pass = complaints.length === 0;
   return {

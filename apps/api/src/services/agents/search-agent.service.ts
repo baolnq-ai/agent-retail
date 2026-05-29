@@ -2,9 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import type { Product } from '../../models/catalog.models.js';
 import type { SearchAgentCandidate, SearchAgentRequest, SearchAgentResult, SearchLane, SearchMatchType } from '../../models/agent-execution.models.js';
-import { ModelGatewayService } from '../model-gateway.service.js';
 import { PrismaService } from '../prisma.service.js';
-import { QdrantService } from '../qdrant.service.js';
 
 type SearchClient = {
   product: { findMany(args?: Record<string, unknown>): Promise<Array<Record<string, unknown>>>; findUnique(args: Record<string, unknown>): Promise<Record<string, unknown> | null> };
@@ -16,8 +14,6 @@ type SearchClient = {
 export class SearchAgentService {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaService | { client: SearchClient },
-    private readonly modelGatewayService?: ModelGatewayService,
-    private readonly qdrantService?: QdrantService,
   ) {}
 
   async runGoal(params: SearchAgentRequest): Promise<SearchAgentResult> {
@@ -27,47 +23,30 @@ export class SearchAgentService {
 
     const products = await this.loadProducts(params.filters?.productId);
     const filtered = applyHardFilters(products, params.filters);
+    const relatedFamily = params.filters?.productId ? undefined : detectRelatedProductFamily(normalizedQuery);
+    const searchableProducts = relatedFamily ? filtered.filter((product) => productMatchesFamily(product, relatedFamily)) : filtered;
+    const effectiveQuery = relatedFamily ? `${normalizedQuery} ${relatedFamily.expansion}` : normalizedQuery;
     const usedLanes = new Set<SearchLane>();
     const issues: SearchAgentResult['issues'] = [];
     if (params.filters && Object.keys(params.filters).length > 0) usedLanes.add('filter');
+    if (relatedFamily) {
+      issues.push({
+        code: 'related_family_expanded',
+        message: `Search query was expanded inside the ${relatedFamily.key} product family so fallback cannot jump to unrelated categories.`,
+        recoverable: true,
+      });
+    }
 
-    const exact = scoreExact(filtered, normalizedQuery, params.filters?.productId);
+    const exact = scoreExact(searchableProducts, normalizedQuery, params.filters?.productId);
     if (exact.length > 0) usedLanes.add('exact');
 
-    const lexical = scoreLexical(filtered, normalizedQuery);
+    const lexical = scoreLexical(searchableProducts, effectiveQuery);
     if (lexical.length > 0) usedLanes.add('lexical');
 
     let candidates = mergeCandidates([...exact, ...lexical]).slice(0, limit);
     let matchType: SearchMatchType = decideMatchType(candidates, exact.length > 0, usedLanes.has('filter'));
 
-    if (shouldUseEmbeddingFallback(params, candidates, exact.length > 0)) {
-      try {
-        const semantic = await this.searchQdrant(filtered, normalizedQuery, limit);
-        usedLanes.add('embedding');
-        candidates = mergeCandidates([...candidates, ...semantic]).slice(0, limit);
-        matchType = exact.length > 0 ? matchType : 'semantic_fallback';
-        issues.push({
-          code: 'qdrant_embedding_used',
-          message: 'No exact or strong lexical product match was found; Qdrant embedding search returned related candidates.',
-          recoverable: true,
-        });
-        if (isSpecificQuery(normalizedQuery)) {
-          issues.push({
-            code: 'exact_match_not_found',
-            message: 'The requested exact product/name was not found in catalog.',
-            recoverable: true,
-          });
-        }
-      } catch (error) {
-        issues.push({
-          code: 'qdrant_embedding_failed',
-          message: error instanceof Error ? error.message : 'Qdrant embedding search failed.',
-          recoverable: true,
-        });
-      }
-    }
-
-    candidates = verifyCandidates(candidates, filtered, params.filters).slice(0, limit);
+    candidates = verifyCandidates(candidates, searchableProducts, params.filters).slice(0, limit);
     const status = candidates.length > 0 ? 'completed' : 'no_results';
     if (status === 'no_results') {
       issues.push({ code: 'no_results', message: 'No product matched the query and hard filters.', recoverable: true });
@@ -145,28 +124,6 @@ export class SearchAgentService {
     return this.prisma.client as unknown as SearchClient;
   }
 
-  private async searchQdrant(products: Product[], normalizedQuery: string, limit: number): Promise<SearchAgentCandidate[]> {
-    if (!this.modelGatewayService || !this.qdrantService) throw new Error('Qdrant embedding search is not configured.');
-    if (!normalizedQuery || products.length === 0) return [];
-    const productTexts = products.map(productVectorText);
-    const vectors = await this.modelGatewayService.embed([normalizedQuery, ...productTexts]);
-    const queryVector = vectors[0];
-    const productVectors = vectors.slice(1);
-    if (!queryVector?.length) throw new Error('Embedding service returned an empty query vector.');
-    await this.qdrantService.ensureCollection('products', queryVector.length);
-    await this.qdrantService.upsert('products', products.map((product, index) => ({
-      id: pointIdFromProductId(product.id),
-      vector: productVectors[index] ?? queryVector,
-      payload: { productId: product.id, title: product.title, category: product.category, brand: product.brand },
-    })));
-    const byId = new Map(products.map((product) => [product.id, product]));
-    const hits = await this.qdrantService.search('products', queryVector, limit);
-    return hits.flatMap((hit) => {
-      const product = byId.get(hit.productId);
-      if (!product) return [];
-      return [candidate(product, Math.round(hit.score * 100), Math.min(0.86, Math.max(0.45, hit.score)), ['qdrant_vector'], [`qdrant:score=${hit.score.toFixed(4)}`])];
-    });
-  }
 }
 
 function applyHardFilters(products: Product[], filters: SearchAgentRequest['filters']): Product[] {
@@ -229,13 +186,6 @@ function verifyCandidates(candidates: SearchAgentCandidate[], allowedProducts: P
     .filter((item) => !filters?.requireInStock || item.evidence.some((evidence) => !evidence.includes('inventory=0')));
 }
 
-function shouldUseEmbeddingFallback(params: SearchAgentRequest, candidates: SearchAgentCandidate[], exactFound: boolean): boolean {
-  if (params.fallbackPolicy === 'hard_only') return false;
-  if (exactFound) return false;
-  if (isSpecificQuery(normalize(params.query))) return true;
-  return candidates.length < 2 || candidates.every((item) => item.confidence < 0.72);
-}
-
 function decideMatchType(candidates: SearchAgentCandidate[], exactFound: boolean, filtered: boolean): SearchMatchType {
   if (exactFound) return 'exact';
   if (candidates.some((item) => item.confidence >= 0.78)) return 'strong_lexical';
@@ -245,14 +195,6 @@ function decideMatchType(candidates: SearchAgentCandidate[], exactFound: boolean
 
 function buildHandoff(params: { query: string; matchType: SearchMatchType; candidates: SearchAgentCandidate[]; issues: SearchAgentResult['issues'] }): SearchAgentResult['handoff'] {
   const ids = params.candidates.map((item) => item.productId);
-  if (params.matchType === 'semantic_fallback') {
-    return {
-      agentMessage: `No exact catalog match for "${params.query}". Semantic fallback returned related products: ${ids.join(', ') || 'none'}.`,
-      leadInstruction: 'Tell the user no exact product/name was found before presenting similar or related candidates.',
-      allowedClaims: ['No exact match was found.', `Related candidate product ids: ${ids.join(', ')}`],
-      forbiddenClaims: ['Do not say these are exact matches.', 'Do not claim stock/price beyond returned product facts.'],
-    };
-  }
   if (ids.length === 0) {
     return {
       agentMessage: `No products found for "${params.query}".`,
@@ -303,16 +245,16 @@ function matchesAttributes(product: Product, attributes: Record<string, string |
 
 function productFields(product: Product): Record<string, string> {
   return {
-    id: normalize(product.id),
-    title: normalize(product.title),
-    brand: normalize(product.brand),
-    category: normalize(product.category),
-    description: normalize(product.description),
-    attributes: normalize(Object.values(product.attributes).join(' ')),
+    id: stripVietnamese(normalize(product.id)),
+    title: stripVietnamese(normalize(product.title)),
+    brand: stripVietnamese(normalize(product.brand)),
+    category: stripVietnamese(normalize(product.category)),
+    description: stripVietnamese(normalize(product.description)),
+    attributes: stripVietnamese(normalize(Object.values(product.attributes).join(' '))),
   };
 }
 
-function productVectorText(product: Product): string {
+function productSearchText(product: Product): string {
   return [
     product.title,
     product.brand,
@@ -322,24 +264,84 @@ function productVectorText(product: Product): string {
   ].filter(Boolean).join('\n');
 }
 
-function pointIdFromProductId(productId: string): number {
-  let hash = 2166136261;
-  for (const char of productId) {
-    hash ^= char.charCodeAt(0);
-    hash = Math.imul(hash, 16777619);
-  }
-  return hash >>> 0;
-}
-
 function queryTokens(value: string): string[] {
   return stripVietnamese(value).split(/\s+/).filter((token) => token.length > 1 && !STOP_WORDS.has(token));
 }
 
-const STOP_WORDS = new Set(['san', 'pham', 'cai', 'mau', 'cho', 'toi', 'tim', 'kiem', 'co', 'khong', 'duoi', 'tren', 'tam', 'khoang', 'trieu', 'tr']);
+const STOP_WORDS = new Set(['san', 'pham', 'cai', 'mau', 'cho', 'toi', 'minh', 'muon', 'can', 'tim', 'kiem', 'co', 'khong', 'duoi', 'tren', 'tam', 'khoang', 'trieu', 'tr']);
 
-function isSpecificQuery(normalizedQuery: string): boolean {
-  return queryTokens(normalizedQuery).length >= 3 || /[a-z]+\s*\d+/i.test(normalizedQuery);
+type RelatedProductFamily = {
+  key: 'air_purifier' | 'air_cooling' | 'rice_cooker' | 'air_fryer' | 'vacuum' | 'camera' | 'health_scale' | 'personal_care' | 'blender';
+  expansion: string;
+  intentPattern: RegExp;
+  productPattern: RegExp;
+};
+
+function detectRelatedProductFamily(normalizedQuery: string): RelatedProductFamily | undefined {
+  const asciiQuery = stripVietnamese(normalizedQuery);
+  return PRODUCT_FAMILIES.find((family) => family.intentPattern.test(asciiQuery));
 }
+
+function productMatchesFamily(product: Product, family: RelatedProductFamily): boolean {
+  return family.productPattern.test(stripVietnamese(normalize(productSearchText(product))));
+}
+
+const PRODUCT_FAMILIES: RelatedProductFamily[] = [
+  {
+    key: 'rice_cooker',
+    expansion: 'noi com dien rice cooker nau com bep dien',
+    intentPattern: /\b(noi com|rice cooker)\b/,
+    productPattern: /\b(noi com|rice cooker)\b/,
+  },
+  {
+    key: 'air_fryer',
+    expansion: 'noi chien khong dau air fryer chien nuong nha bep',
+    intentPattern: /\b(noi chien|air fryer)\b/,
+    productPattern: /\b(noi chien|air fryer)\b/,
+  },
+  {
+    key: 'air_cooling',
+    expansion: 'quat dieu hoa quat lam mat lam mat phong',
+    intentPattern: /\b(may lanh|dieu hoa|air conditioner|cooling|lam mat|quat|nong|oi|hoi bi|bi nong|bi oi|mua nong|tiet kiem dien)\b/,
+    productPattern: /\b(quat|quat dieu hoa|quat lam mat|lam mat bay hoi|cooling|cool|30 lit|40 lit|45 lit|50 lit|remote|dao gio)\b/,
+  },
+  {
+    key: 'vacuum',
+    expansion: 'may hut bui robot hut bui ve sinh nha cua lau nha',
+    intentPattern: /\b(hut bui|robot hut|lau nha|vacuum|nha sach|lam sach nha|lam sach san|don nha|don dep|san nha|san gach|nen nha|long thu cung|toc rung|meo|thu cung|ve sinh nha)\b/,
+    productPattern: /\b(hut bui|robot hut|ve sinh|lau nha|vacuum)\b/,
+  },
+  {
+    key: 'air_purifier',
+    expansion: 'may loc khong khi loc bui hepa pm2 5 phong ngu phong khach',
+    intentPattern: /\b(may loc|loc khong khi|air purifier|bui|min|pm2|di ung|khong khi|mui|tre so sinh|em be|nom am|phong kin|phong ngu)\b/,
+    productPattern: /\b(may loc|loc khong khi|loc khi|khong khi|hepa|pm2|air purifier)\b/,
+  },
+  {
+    key: 'camera',
+    expansion: 'camera wifi an ninh quan sat trong nha',
+    intentPattern: /\b(camera|quan sat|an ninh|smart home|bao dong|canh bao|cua ra vao|cam bien|qua app|dien thoai)\b/,
+    productPattern: /\b(camera|wifi|an ninh|cam bien cua|bao dong|doorbell|chuong hinh|aqara|tp-link|tapo|ezviz|imou|homekit|zigbee|matter|thread)\b/,
+  },
+  {
+    key: 'health_scale',
+    expansion: 'can suc khoe can thong minh theo doi co the',
+    intentPattern: /\b(can suc khoe|can thong minh|body composition|scale|nguoi lon tuoi|suc khoe|chu to|it thao tac|de dung)\b/,
+    productPattern: /\b(can suc khoe|can thong minh|body composition|scale)\b/,
+  },
+  {
+    key: 'personal_care',
+    expansion: 'cham soc ca nhan may say toc ban chai dien can suc khoe qua tang bo me',
+    intentPattern: /\b(cham soc ca nhan|bo me|qua tang nho gon|cong tac|du lich|may say toc|ban chai dien)\b/,
+    productPattern: /\b(cham soc ca nhan|may say toc|say toc|ban chai|can suc khoe|can thong minh|body composition|oral|beurer|dyson|philips hp|panasonic eh)\b/,
+  },
+  {
+    key: 'blender',
+    expansion: 'may xay sinh to may ep xay da nha bep',
+    intentPattern: /\b(may xay|may ep|xay sinh to|blender)\b/,
+    productPattern: /\b(may xay|may ep|xay sinh to|blender)\b/,
+  },
+];
 
 function includesNormalized(value: string, expected: string): boolean {
   return normalize(value).includes(normalize(expected));

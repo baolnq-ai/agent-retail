@@ -209,10 +209,12 @@ function isProductDiscoveryRequest(normalizedMessage: string): boolean {
   if (/san pham\s+(nay|do|hien tai)?.*bao hanh|bao hanh.*san pham\s+(nay|do|hien tai)?/.test(asciiMessage)) return false;
   if (/abcxyz|\?\?\?|@@@|cai gi do|khong biet nha toi can gi|khong chu de|noi linh tinh/.test(asciiMessage) && !hasNoisyShoppingNeed(asciiMessage)) return false;
   if (isUnsafeOrOutOfScopeMessage(asciiMessage)) return false;
-  const hasProductTerm = /\b(san pham|mon|do|do dien|do gia dung|qua|may|noi|robot|camera|den|quat|bep|thiet bi|hut bui|loc|ve sinh|cam bien|bao dong|smart home|ban chai|cham soc ca nhan|lam mat|quat thap|phong|nha|can ho|chung cu|van phong|bep mo|em be|tre nho)\b/.test(asciiMessage);
+  const hasProductTerm = /\b(san pham|mon|do|do dien|do gia dung|qua|may|noi|robot|camera|den|quat|bep|thiet bi|hut bui|loc|ve sinh|cam bien|bao dong|smart home|ban chai|cham soc ca nhan|lam mat|quat thap|dieu hoa|may lanh|noi com|noi chien|may xay|phong|nha|can ho|chung cu|van phong|bep mo|em be|tre nho)\b/.test(asciiMessage);
   const asksForAdvice = /\b(can|muon|nao|hop|tot|goi y|de xuat|tu van|tim|chon|phu hop|nen mua|dang mua|co gi|co|chi co|ngan sach|gia|duoi|tren|khoang|lap dat|qua app|bao dong|uu tien|dat trong|tac dung|co ich|nho gon|mang di|cong tac|tam|dung duoc|dong nghiep)\b/.test(asciiMessage);
+  const hasUseCaseOrArea = /\b(cho|dung cho|de|phong|nha|can ho|chung cu|van phong|bep|tre|em be|nguoi lon tuoi|thu cung|meo|dien tich)\b/.test(asciiMessage)
+    || /\b\d+\s*(?:m2|m vuong|met vuong|m²)\b/.test(asciiMessage);
   const explicitCartAction = /(\bthem\b|add|bo|mua|xoa|\bgo\b|remove|don|clear|empty|sua|doi|cap nhat|update).*(vao gio|bo vao gio|khoi gio|ra khoi gio|gio hang|cart)|(?:gio hang|cart).*(xoa|\bgo\b|remove|don|clear|empty|sua|doi|cap nhat|update)/.test(asciiMessage);
-  return hasProductTerm && asksForAdvice && !explicitCartAction;
+  return hasProductTerm && (asksForAdvice || hasUseCaseOrArea) && !explicitCartAction;
 }
 
 function isUnsafeOrOutOfScopeMessage(asciiMessage: string): boolean {
@@ -318,7 +320,9 @@ function detectConstraints(normalizedMessage: string): UserAnalysis['constraints
   const over = normalizedMessage.match(/(?:trên|tren|hơn|hon|từ)\s*(\d+(?:[,.]\d+)?)\s*(triệu|tr|k|nghìn|ngàn)?/);
   if (under) constraints.budgetMax = parseMoney(under[1], under[2]);
   if (over) constraints.budgetMin = parseMoney(over[1], over[2]);
-  const roomSize = normalizedMessage.match(/(\d+)\s*m2/);
+  const asciiRoomSize = asciiMessage.match(/(\d+)\s*(?:m2|m vuong|met vuong|m²)\b/);
+  const roomSize = normalizedMessage.match(/(\d+)\s*(?:m2|m²|mét vuông|mét|m vuông)\b/);
+  if (asciiRoomSize) constraints.roomSize = `${asciiRoomSize[1]}m2`;
   if (roomSize) constraints.roomSize = `${roomSize[1]}m2`;
   for (const category of ['máy lọc', 'robot', 'camera', 'đèn', 'quạt', 'nồi', 'bếp']) {
     if (normalizedMessage.includes(category)) constraints.category = category;

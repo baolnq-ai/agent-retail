@@ -94,7 +94,7 @@ export interface AgentTrace {
     selectedProductIds: string[];
     contextDocumentCount: number;
     rerankTopScores: number[];
-    fallbackRanking?: 'lexical';
+    fallbackRanking?: 'keyword' | 'rag_rerank';
   };
   cart: {
     actionType: string;

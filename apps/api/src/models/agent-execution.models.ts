@@ -210,8 +210,8 @@ export interface HistoryRailConsistencyResult {
   unexpectedProductIds: string[];
 }
 
-export type SearchLane = 'exact' | 'filter' | 'lexical' | 'embedding';
-export type SearchMatchType = 'exact' | 'strong_lexical' | 'filtered' | 'semantic_fallback' | 'none';
+export type SearchLane = 'exact' | 'filter' | 'lexical';
+export type SearchMatchType = 'exact' | 'strong_lexical' | 'filtered' | 'none';
 
 export interface SearchAgentRequest {
   requestId: string;
@@ -227,7 +227,7 @@ export interface SearchAgentRequest {
     requireInStock?: boolean;
   };
   limit?: number;
-  fallbackPolicy?: 'hard_only' | 'embedding_if_low_recall';
+  fallbackPolicy?: 'hard_only' | 'broad_lexical_if_low_recall';
 }
 
 export interface SearchAgentCandidate {

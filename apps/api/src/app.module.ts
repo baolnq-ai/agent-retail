@@ -14,6 +14,7 @@ import { AgentHistoryService } from './services/agent-history.service.js';
 import { AgentOrchestratorService } from './services/agent-orchestrator.service.js';
 import { AgentTraceService } from './services/agent-trace.service.js';
 import { AgentQualityGateService } from './services/agents/agent-quality-gate.service.js';
+import { BusinessRagAgentService } from './services/agents/business-rag-agent.service.js';
 import { CartManagerAgentService } from './services/agents/cart-manager-agent.service.js';
 import { CartSqlRagAgentService } from './services/agents/cart-sql-rag-agent.service.js';
 import { CartAgentPrivateToolExecutorService } from './services/agents/cart-agent-private-tool.executor.js';
@@ -71,6 +72,7 @@ import { RedisCacheService } from './services/redis-cache.service.js';
     AgentOrchestratorService,
     AgentTraceService,
     AgentQualityGateService,
+    BusinessRagAgentService,
     CartManagerAgentService,
     CartSqlRagAgentService,
     CartAgentPrivateToolExecutorService,

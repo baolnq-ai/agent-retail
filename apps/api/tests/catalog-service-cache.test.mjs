@@ -41,6 +41,21 @@ test('CatalogService caches product detail by id', async () => {
   assert.deepEqual(secondProduct, firstProduct);
 });
 
+test('CatalogService keeps hard product intent and brand facets before broad fallback', async () => {
+  const service = new CatalogService(fakePrisma(), memoryCache());
+
+  const riceCookers = await service.searchProducts('Ban cho toi vai san pham ve noi com di tam 4 san pham');
+  assert.deepEqual(new Set(riceCookers.slice(0, 2).map((product) => product.id)), new Set(['prod_rice_toshiba', 'prod_rice_sharp']));
+  assert.equal(riceCookers.some((product) => product.id === 'prod_robot'), false);
+
+  const toshibaRiceCooker = await service.searchProducts('duoi 5 trieu la noi com dien cua hang toshiba');
+  assert.deepEqual(toshibaRiceCooker.map((product) => product.id), ['prod_rice_toshiba']);
+
+  const airPurifiers = await service.searchProducts('may loc cho nha 4 nguoi');
+  assert.equal(airPurifiers[0].id, 'prod_air_clean_p35');
+  assert.equal(airPurifiers.some((product) => product.id === 'prod_robot'), false);
+});
+
 function memoryCache() {
   const values = new Map();
   return {
@@ -95,6 +110,36 @@ function dbProducts() {
       inventory: 8,
       attributes: {},
       description: 'Large kitchen oven.',
+    },
+    {
+      id: 'prod_rice_toshiba',
+      title: 'Noi com dien Toshiba RC-18NMFVN',
+      brand: 'Toshiba',
+      category: 'Thiet bi nha bep',
+      price: 1890000,
+      inventory: 7,
+      attributes: { capacity: '1.8L' },
+      description: 'Noi com dien cho gia dinh 4 nguoi.',
+    },
+    {
+      id: 'prod_rice_sharp',
+      title: 'Noi com dien Sharp KS-COM18V',
+      brand: 'Sharp',
+      category: 'Thiet bi nha bep',
+      price: 1590000,
+      inventory: 9,
+      attributes: { capacity: '1.8L' },
+      description: 'Noi com dien nap roi.',
+    },
+    {
+      id: 'prod_robot',
+      title: 'Robot hut bui lau nha',
+      brand: 'Ecovacs',
+      category: 'Ve sinh nha cua',
+      price: 9790000,
+      inventory: 3,
+      attributes: {},
+      description: 'Robot hut bui lau nha.',
     },
   ];
 }

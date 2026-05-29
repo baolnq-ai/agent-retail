@@ -38,7 +38,7 @@ export interface AuthUser {
 
 interface KnowledgeDocument {
   id: string;
-  type: 'policy' | 'faq';
+  type: 'policy' | 'faq' | 'store' | 'promotion' | 'after_sales' | 'warranty' | 'shipping' | 'payment' | 'support';
   title: string;
   content: string;
   trustLevel: 'official';

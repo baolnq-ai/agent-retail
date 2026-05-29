@@ -26,7 +26,7 @@ interface AgentTrace {
     selectedProductIds: string[];
     contextDocumentCount: number;
     rerankTopScores: number[];
-    fallbackRanking?: 'lexical';
+    fallbackRanking?: 'keyword' | 'rag_rerank';
   };
   cart: {
     actionType: string;
@@ -163,7 +163,7 @@ export function AgentDashboardClient() {
         <TraceMetric label="Trạng thái" value={statusText} />
         <TraceMetric label="Ý định" value={trace?.intent ?? 'không có'} />
         <TraceMetric label="Model" value={trace?.llm.model ?? 'đang chờ'} />
-        <TraceMetric label="Xếp hạng lại" value={trace?.retrieval.fallbackRanking ? `dự phòng: ${trace.retrieval.fallbackRanking}` : trace ? 'ổn' : 'không có'} tone={trace?.retrieval.fallbackRanking ? 'warn' : undefined} />
+        <TraceMetric label="Kiểm tra" value={trace?.retrieval.fallbackRanking ? `lọc: ${trace.retrieval.fallbackRanking}` : trace ? 'ổn' : 'không có'} tone={trace?.retrieval.fallbackRanking ? 'warn' : undefined} />
       </div>
 
       {trace ? (
@@ -183,12 +183,12 @@ export function AgentDashboardClient() {
               <ListBlock title="Đề xuất gần đây" items={trace.memory.recentRecommendationIds} />
               <ListBlock title="Khoá sở thích" items={trace.memory.preferenceKeys} />
             </TracePanel>
-            <TracePanel title="Truy xuất/xếp hạng">
+            <TracePanel title="Truy xuất/lọc phù hợp">
               <TraceMetric label="Số ứng viên" value={trace.retrieval.lexicalCandidateIds.length} />
               <TraceMetric label="Sản phẩm đã chọn" value={trace.retrieval.selectedProductIds.length} />
               <TraceMetric label="Tài liệu ngữ cảnh" value={trace.retrieval.contextDocumentCount} />
               <ListBlock title="Mã sản phẩm đã chọn" items={trace.retrieval.selectedProductIds} />
-              <ListBlock title="Điểm rerank cao nhất" items={trace.retrieval.rerankTopScores.map((score) => score.toFixed(3))} />
+              <ListBlock title="Điểm phù hợp cao nhất" items={trace.retrieval.rerankTopScores.map((score) => score.toFixed(3))} />
             </TracePanel>
             <TracePanel title="Quản lý giỏ hàng">
               <TraceMetric label="Hành động" value={trace.cart.actionType} />
@@ -1683,7 +1683,7 @@ function nodePurpose(node: PositionedGraphNode): string {
     'lead-agent': 'Điều phối phiên: đọc task/context, gọi agent phù hợp, nhận kết quả và quyết định bước tiếp theo.',
     'storage-memory-agent': 'His chung: gom bộ nhớ dùng chung, sở thích và tín hiệu gần đây để các agent cùng đọc.',
     'history-agent': 'His riêng của agent: resolve tham chiếu/lịch sử phục vụ nhánh agent đang xử lý.',
-    'search-agent': 'Tìm sản phẩm/tài liệu ứng viên bằng catalog hoặc semantic search.',
+    'search-agent': 'Tìm sản phẩm bằng catalog, keyword facet và nhóm liên quan.',
     'rag-agent': 'Lấy ngữ cảnh chính sách/FAQ/tài liệu để grounding câu trả lời.',
     'recommendation-agent': 'Chấm điểm và chọn gợi ý phù hợp từ ứng viên đã truy xuất.',
     'cart-agent': 'Kiểm tra, lập kế hoạch và ghi thay đổi giỏ hàng qua tool/state.',
@@ -1701,7 +1701,7 @@ function nodePurpose(node: PositionedGraphNode): string {
   if (node.id === 'session-context') return 'His chung: context phiên, lượt chat, sở thích, tóm tắt và tài liệu dùng chung.';
   if (node.id === 'task-context') return 'Task: workspace chung nơi Lead giao việc, agent đọc yêu cầu và ghi kết quả.';
   if (node.id === 'assistant-response') return 'Đầu ra cuối gửi về frontend sau khi Lead/Sales đã tổng hợp.';
-  if (node.id === 'llm-service' || node.kind === 'llm') return 'Model gateway/LLM service dùng để phân loại, rerank hoặc soạn câu trả lời.';
+  if (node.id === 'llm-service' || node.kind === 'llm') return 'Model gateway/LLM service dùng để phân loại hoặc soạn câu trả lời.';
   if (node.kind === 'db' || node.kind === 'vector_db') return databaseRole(node.id);
   if (node.kind === 'tool') return toolRole(node.id);
   if (node.kind === 'text' || node.kind === 'file') return formatNodeDetail(node.detail ?? 'Node dữ liệu trung gian trong phiên.');
@@ -2905,8 +2905,8 @@ function formatNodeDetail(value: string): string {
     .replace('docs', 'tài liệu')
     .replace('sales response', 'trả lời bán hàng')
     .replace('frontend blocks', 'khối frontend')
-    .replace('real embedding', 'embedding thật')
-    .replace('real rerank', 'rerank thật')
+    .replace('real embedding', 'lookup thật')
+    .replace('real rerank', 'lọc thật')
     .replace('policy/faq', 'chính sách/FAQ')
     .replace('recent turns', 'lượt gần đây')
     .replace('keys', 'khoá')
@@ -2952,13 +2952,13 @@ function formatEdgeLabel(value: string | undefined): string {
     'pipeline revise': 'pipeline sua ban nhap',
     'cart.add_item': 'them vao gio',
     'catalog.search_hard': 'tim catalog',
-    'catalog.search_semantic': 'tim semantic',
-    'catalog.rerank': 'xep hang lai',
+    'catalog.search_semantic': 'tim tu khoa mo rong',
+    'catalog.rerank': 'loc phu hop',
     'recommendation.score': 'cham diem goi y',
     'security.review_output': 'kiem duyet dau ra',
     'support.handle_case': 'xu ly ho tro',
     'rag.search_policy': 'tra chinh sach RAG',
-    'semantic fallback': 'tim semantic du phong',
+    'semantic fallback': 'tim tu khoa mo rong',
     'vector query': 'truy van vector',
     'candidate_refs': 'ref ung vien',
     'ranked_refs': 'ref da xep hang',
@@ -3191,10 +3191,8 @@ function createDashboardRecommendationDemoTrace(): AgentTrace {
       { id: 'lead-agent', label: 'Lead', kind: 'agent', status: 'completed', detail: 'recommendation plan', agentName: 'lead-agent', shortCode: 'LD' },
       { id: 'storage-memory-agent', label: 'Memory', kind: 'agent', status: 'completed', detail: 'memory.get_context', agentName: 'storage-memory-agent', shortCode: 'MEM' },
       { id: 'postgres-db', label: 'Postgres', kind: 'db', status: 'completed', detail: 'memory/catalog data', shortCode: 'PG' },
-      { id: 'search-agent', label: 'Search', kind: 'agent', status: 'completed', detail: 'semantic fallback', agentName: 'search-agent', shortCode: 'SRCH' },
-      { id: 'tool-catalog-search-semantic', label: 'catalog.search_semantic', kind: 'tool', status: 'completed', detail: 'server tool', shortCode: 'TOOL' },
-      { id: 'qdrant-db', label: 'Qdrant', kind: 'vector_db', status: 'completed', detail: 'product vectors', shortCode: 'VDB' },
-      { id: 'tool-catalog-rerank', label: 'catalog.rerank', kind: 'tool', status: 'completed', detail: 'server tool', shortCode: 'TOOL' },
+      { id: 'search-agent', label: 'Search', kind: 'agent', status: 'completed', detail: 'hard keyword family search', agentName: 'search-agent', shortCode: 'SRCH' },
+      { id: 'tool-catalog-search-hard', label: 'catalog.search_hard', kind: 'tool', status: 'completed', detail: 'server tool', shortCode: 'TOOL' },
       { id: 'recommendation-agent', label: 'Recommendation', kind: 'agent', status: 'completed', detail: 'recommendation.score', agentName: 'recommendation-agent', shortCode: 'REC' },
       { id: 'tool-recommendation-score', label: 'recommendation.score', kind: 'tool', status: 'completed', detail: 'server tool', shortCode: 'TOOL' },
       { id: 'llm-service', label: 'LLM service', kind: 'llm', status: 'completed', detail: 'judge reasons', shortCode: 'LLM' },
@@ -3205,14 +3203,10 @@ function createDashboardRecommendationDemoTrace(): AgentTrace {
       { from: 'lead-agent', to: 'storage-memory-agent', status: 'completed', order: 2, label: 'memory.get_context', direction: 'call' },
       { from: 'storage-memory-agent', to: 'postgres-db', status: 'completed', order: 3, label: 'preferences', direction: 'data' },
       { from: 'postgres-db', to: 'storage-memory-agent', status: 'completed', order: 4, label: 'signals', direction: 'return' },
-      { from: 'lead-agent', to: 'search-agent', status: 'completed', order: 5, label: 'catalog.search_semantic', direction: 'call' },
-      { from: 'search-agent', to: 'tool-catalog-search-semantic', status: 'completed', order: 6, label: 'semantic fallback', direction: 'call' },
-      { from: 'tool-catalog-search-semantic', to: 'qdrant-db', status: 'completed', order: 7, label: 'vector query', direction: 'data' },
-      { from: 'qdrant-db', to: 'tool-catalog-search-semantic', status: 'completed', order: 8, label: 'candidate_refs', direction: 'return' },
-      { from: 'search-agent', to: 'tool-catalog-rerank', status: 'completed', order: 9, label: 'catalog.rerank', direction: 'call' },
-      { from: 'tool-catalog-rerank', to: 'llm-service', status: 'completed', order: 10, label: 'judge candidates', direction: 'data' },
-      { from: 'llm-service', to: 'tool-catalog-rerank', status: 'completed', order: 11, label: 'ranked_refs', direction: 'return' },
-      { from: 'search-agent', to: 'recommendation-agent', status: 'completed', order: 12, label: 'ranked candidates', direction: 'call' },
+      { from: 'lead-agent', to: 'search-agent', status: 'completed', order: 5, label: 'catalog.search_hard', direction: 'call' },
+      { from: 'search-agent', to: 'tool-catalog-search-hard', status: 'completed', order: 6, label: 'keyword family search', direction: 'call' },
+      { from: 'tool-catalog-search-hard', to: 'postgres-db', status: 'completed', order: 7, label: 'candidate_refs', direction: 'return' },
+      { from: 'search-agent', to: 'recommendation-agent', status: 'completed', order: 12, label: 'checked candidates', direction: 'call' },
       { from: 'recommendation-agent', to: 'tool-recommendation-score', status: 'completed', order: 13, label: 'recommendation.score', direction: 'call' },
       { from: 'tool-recommendation-score', to: 'llm-service', status: 'completed', order: 14, label: 'personalized reasons', direction: 'data' },
       { from: 'recommendation-agent', to: 'sales-agent', status: 'completed', order: 15, label: 'compose cards', direction: 'call' },
@@ -3220,15 +3214,15 @@ function createDashboardRecommendationDemoTrace(): AgentTrace {
     steps: [
       { agent: 'lead-agent', status: 'completed', summary: 'Plan recommendation' },
       { agent: 'storage-memory-agent', status: 'completed', summary: 'Loaded preferences' },
-      { agent: 'search-agent', status: 'completed', summary: 'Semantic fallback and rerank' },
+      { agent: 'search-agent', status: 'completed', summary: 'Hard keyword family search' },
       { agent: 'recommendation-agent', status: 'completed', summary: 'Scored products' },
       { agent: 'sales-agent', status: 'completed', summary: 'Composed product cards' },
     ],
     events: [],
     memory: { recentTurnCount: 6, rollingSummaryLength: 440, recentRecommendationIds: ['prod_air_p35'], preferenceKeys: ['budget_under_2m', 'small_room'] },
-    retrieval: { lexicalCandidateIds: ['prod_air_p35', 'prod_air_mini'], selectedProductIds: ['prod_air_p35', 'prod_air_mini'], contextDocumentCount: 0, rerankTopScores: [0.94, 0.89], fallbackRanking: 'lexical' },
+    retrieval: { lexicalCandidateIds: ['prod_air_p35', 'prod_air_mini'], selectedProductIds: ['prod_air_p35', 'prod_air_mini'], contextDocumentCount: 0, rerankTopScores: [0.94, 0.89], fallbackRanking: 'keyword' },
     cart: { actionType: 'none', resolvedProductIds: [], beforeItemCount: 0, afterItemCount: 0, actions: [] },
-    llm: { model: 'demo', contextDocumentCount: 3, promptSections: ['memory', 'semantic_candidates', 'rerank', 'sales'] },
+    llm: { model: 'demo', contextDocumentCount: 3, promptSections: ['memory', 'keyword_candidates', 'family_scope', 'sales'] },
     pipeline: [],
     errors: [],
   };

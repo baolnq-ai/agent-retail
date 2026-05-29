@@ -195,6 +195,9 @@ function evaluateTextQuality(testCase, text) {
   for (const forbidden of testCase.forbidden ?? []) {
     if (normalized.includes(normalize(forbidden)) && !looksLikeRefusalOrClarify(normalized)) issues.push(fail(`forbidden_text:${forbidden}`));
   }
+  for (const required of testCase.requiredText ?? []) {
+    if (!normalized.includes(normalize(required))) issues.push(fail(`missing_required_text:${required}`));
+  }
   if (testCase.maxTextChars && text.length > testCase.maxTextChars) issues.push(warn(`answer_too_long:${text.length}:max_${testCase.maxTextChars}`));
   if (testCase.expectedBlocks?.includes('product_list') && /không có sản phẩm|khong co san pham|chưa tìm thấy|chua tim thay/.test(normalized)) issues.push(warn('text_contradicts_product_rail_review'));
   return issues;

@@ -25,16 +25,24 @@ test('search agent applies hard budget stock and category filters', async () => 
   assert.deepEqual(result.candidates.map((item) => item.productId), ['prod-air-mini']);
 });
 
-test('search agent uses Qdrant embedding fallback with clear wording when exact is missing', async () => {
+test('search agent does not use embedding fallback for product search', async () => {
   const service = new SearchAgentService({ client: fakeClient(products()) }, fakeModelGateway(), fakeQdrant('prod-air-mini'));
-  const result = await service.runGoal({ requestId: 'req-3', query: 'máy làm sạch bụi phòng ngủ z999', fallbackPolicy: 'embedding_if_low_recall' });
+  const result = await service.runGoal({ requestId: 'req-3', query: 'máy làm sạch bụi phòng ngủ z999', fallbackPolicy: 'broad_lexical_if_low_recall' });
 
   assert.equal(result.status, 'completed');
-  assert.equal(result.matchType, 'semantic_fallback');
-  assert.equal(result.usedLanes.includes('embedding'), true);
-  assert.equal(result.issues.some((issue) => issue.code === 'qdrant_embedding_used'), true);
-  assert.match(result.handoff.leadInstruction, /no exact product\/name was found/i);
-  assert.equal(result.handoff.forbiddenClaims.some((claim) => /exact matches/i.test(claim)), true);
+  assert.equal(result.usedLanes.includes('embedding'), false);
+  assert.equal(result.candidates.some((item) => item.productId === 'prod-air-mini'), true);
+});
+
+test('search agent expands air conditioner intent without jumping to kitchen products', async () => {
+  const service = new SearchAgentService({ client: fakeClient(products()) }, fakeModelGateway(), fakeQdrant('prod-kitchen-af'));
+  const result = await service.runGoal({ requestId: 'req-air-family', query: 'toi muon tim may lanh', fallbackPolicy: 'broad_lexical_if_low_recall' });
+
+  assert.equal(result.status, 'completed');
+  assert.equal(result.issues.some((issue) => issue.code === 'related_family_expanded'), true);
+  assert.equal(result.candidates.some((item) => item.productId === 'prod-cooling-fan'), true);
+  assert.equal(result.candidates.some((item) => item.productId === 'prod-air-p35' || item.productId === 'prod-air-mini'), false);
+  assert.equal(result.candidates.some((item) => item.productId === 'prod-kitchen-af'), false);
 });
 
 test('search agent hard only returns no exact semantic claims', async () => {
@@ -130,6 +138,17 @@ function products() {
       inventory: 4,
       attributes: { roomSize: '15-22m2', filter: 'HEPA H12' },
       description: 'may loc khong khi nho gon phong ngu',
+    },
+    {
+      id: 'prod-cooling-fan',
+      title: 'Quat dieu hoa Midea AC120',
+      brand: 'Midea',
+      category: 'Lam mat',
+      price: 2490000,
+      currency: 'VND',
+      inventory: 3,
+      attributes: { tank: '30L' },
+      description: 'quat dieu hoa lam mat khong khi phong ngu',
     },
     {
       id: 'prod-kitchen-af',

@@ -22,12 +22,12 @@ Thư mục này lưu benchmark thật cho pipeline chatbot retail. Tên chuẩn 
 
 ## Kết quả mới nhất
 
-- Run cuối: `variant-a-full-100-final-v5`
+- Run cuối: `variant-a-full-100-pipeline-rag-v11`
 - Kết quả: **100 pass, 0 warn, 0 fail / 100**
-- Latency trung bình: `3543 ms`
-- Latency p95: `9650 ms`
-- Report JSON: `reports/variant-a-full-100-final-v5-results.json`
-- Report Markdown: `reports/variant-a-full-100-final-v5-report.md`
+- Latency trung bình: `2367 ms`
+- Latency p95: `4160 ms`
+- Report JSON: `reports/variant-a-full-100-pipeline-rag-v11-results.json`
+- Report Markdown: `reports/variant-a-full-100-pipeline-rag-v11-report.md`
 
 ## Các lỗi đã sửa trong vòng này
 
@@ -37,11 +37,15 @@ Thư mục này lưu benchmark thật cho pipeline chatbot retail. Tên chuẩn 
 - Safety/off-topic: câu tạo link thanh toán giả, viết thơ, giải tích phân không còn kéo search/product rail vào câu trả lời.
 - Compare/detail: giữ intent `compare` hoặc `product_detail` khi rule đã nhận diện rõ, không để LLM user-analysis override thành recommend.
 - Cart invalid target: không tự thêm sản phẩm thay thế khi khách yêu cầu thêm sản phẩm không tồn tại.
+- Intent sản phẩm theo ngôn ngữ tự nhiên: nhận đúng “quạt điều hoà cho phòng 24 mét vuông”, “máy lạnh nhưng shop không bán”, “nồi cơm Toshiba dưới 5 triệu”.
+- Policy RAG: câu “sản phẩm lỗi sau 20 ngày” đi qua `rag-agent` và lấy nguồn đổi trả/bảo hành thay vì rơi vào smalltalk.
+- Search diện rộng: family detection ưu tiên đúng nhóm hút bụi, máy lọc, làm mát, smart-home/cảnh báo và chăm sóc cá nhân; benchmark chặn nồi chiên/máy xay khi hỏi smart-home và chặn robot/hút bụi khi hỏi chăm sóc cá nhân.
 
 ## Cách chạy
 
 ```powershell
-# API phải đang chạy ở http://127.0.0.1:7010
+# API phải đang chạy ở http://127.0.0.1:3110
+$env:BENCHMARK_API_BASE_URL='http://127.0.0.1:3110'
 $env:BENCHMARK_RUN_ID='variant-a-local-run'
 $env:BENCHMARK_LIMIT='100'
 $env:BENCHMARK_DELAY_MS='5000'

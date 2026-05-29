@@ -8,8 +8,8 @@ import {
 import { validateExecutorRequestBoundary } from '../dist/models/pipeline-executor.models.js';
 
 test('pipeline tool registry defines unique production tool policies', () => {
-  assert.equal(PIPELINE_SERVER_TOOLS.length, 22);
-  assert.equal(new Set(PIPELINE_SERVER_TOOLS.map((tool) => tool.name)).size, 22);
+  assert.equal(PIPELINE_SERVER_TOOLS.length, 20);
+  assert.equal(new Set(PIPELINE_SERVER_TOOLS.map((tool) => tool.name)).size, 20);
   assert.deepEqual(assertPipelineToolPolicy(), []);
 });
 
@@ -21,7 +21,9 @@ test('pipeline tool registry marks user-data writes as auth and idempotency prot
   }
 
   assert.equal(getPipelineTool('cart.add_item')?.ownerAgent, 'cart-agent');
-  assert.equal(getPipelineTool('catalog.search_semantic')?.sideEffect, 'none');
+  assert.equal(getPipelineTool('catalog.search_hard')?.sideEffect, 'none');
+  assert.equal(getPipelineTool('catalog.search_semantic'), undefined);
+  assert.equal(getPipelineTool('catalog.rerank'), undefined);
   assert.equal(getPipelineTool('cart.sql.raw'), undefined);
 });
 
