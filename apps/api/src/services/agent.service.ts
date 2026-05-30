@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { AgentOrchestratorService, detectSalesIntent, type SalesAgentIntent } from './agent-orchestrator.service.js';
+import { AgentTaskBlackboardService } from './agent-task-blackboard.service.js';
 import type { KnowledgeDocument, Product } from '../models/catalog.models.js';
 import type { AgentChatRequest, AgentChatResponse, AgentMessageBlock, AgentTrace, AgentTraceAgent, AgentTraceGraphEdge, AgentTraceNode } from '../models/agent.models.js';
 import { CatalogService } from './catalog.service.js';
@@ -12,6 +13,7 @@ import { PromptSettingsService } from './prompt-settings.service.js';
 import { AgentTraceService } from './agent-trace.service.js';
 import type { AgentPipelineEvent, AgentQualityGateResult, CartToolResult, MemoryAgentResult, ProductManagerResult, RecommendationAgentResult, UserAnalysis } from '../models/agent-execution.models.js';
 import type { PipelineV2Agent } from '../models/agent-pipeline-v2.models.js';
+import type { AgentTaskBlackboardEvent, AgentTaskBlackboardSnapshot } from '../models/pipeline-runtime.models.js';
 import { AgentQualityGateService } from './agents/agent-quality-gate.service.js';
 import { BusinessRagAgentService } from './agents/business-rag-agent.service.js';
 import { CartSqlRagAgentService } from './agents/cart-sql-rag-agent.service.js';
@@ -32,6 +34,7 @@ interface PreparedChat {
   requestMessage: string;
   messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
   products: Product[];
+  allProducts: Product[];
   selectedProducts: Product[];
   recommendationResult: RecommendationAgentResult;
   knowledge: KnowledgeDocument[];
@@ -50,6 +53,7 @@ interface PreparedChat {
     contextDocuments: number;
   };
   trace: AgentTrace;
+  blackboard: AgentTaskBlackboardSnapshot;
 }
 
 @Injectable()
@@ -60,6 +64,7 @@ export class AgentService {
     private readonly modelGatewayService: ModelGatewayService,
     private readonly chatMemoryService: ChatMemoryService,
     private readonly agentOrchestratorService: AgentOrchestratorService,
+    private readonly agentTaskBlackboardService: AgentTaskBlackboardService,
     private readonly agentTraceService: AgentTraceService,
     private readonly agentQualityGateService: AgentQualityGateService,
     private readonly businessRagAgentService: BusinessRagAgentService,
@@ -81,7 +86,7 @@ export class AgentService {
     });
     const content = await this.reviseSalesContent(prepared, cleanAssistantText(modelResponse.content, mergeProducts(prepared.products, prepared.recommendationResult.products)));
 
-    const response = this.buildResponse(prepared, content, modelResponse.model);
+    const response = await this.buildResponse(prepared, content, modelResponse.model);
     await this.chatMemoryService.saveTurn({
       userId: prepared.userId,
       cartId: prepared.cartId,
@@ -145,7 +150,7 @@ export class AgentService {
     const cleanedContent = cleanAssistantText(content, mergeProducts(prepared.products, prepared.recommendationResult.products));
     const revisedContent = await this.reviseSalesContent(prepared, cleanedContent);
     const finalContent = alignContentWithProductRail(revisedContent, prepared.recommendationResult.products, prepared.requestMessage);
-    const response = this.buildResponse(prepared, finalContent, model || 'streaming-model');
+    const response = await this.buildResponse(prepared, finalContent, model || 'streaming-model');
     const responseTextBlock = response.blocks.find((block) => block.type === 'text');
     const displayContent = responseTextBlock?.type === 'text' ? responseTextBlock.content : finalContent;
     yield { type: 'status', message: 'Đang gửi câu trả lời' };
@@ -167,6 +172,7 @@ export class AgentService {
     createStatus?: (message: string) => void,
   ): Promise<PreparedChat> {
     const message = request.message.trim();
+    const messageId = randomUUID();
     const userId = request.user?.id;
     createStatus?.('Đang điều tra lịch sử và ngữ cảnh');
     const [memoryContext, initialCart, allProducts] = await Promise.all([
@@ -174,7 +180,36 @@ export class AgentService {
       userId ? this.commerceService.getCurrentCart(userId) : Promise.resolve(emptyAccountCart()),
       this.catalogService.listProducts(),
     ]);
+    let blackboard = await this.agentTaskBlackboardService.start({
+      requestId: messageId,
+      userId,
+      cartId: initialCart.id,
+      originalMessage: message,
+      goal: buildLeadGoal(message),
+    });
+    const blackboardEvents: AgentPipelineEvent[] = [];
+    const recordBlackboard = async (event: AgentTaskBlackboardEvent): Promise<void> => {
+      blackboard = await this.agentTaskBlackboardService.recordEvent(messageId, event) ?? blackboard;
+      blackboardEvents.push(this.agentTaskBlackboardService.toPipelineEvent(event));
+    };
+    await recordBlackboard({
+      agent: 'lead-agent',
+      stage: 'plan',
+      status: 'completed',
+      summary: `Goal created with loop budget ${blackboard.budget.maxLoops} and tool budget ${blackboard.budget.maxToolCalls}.`,
+      evidence: [{ kind: 'text', label: blackboard.goal, confidence: 0.8 }],
+      decision: { nextAgents: ['memory-agent', 'user-analysis-agent'] },
+    });
     const memoryInvestigation = await this.memoryAgentService.investigate({ userId, message });
+    await recordBlackboard({
+      agent: 'memory-agent',
+      stage: 'tool',
+      status: memoryInvestigation.confidence >= 0.5 ? 'completed' : 'skipped',
+      summary: memoryInvestigation.summary ?? `History references: ${memoryInvestigation.referenceProductIds.length}.`,
+      outputRefs: memoryInvestigation.referenceProductIds,
+      evidence: memoryInvestigation.evidence.map((item) => ({ kind: 'text', label: item, confidence: memoryInvestigation.confidence })),
+      decision: { requiresHistory: memoryInvestigation.requiresHistory, confidence: memoryInvestigation.confidence },
+    });
     const gateEvents: AgentPipelineEvent[] = [];
     const gateErrors: AgentTrace['errors'] = [];
     const memoryGate = await this.evaluateAgentOutput({
@@ -194,6 +229,14 @@ export class AgentService {
     if (!memoryGate.pass && memoryGate.severity === 'block') gateErrors.push({ source: 'memory-agent-quality-gate', message: memoryGate.complaints.join('; ') });
 
     const userAnalysis = await this.userAnalysisAgentService.analyze({ userId, message, pendingPlan: memoryContext.pendingCartPlan, memoryInvestigation });
+    await recordBlackboard({
+      agent: 'user-analysis-agent',
+      stage: 'plan',
+      status: 'completed',
+      summary: `Intent ${userAnalysis.intent}, retrieval ${userAnalysis.retrievalMode}.`,
+      evidence: [{ kind: 'metadata', label: JSON.stringify(userAnalysis.constraints), confidence: userAnalysis.confidence }],
+      decision: { intent: userAnalysis.intent, retrievalMode: userAnalysis.retrievalMode, confidence: userAnalysis.confidence },
+    });
     const analysisGate = await this.evaluateAgentOutput({
       userId,
       agent: 'user-analysis-agent',
@@ -216,6 +259,26 @@ export class AgentService {
       this.productManagerAgentService.resolveProducts({ message, analysis: userAnalysis, memoryInvestigation, cart: initialCart, allProducts }),
       this.businessRagAgentService.retrieve({ message, analysis: userAnalysis, enabled: shouldSearchKnowledge(userAnalysis, message) }),
     ]);
+    await recordBlackboard({
+      agent: 'search-agent',
+      stage: 'tool',
+      status: productManagerResult.confidence >= 0.5 ? 'completed' : productManagerResult.candidates.length ? 'skipped' : 'error',
+      summary: `Catalog search ${productManagerResult.mode}: ${productManagerResult.candidates.length} candidates, ${productManagerResult.selectedProducts.length} selected.`,
+      outputRefs: productManagerResult.selectedProducts.map((product) => product.id),
+      evidence: productManagerResult.evidence.map((item) => ({ kind: 'text', label: item, ids: productManagerResult.selectedProducts.map((product) => product.id), confidence: productManagerResult.confidence })),
+      decision: { mode: productManagerResult.mode, confidence: productManagerResult.confidence },
+    });
+    if (businessRagResult.documents.length > 0) {
+      await recordBlackboard({
+        agent: 'rag-agent',
+        stage: 'tool',
+        status: 'completed',
+        summary: `Business RAG returned ${businessRagResult.documents.length} documents.`,
+        outputRefs: businessRagResult.documents.map((document) => document.id),
+        evidence: businessRagResult.documents.map((document) => ({ kind: 'rag_doc', label: document.title, ids: [document.id], confidence: businessRagResult.diagnostics.rerankTopScore || 0.7 })),
+        decision: { rerankTopScore: businessRagResult.diagnostics.rerankTopScore, embeddingDimensions: businessRagResult.diagnostics.embeddingDimensions },
+      });
+    }
     const knowledge = businessRagResult.documents;
     const productGate = await this.evaluateAgentOutput({
       userId,
@@ -248,6 +311,17 @@ export class AgentService {
       selectedProducts,
       memoryContext,
     });
+    if (cartManagerResult.toolResults.length > 0 || userAnalysis.intent === 'cart_action' || userAnalysis.intent === 'cart_status') {
+      await recordBlackboard({
+        agent: 'cart-agent',
+        stage: 'tool',
+        status: cartManagerResult.toolResults.some((toolResult) => toolResult.status === 'error') ? 'error' : 'completed',
+        summary: `Cart agent produced ${cartManagerResult.toolResults.length} tool results and ${cartManagerResult.cart.items.length} cart lines.`,
+        outputRefs: cartManagerResult.toolResults.flatMap((toolResult) => toolResult.productIds),
+        evidence: cartManagerResult.toolResults.map((toolResult) => ({ kind: 'cart', label: `${toolResult.tool}:${toolResult.status}`, ids: toolResult.productIds, confidence: toolResult.status === 'completed' ? 0.9 : 0.4 })),
+        decision: { cartOperation: userAnalysis.cartOperation ?? 'none', itemCount: cartManagerResult.cart.items.length },
+      });
+    }
     const cartGate = await this.evaluateAgentOutput({
       userId,
       agent: 'cart-manager-agent',
@@ -274,6 +348,16 @@ export class AgentService {
       cartManagerResult,
       knowledge,
       cart,
+    });
+    await recordBlackboard({
+      agent: 'recommendation-agent',
+      stage: 'judge',
+      status: recommendationResult.status === 'approved' ? 'completed' : recommendationResult.status === 'blocked' ? 'blocked' : 'skipped',
+      summary: `${recommendationResult.status}: ${recommendationResult.displayReason}`,
+      inputRefs: productManagerResult.selectedProducts.map((product) => product.id),
+      outputRefs: recommendationResult.products.map((product) => product.id),
+      evidence: recommendationResult.evidence.map((item) => ({ kind: 'text', label: item, ids: recommendationResult.products.map((product) => product.id), confidence: recommendationResult.status === 'approved' ? 0.85 : 0.45 })),
+      decision: { shouldShowProducts: recommendationResult.shouldShowProducts, presentationIntent: recommendationResult.presentationIntent },
     });
     const recommendationGate = await this.evaluateAgentOutput({
       userId,
@@ -302,6 +386,7 @@ export class AgentService {
       buildPipelineEvent('product-manager-agent', 'lookup', productManagerResult.confidence >= 0.5 ? 'completed' : 'skipped', `Mode ${productManagerResult.mode}, candidates ${productManagerResult.candidates.length}, selected ${productManagerResult.selectedProducts.length}.`),
       ...businessRagResult.pipeline,
       buildPipelineEvent('recommendation-agent', 'handoff', recommendationResult.status === 'approved' ? 'completed' : 'skipped', `${recommendationResult.status}: ${recommendationResult.displayReason}`),
+      ...blackboardEvents,
       ...gateEvents,
       ...cartManagerResult.pipeline,
     ];
@@ -311,10 +396,11 @@ export class AgentService {
 
     if (contextDocuments.length) createStatus?.(statusForGrounding(userAnalysis));
     if (contextDocuments.length) createStatus?.('Đang kiểm tra nguồn phù hợp');
-    const fallbackRanking: 'keyword' | 'rag_rerank' | undefined = knowledge.length ? 'rag_rerank' : contextDocuments.length ? 'keyword' : undefined;
+    const fallbackRanking: 'keyword' | 'rag_rerank' | undefined = knowledge.length
+      ? businessRagResult.diagnostics.recoveryMode === 'keyword' ? 'keyword' : 'rag_rerank'
+      : contextDocuments.length ? 'keyword' : undefined;
     traceErrors.push(...gateErrors, ...cartManagerResult.errors);
     const selectedContext = contextDocuments.slice(0, 5).join('\n---\n');
-    const messageId = randomUUID();
     const traceAgents = buildRuntimeAgents(orchestrationPlan.agents, recommendationResult, actionTraceItems, intent, contextDocuments.length, gateEvents, orchestrationPlan.pipelineAgents);
     const trace = buildTrace({
       messageId,
@@ -337,12 +423,14 @@ export class AgentService {
       toolResults,
       pendingPlan: cartManagerResult.pendingPlan,
       traceErrors,
+      blackboard,
     });
 
     return {
       messageId,
       requestMessage: message,
       products,
+      allProducts,
       selectedProducts,
       recommendationResult,
       knowledge,
@@ -361,6 +449,7 @@ export class AgentService {
         contextDocuments: contextDocuments.length,
       },
       trace,
+      blackboard,
       messages: [
         {
           role: 'system',
@@ -423,6 +512,7 @@ export class AgentService {
       message: prepared.requestMessage,
       draft: content,
       recommendationResult: prepared.recommendationResult,
+      catalogProducts: prepared.allProducts,
       completedCartAction,
       actionResult: prepared.actionResult,
     });
@@ -444,6 +534,7 @@ export class AgentService {
       message: prepared.requestMessage,
       draft: revisedContent,
       recommendationResult: prepared.recommendationResult,
+      catalogProducts: prepared.allProducts,
       completedCartAction,
       actionResult: prepared.actionResult,
     });
@@ -452,14 +543,28 @@ export class AgentService {
     return secondEvaluation.safeResponse ?? evaluation.safeResponse ?? buildSafeFinalResponse(prepared, secondEvaluation.complaints);
   }
 
-  private buildResponse(prepared: PreparedChat, content: string, model: string): AgentChatResponse {
+  private async buildResponse(prepared: PreparedChat, content: string, model: string): Promise<AgentChatResponse> {
     const completedCartAction = hasCompletedCartAction(prepared.toolResults);
     const blockedCartAction = Boolean(prepared.userAnalysis.cartOperation && prepared.actionResult && !completedCartAction);
     const recommendedProducts = resolveDisplayProducts(prepared, blockedCartAction);
     const safeActionResult = prepared.actionResult ? sanitizeCartActionResult(prepared.actionResult, mergeProducts(mergeProducts(prepared.products, prepared.selectedProducts), recommendedProducts)) : undefined;
     const rawFinalContent = blockedCartAction ? safeActionResult ?? content : safeActionResult && completedCartAction ? `${safeActionResult}\n${content}` : content;
     const finalContent = sanitizeRecommendationLeakage(alignContentWithProductRail(rawFinalContent, recommendedProducts, prepared.requestMessage), recommendedProducts);
-    const trace: AgentTrace = { ...prepared.trace, llm: { ...prepared.trace.llm, model } };
+    const finishedBlackboard = await this.agentTaskBlackboardService.finish(prepared.messageId, {
+      status: prepared.trace.errors.length ? 'blocked' : 'completed',
+      evaluatorVerdict: {
+        errors: prepared.trace.errors,
+        productIds: recommendedProducts.map((product) => product.id),
+        cartToolStatuses: prepared.toolResults.map((toolResult) => `${toolResult.tool}:${toolResult.status}`),
+      },
+      finalContract: {
+        textChars: finalContent.length,
+        productIds: recommendedProducts.map((product) => product.id),
+        policyIds: prepared.knowledge.slice(0, 2).map((document) => document.id),
+        hasCartSummary: true,
+      },
+    }) ?? prepared.blackboard;
+    const trace: AgentTrace = { ...prepared.trace, llm: { ...prepared.trace.llm, model }, blackboard: finishedBlackboard };
     const blocks: AgentMessageBlock[] = [
       { type: 'text', version: 1, content: finalContent },
       { type: 'product_list', version: 1, items: recommendedProducts },
@@ -575,6 +680,8 @@ function detectChatIntent(message: string): ChatIntent {
 }
 
 function shouldShowPolicy(message: string): boolean {
+  const asciiMessage = stripVietnameseTone(normalize(message));
+  if (/gioi thieu cua hang|retailhome|dia chi|lien he|hotline|tong dai|khuyen mai|uu dai|voucher|hau mai|cham soc sau ban|doi tra|tra hang|hoan tien|bao hanh|van chuyen|chinh sach|khieu nai|ho tro|san pham loi|hang loi|giao hang|phi giao|mien phi giao|giao cham|giao tre|tre hang|kiem tra hang|mat phu kien|thieu phu kien|huy don|hoa don|vat|sai mau|giao sai|doi hang|nhan nham|doi dia chi|thanh toan|tra gop|cod|chuyen khoan|lap dat/.test(asciiMessage)) return true;
   const normalizedMessage = normalize(message);
   return /đổi trả|hoàn tiền|bảo hành|vận chuyển|chính sách/.test(normalizedMessage);
 }
@@ -588,7 +695,9 @@ function isClearlyOutOfScope(message: string): boolean {
   const asciiMessage = stripVietnameseTone(normalizedMessage);
   const blocked = /system prompt|prompt he thong|token api|api key|cookie|cau hinh noi bo|bo qua .*quy tac|in .*quy tac|giam gia 99|voucher.*99|xac nhan.*voucher|link thanh toan (?:gia|thu nghiem)|domain ngan hang|khong co that|tra loi trai nguoc|noi rang .*khong co nguon|bao hanh tron doi.*khong co nguon|tu van tinh cam|bai tho|lam tho|viet tho|bai van|du lich bien|giai bai toan|tich phan|ke .*kinh di|tong thong|thoi tiet|bong da|lap trinh|code|chinh tri|chung khoan|bitcoin|coin/.test(asciiMessage);
   const retailPolicyContext = /bao hanh|doi tra|van chuyen|tai khoan|don hang/.test(asciiMessage);
-  return blocked && !retailPolicyContext;
+  const retailContinuationNeed = /(?:xong|roi|tien|sau do|nhung|that ra).*(?:noi toi nen mua gi|nen mua gi|mua gi|goi y|de xuat|tu van|san pham|do gia dung|qua gia dung)|(?:noi toi nen mua gi|nen mua gi|mua gi|goi y|de xuat|tu van).*(?:san pham|do gia dung|qua gia dung|qua|mon|mua|can)/.test(asciiMessage)
+    || /\b(?:noi toi nen mua gi|nen mua gi|mua gi|goi y qua gia dung|goi y do gia dung|goi y mon|goi y san pham)\b/.test(asciiMessage);
+  return blocked && !retailPolicyContext && !retailContinuationNeed;
 }
 
 function emptyAccountCart(): Cart {
@@ -628,6 +737,15 @@ function buildSafeFinalResponse(prepared: PreparedChat, complaints: string[]): s
   if (prepared.actionResult) return prepared.actionResult;
   if (prepared.recommendationResult.products.length > 0) return `Mình đã tìm được ${prepared.recommendationResult.products.length} sản phẩm phù hợp trong khung gợi ý, nhưng cần bạn xác nhận thêm nhu cầu để mình tư vấn chính xác hơn.`;
   return 'Mình chưa đủ dữ liệu để trả lời chắc chắn. Bạn nói rõ hơn nhu cầu sản phẩm, chính sách hoặc giỏ hàng giúp mình nhé.';
+}
+
+function buildLeadGoal(message: string): string {
+  const compactMessage = message.replace(/\s+/g, ' ').trim();
+  return [
+    'Trả lời đúng ý khách theo vai nhân viên RetailHome.',
+    'Tự dùng history/search/RAG/cart khi đủ căn cứ; hạn chế hỏi lại.',
+    `Câu hỏi: ${compactMessage}`,
+  ].join(' ');
 }
 
 function buildSalesRevisionPrompt(prepared: PreparedChat, draft: string, complaints: string[], revisedInstruction: string | undefined): string {
@@ -736,6 +854,7 @@ function buildTrace(params: {
   toolResults: CartToolResult[];
   pendingPlan?: AgentTrace['pendingPlan'];
   traceErrors: AgentTrace['errors'];
+  blackboard: AgentTaskBlackboardSnapshot;
 }): AgentTrace {
   const steps = buildAgentOrder(params.agents).map((agent) => ({
     agent,
@@ -784,6 +903,7 @@ function buildTrace(params: {
       promptSections: ['orchestrator', 'memory', 'recommendation-handoff', 'rag-context', 'cart-if-needed'],
     },
     pipeline: params.pipelineEvents,
+    blackboard: params.blackboard,
     toolResults: params.toolResults,
     pendingPlan: params.pendingPlan,
     errors: params.traceErrors,
@@ -839,6 +959,7 @@ function buildTraceNodes(params: {
   intent: SalesAgentIntent;
   agents: AgentTraceAgent[];
   memoryContext: ChatMemoryContext;
+  blackboard: AgentTaskBlackboardSnapshot;
   memoryInvestigation: MemoryAgentResult;
   productManagerResult: ProductManagerResult;
   contextDocumentCount: number;
@@ -866,6 +987,7 @@ function buildTraceNodes(params: {
   return [
     { id: 'user-message', label: 'User message', kind: 'text', status: 'completed', detail: 'input', order: -1 },
     { id: 'pipeline-executor', label: 'Pipeline executor', kind: 'service', status: 'completed', detail: 'ExecutionPlan', order: 0, shortCode: 'FLOW' },
+    { id: 'task-blackboard', label: 'Task blackboard', kind: 'db', status: params.blackboard.status === 'failed' ? 'error' : 'completed', detail: `${params.blackboard.eventCount} events`, order: 0.5, shortCode: 'BB' },
     { id: 'session-context', label: 'Session context', kind: 'text', status: 'completed', detail: `${params.memoryContext.recentTurns.length} turns, ${params.memoryContext.preferences.length} prefs, ${params.contextDocumentCount} docs`, order: 1, shortCode: 'CTX' },
     { id: 'task-context', label: 'Task workspace', kind: 'text', status: 'completed', detail: 'shared task refs and agent results', order: 2, shortCode: 'TASK' },
     ...agentNodes,
@@ -896,7 +1018,9 @@ function buildTraceGraphEdges(nodes: AgentTraceNode[], hasCartAction: boolean): 
   const nodeIds = new Set(nodes.map((node) => node.id));
   const edges: AgentTraceGraphEdge[] = [
     { from: 'user-message', to: 'pipeline-executor', status: 'completed', order: -48, label: 'receive', direction: 'call' },
+    { from: 'pipeline-executor', to: 'task-blackboard', status: 'completed', order: -47.8, label: 'open task', direction: 'write' },
     { from: 'pipeline-executor', to: 'session-context', status: 'completed', order: -47.6, label: 'load session', direction: 'data' },
+    { from: 'task-blackboard', to: 'task-context', status: 'completed', order: -47.2, label: 'task state', direction: 'data' },
     { from: 'session-context', to: 'task-context', status: 'completed', order: -47, label: 'seed task', direction: 'write' },
     { from: 'task-context', to: 'lead-agent', status: 'completed', order: -46, label: 'session context', direction: 'data' },
     { from: 'lead-agent', to: 'storage-memory-agent', status: 'completed', order: -28, label: 'context check', direction: 'call' },
@@ -1130,6 +1254,8 @@ function statusForDraft(analysis: UserAnalysis): string {
 function shouldSearchKnowledge(analysis: UserAnalysis, message: string): boolean {
   if (analysis.intent === 'policy') return true;
   if (analysis.intent === 'smalltalk' || analysis.intent === 'cart_status' || analysis.intent === 'cart_action' || analysis.intent === 'confirm_pending' || analysis.intent === 'cancel_pending') return false;
+  const asciiMessage = stripVietnameseTone(normalize(message));
+  if (/cua hang|retailhome|gioi thieu|lien he|hotline|dia chi|khuyen mai|uu dai|voucher|hau mai|bao hanh|doi tra|hoan tien|van chuyen|chinh sach|giao hang|giao cham|giao tre|huy don|doi dia chi|thieu phu kien|khieu nai|lap dat|thanh toan|tra gop/.test(asciiMessage)) return true;
   return /cửa hàng|cua hang|retailhome|giới thiệu|gioi thieu|liên hệ|lien he|hotline|địa chỉ|dia chi|khuyến mãi|khuyen mai|ưu đãi|uu dai|voucher|hậu mãi|hau mai|bảo hành|bao hanh|đổi trả|doi tra|hoàn tiền|hoan tien|vận chuyển|van chuyen|chính sách|chinh sach|giao hàng|giao hang|thanh toán|thanh toan|trả góp|tra gop/.test(normalize(message));
 }
 
@@ -1144,7 +1270,10 @@ function normalize(value: string): string {
 function stripVietnameseTone(value: string): string {
   return value
     .normalize('NFD')
+    .replace(/[đĐ]/g, 'd')
     .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'd')
     .replace(/đ/g, 'd')
     .replace(/Đ/g, 'd')
     .replace(/đ/g, 'd')

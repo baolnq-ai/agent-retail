@@ -260,6 +260,55 @@ model SearchAgentMemory {
   @@unique([userId, tier, key])
 }
 
+model AgentTask {
+  id               String   @id @default(cuid())
+  requestId        String   @unique
+  userId           String?
+  cartId           String?
+  originalMessage  String
+  normalizedGoal   String
+  status           String
+  budget           Json
+  hypotheses       Json
+  evidence         Json
+  decisions        Json
+  evaluatorVerdict Json?
+  finalContract    Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  completedAt      DateTime?
+
+  events AgentTaskEvent[]
+
+  @@index([userId, createdAt])
+  @@index([cartId, createdAt])
+  @@index([status, createdAt])
+}
+
+model AgentTaskEvent {
+  id          String   @id @default(cuid())
+  taskId      String
+  requestId   String
+  agent       String
+  stage       String
+  status      String
+  summary     String
+  inputRefs   Json
+  outputRefs  Json
+  evidence    Json
+  toolCall    Json?
+  decision    Json?
+  durationMs  Int?
+  createdAt   DateTime @default(now())
+
+  task AgentTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, createdAt])
+  @@index([requestId, createdAt])
+  @@index([agent, createdAt])
+  @@index([status, createdAt])
+}
+
 model CartItem {
   id        String   @id @default(cuid())
   cartId    String

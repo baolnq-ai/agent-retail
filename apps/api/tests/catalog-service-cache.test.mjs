@@ -56,6 +56,18 @@ test('CatalogService keeps hard product intent and brand facets before broad fal
   assert.equal(airPurifiers.some((product) => product.id === 'prod_robot'), false);
 });
 
+test('CatalogService maps natural retail shorthand to the correct product family', async () => {
+  const service = new CatalogService(fakePrisma(), memoryCache());
+
+  assert.equal((await service.searchProducts('may loc kk cho be so sinh'))[0].id, 'prod_air_clean_p35');
+  assert.equal((await service.searchProducts('xay da lam sinh to cho 1 nguoi'))[0].id, 'prod_blender');
+  assert.equal((await service.searchProducts('cam bien cua bao qua dien thoai'))[0].id, 'prod_sensor');
+  assert.equal((await service.searchProducts('can suc khoe chu to cho nguoi lon tuoi'))[0].id, 'prod_scale');
+  assert.equal((await service.searchProducts('lo chien khong dau cua kinh'))[0].id, 'prod_air_fryer');
+  assert.equal((await service.searchProducts('shop oi may hut bui cam tay duoi 2 trieu'))[0].id, 'prod_vacuum');
+  assert.equal((await service.searchProducts('shop oi camera cua it khoan duc cho nha thue'))[0].id, 'prod_sensor');
+});
+
 function memoryCache() {
   const values = new Map();
   return {
@@ -140,6 +152,56 @@ function dbProducts() {
       inventory: 3,
       attributes: {},
       description: 'Robot hut bui lau nha.',
+    },
+    {
+      id: 'prod_vacuum',
+      title: 'May hut bui cam tay Deerma DX700S',
+      brand: 'Deerma',
+      category: 'Ve sinh nha cua',
+      price: 900000,
+      inventory: 8,
+      attributes: { suction: '15000 Pa' },
+      description: 'May hut bui cam tay nho gon duoi 2 trieu.',
+    },
+    {
+      id: 'prod_blender',
+      title: 'May xay sinh to Philips HR2051',
+      brand: 'Philips',
+      category: 'Thiet bi nha bep',
+      price: 690000,
+      inventory: 5,
+      attributes: { blade: 'xay da nho' },
+      description: 'May xay sinh to nho gon cho 1 nguoi.',
+    },
+    {
+      id: 'prod_sensor',
+      title: 'Aqara Door and Window Sensor P2',
+      brand: 'Aqara',
+      category: 'Smart home',
+      price: 790000,
+      inventory: 11,
+      attributes: { protocol: 'Matter Thread' },
+      description: 'Cam bien cua bao qua dien thoai khi mo cua.',
+    },
+    {
+      id: 'prod_scale',
+      title: 'Can suc khoe Beurer GS203',
+      brand: 'Beurer',
+      category: 'Cham soc ca nhan',
+      price: 590000,
+      inventory: 8,
+      attributes: { display: 'chu to' },
+      description: 'Can suc khoe de dung cho nguoi lon tuoi.',
+    },
+    {
+      id: 'prod_air_fryer',
+      title: 'Lo chien khong dau Ferroli FAF-12M',
+      brand: 'Ferroli',
+      category: 'Thiet bi nha bep',
+      price: 2490000,
+      inventory: 6,
+      attributes: { window: 'cua kinh' },
+      description: 'Lo chien khong dau cua kinh nhin duoc do an.',
     },
   ];
 }

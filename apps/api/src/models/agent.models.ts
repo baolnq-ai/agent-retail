@@ -1,7 +1,7 @@
 import type { Product, KnowledgeDocument } from './catalog.models.js';
 import type { Cart } from './commerce.models.js';
 import type { AgentPipelineEvent, CartToolResult, PendingCartPlan } from './agent-execution.models.js';
-import type { PipelineTracePlaybackEvent } from './pipeline-runtime.models.js';
+import type { AgentTaskBlackboardSnapshot, PipelineTracePlaybackEvent } from './pipeline-runtime.models.js';
 
 export interface AgentChatRequest {
   message: string;
@@ -110,6 +110,7 @@ export interface AgentTrace {
     promptSections: string[];
   };
   pipeline?: AgentPipelineEvent[];
+  blackboard?: AgentTaskBlackboardSnapshot;
   toolResults?: CartToolResult[];
   pendingPlan?: PendingCartPlan;
   errors: Array<{ source: string; message: string }>;

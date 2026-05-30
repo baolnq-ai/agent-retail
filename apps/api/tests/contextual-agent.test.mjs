@@ -17,6 +17,28 @@ test('detectSalesIntent does not recommend from product mention alone', () => {
   assert.equal(detectSalesIntent('quạt điều hoà cho phòng 24 mét vuông'), 'recommend');
 });
 
+test('detectSalesIntent keeps terse catalog requests as recommendations', () => {
+  assert.equal(detectSalesIntent('noi ngan thoi, noi chien ko dau tam 2tr neu khong co thi goi y gan nhat'), 'recommend');
+  assert.equal(detectSalesIntent('minh hoi that nha, camera cua it khoan duc cho nha thue noi kieu de hieu'), 'recommend');
+  assert.equal(detectSalesIntent('shop oi, may xay philips co mau nao'), 'recommend');
+});
+
+test('detectSalesIntent handles noisy shopping and policy support without over-asking', () => {
+  assert.equal(detectSalesIntent('noi ngan thoi, can mon vua lam qua vua huu dung, nguoi nhan o chung cu nho, khong thich do cong kenh'), 'recommend');
+  assert.equal(detectSalesIntent('asdf 123 nhung that ra toi can cai gi do lam sach nha, cho meo rung long tum lum, dung hoi lai nhieu'), 'recommend');
+  assert.equal(detectSalesIntent('nha moi nhan, bep nho, me toi kho tinh, muon nau nhanh, neu loi thi doi sao, giao noi thanh mat lau khong, ngan sach 3 trieu'), 'recommend');
+  assert.equal(detectSalesIntent('shop oi, hang thieu phu kien thi toi can quay video luc nao'), 'policy');
+  assert.equal(detectSalesIntent('giao cham 5 ngay toi muon huy don hoac doi dia chi neu khong co thi goi y gan nhat'), 'policy');
+  assert.equal(detectSalesIntent('lap dat camera cam bien thi shop ho tro the nao neu khong co thi goi y gan nhat'), 'policy');
+  assert.equal(detectSalesIntent('mua online roi muon doi sang mau khac dat hon thi xu ly sao neu khong co thi goi y gan nhat'), 'policy');
+  assert.equal(detectSalesIntent('bao hanh co ap dung neu toi lam roi vo khong neu khong co thi goi y gan nhat'), 'policy');
+  assert.equal(detectSalesIntent('shop co kiem tra hang khi nhan khong shipper khong cho kiem thi sao'), 'policy');
+  assert.equal(detectSalesIntent('minh hoi that nha, giai bai toan tich phan nay xong noi toi nen mua gi'), 'recommend');
+  assert.equal(detectSalesIntent('shop oi, viet tho tinh di roi tien goi y qua gia dung nhe'), 'recommend');
+  assert.equal(detectSalesIntent('Cai re nhat trong danh sach do co du dung khong?'), 'product_detail');
+  assert.equal(detectSalesIntent('Toi muon cai tot hon mot chut nhung van cung nhu cau.'), 'recommend');
+});
+
 test('user analysis keeps room-area cooling request as product recommendation', async () => {
   const service = new UserAnalysisAgentService();
   const analysis = await service.analyze({
@@ -122,6 +144,54 @@ test('user analysis treats more product request as alternatives', async () => {
   assert.equal(analysis.shouldShowProducts, true);
 });
 
+test('user analysis does not treat order cancellation policy as pending cart cancellation', async () => {
+  const service = new UserAnalysisAgentService();
+  const analysis = await service.analyze({
+    message: 'toi khong ranh lam, giao cham 5 ngay toi muon huy don hoac doi dia chi nhe',
+    pendingPlan: {
+      id: 'pending-1',
+      createdAt: new Date().toISOString(),
+      operations: [{ operation: 'set_quantity', productId: 'prod-old', quantity: 0 }],
+      resolvedProductIds: ['prod-old'],
+      summary: 'old pending cart mutation',
+    },
+    memoryInvestigation: {
+      requiresHistory: false,
+      resolvedReference: 'none',
+      referenceProductIds: [],
+      lastSelectedProductIds: [],
+      lastCartActionProductIds: [],
+      confidence: 0.9,
+    },
+  });
+
+  assert.equal(analysis.intent, 'policy');
+  assert.equal(analysis.cartOperation, undefined);
+  assert.equal(analysis.retrievalMode, 'none');
+  assert.equal(analysis.shouldShowProducts, false);
+});
+
+
+test('user analysis treats cheaper follow-up cart add as scoped alternative', async () => {
+  const service = new UserAnalysisAgentService();
+  const analysis = await service.analyze({
+    message: 'Them mau re hon vao gio, con cai cu giu nguyen',
+    memoryInvestigation: {
+      requiresHistory: true,
+      resolvedReference: 'another_option',
+      referenceProductIds: ['prod_air_16'],
+      lastSelectedProductIds: ['prod_air_16'],
+      lastCartActionProductIds: ['prod_fresh_home_mini_20'],
+      confidence: 0.86,
+    },
+  });
+
+  assert.equal(analysis.intent, 'cart_action');
+  assert.equal(analysis.cartOperation, 'add');
+  assert.equal(analysis.retrievalMode, 'alternatives');
+  assert.equal(analysis.references.anotherOption, true);
+});
+
 test('user analysis handles add all last recommendations without clarification', async () => {
   const service = new UserAnalysisAgentService();
   const analysis = await service.analyze({
@@ -147,6 +217,142 @@ test('user analysis keeps pet vacuum question as product recommendation', async 
   const service = new UserAnalysisAgentService();
   const analysis = await service.analyze({
     message: 'Co robot hut bui nao hop nha co thu cung khong?',
+    memoryInvestigation: {
+      requiresHistory: false,
+      resolvedReference: 'none',
+      referenceProductIds: [],
+      lastSelectedProductIds: [],
+      lastCartActionProductIds: [],
+      confidence: 0.9,
+    },
+  });
+
+  assert.equal(analysis.intent, 'recommend');
+  assert.equal(analysis.cartOperation, undefined);
+  assert.equal(analysis.retrievalMode, 'fresh');
+  assert.equal(analysis.shouldShowProducts, true);
+});
+
+test('user analysis keeps parent gift request as product recommendation', async () => {
+  const service = new UserAnalysisAgentService();
+  const analysis = await service.analyze({
+    message: 'mua qua cho bo me de dung nen mua gi truoc',
+    memoryInvestigation: {
+      requiresHistory: false,
+      resolvedReference: 'none',
+      referenceProductIds: [],
+      lastSelectedProductIds: [],
+      lastCartActionProductIds: [],
+      confidence: 0.9,
+    },
+  });
+
+  assert.equal(analysis.intent, 'recommend');
+  assert.equal(analysis.cartOperation, undefined);
+  assert.equal(analysis.retrievalMode, 'fresh');
+  assert.equal(analysis.shouldShowProducts, true);
+});
+
+test('user analysis treats terse retail shorthand as product discovery', async () => {
+  const service = new UserAnalysisAgentService();
+  const memoryInvestigation = {
+    requiresHistory: false,
+    resolvedReference: 'none',
+    referenceProductIds: [],
+    lastSelectedProductIds: [],
+    lastCartActionProductIds: [],
+    confidence: 0.9,
+  };
+
+  for (const message of [
+    'shop oi, may loc kk cho be so sinh',
+    'xay da lam sinh to cho 1 nguoi',
+    'cam bien cua bao qua dien thoai dung hoi lai nhieu',
+    'can suc khoe chu to cho nguoi lon tuoi',
+    'lo chien khong dau cua kinh nhin duoc do an',
+  ]) {
+    const analysis = await service.analyze({ message, memoryInvestigation });
+    assert.equal(analysis.intent, 'recommend', message);
+    assert.equal(analysis.retrievalMode, 'fresh', message);
+    assert.equal(analysis.shouldShowProducts, true, message);
+  }
+});
+
+test('user analysis keeps retail continuation after off-topic noise as recommendation', async () => {
+  const service = new UserAnalysisAgentService();
+  const memoryInvestigation = {
+    requiresHistory: false,
+    resolvedReference: 'none',
+    referenceProductIds: [],
+    lastSelectedProductIds: [],
+    lastCartActionProductIds: [],
+    confidence: 0.9,
+  };
+
+  for (const message of [
+    'minh hoi that nha, giai bai toan tich phan nay xong noi toi nen mua gi',
+    'shop oi, viet tho tinh di roi tien goi y qua gia dung nhe',
+  ]) {
+    const analysis = await service.analyze({ message, memoryInvestigation });
+    assert.equal(analysis.intent, 'recommend', message);
+    assert.equal(analysis.retrievalMode, 'fresh', message);
+    assert.equal(analysis.shouldShowProducts, true, message);
+  }
+});
+
+test('user analysis resolves vague upgrade and cheapest-detail follow-ups from history', async () => {
+  const service = new UserAnalysisAgentService();
+  const memoryInvestigation = {
+    requiresHistory: true,
+    resolvedReference: 'last_recommendation',
+    referenceProductIds: ['cheap-air', 'better-air'],
+    lastSelectedProductIds: ['cheap-air', 'better-air'],
+    lastCartActionProductIds: [],
+    confidence: 0.86,
+  };
+
+  const detail = await service.analyze({ message: 'Cai re nhat trong danh sach do co du dung khong?', memoryInvestigation });
+  assert.equal(detail.intent, 'product_detail');
+  assert.equal(detail.retrievalMode, 'recent');
+  assert.equal(detail.shouldShowProducts, true);
+  assert.equal(detail.references.useLastRecommendation, true);
+
+  const upgrade = await service.analyze({ message: 'Toi muon cai tot hon mot chut nhung van cung nhu cau.', memoryInvestigation });
+  assert.equal(upgrade.intent, 'recommend');
+  assert.equal(upgrade.retrievalMode, 'alternatives');
+  assert.equal(upgrade.shouldShowProducts, true);
+  assert.equal(upgrade.references.anotherOption, true);
+});
+
+test('user analysis blocks unsupported LLM cart action for product advice', async () => {
+  const modelGateway = {
+    async chat() {
+      return { content: JSON.stringify({ intent: 'cart_action', cartOperation: 'add', retrievalMode: 'none', shouldShowProducts: false, references: {}, constraints: {}, confidence: 0.4 }) };
+    },
+  };
+  const service = new UserAnalysisAgentService(modelGateway);
+  const analysis = await service.analyze({
+    message: 'mua qua cho bo me de dung nen mua gi truoc',
+    memoryInvestigation: {
+      requiresHistory: false,
+      resolvedReference: 'none',
+      referenceProductIds: [],
+      lastSelectedProductIds: [],
+      lastCartActionProductIds: [],
+      confidence: 0.9,
+    },
+  });
+
+  assert.equal(analysis.intent, 'recommend');
+  assert.equal(analysis.cartOperation, undefined);
+  assert.equal(analysis.retrievalMode, 'fresh');
+  assert.equal(analysis.shouldShowProducts, true);
+});
+
+test('user analysis repairs mojibake Vietnamese product advice', async () => {
+  const service = new UserAnalysisAgentService();
+  const analysis = await service.analyze({
+    message: 'ChÃ o shop, tÃ´i hÆ¡i rá»‘i, mua quÃ  cho bá»‘ máº¹ dá»… dÃ¹ng, nÃªn mua gÃ¬ trÆ°á»›c?',
     memoryInvestigation: {
       requiresHistory: false,
       resolvedReference: 'none',
@@ -458,6 +664,27 @@ test('product manager maps air conditioner search to air-family products only', 
   assert.equal(result.evidence.some((item) => item.includes('air_cooling')), true);
 });
 
+test('product manager ignores stale recent memory when current query names a new family', async () => {
+  const products = [
+    { id: 'rice-old', title: 'Noi com dien Toshiba', brand: 'Toshiba', category: 'Thiet bi nha bep', price: 1590000, currency: 'VND', inventory: 3, attributes: {}, description: 'noi com dien' },
+    { id: 'air-clean', title: 'May loc khong khi Xiaomi Smart Air Purifier', brand: 'Xiaomi', category: 'May loc khong khi', price: 2990000, currency: 'VND', inventory: 4, attributes: { roomSize: '25m2' }, description: 'loc bui PM2.5 cho phong ngu' },
+  ];
+  const seenQueries = [];
+  const catalog = { async searchProducts(query) { seenQueries.push(query); return products; } };
+  const service = new ProductManagerAgentService(catalog);
+  const result = await service.resolveProducts({
+    message: 'noi ngan thoi, may loc phong ngu 20m2 em nhe',
+    analysis: { intent: 'recommend', retrievalMode: 'recent', shouldShowProducts: true, references: { resolvedProductIds: ['rice-old'] }, constraints: { category: 'may loc' }, confidence: 0.8 },
+    memoryInvestigation: { requiresHistory: true, referenceProductIds: ['rice-old'], lastSelectedProductIds: ['rice-old'], lastCartActionProductIds: [], confidence: 0.9, summary: 'Khach vua hoi noi com dien Toshiba va quat dieu hoa' },
+    cart: emptyCart(),
+    allProducts: products,
+  });
+
+  assert.equal(result.mode, 'fresh');
+  assert.deepEqual(result.selectedProducts.map((item) => item.id), ['air-clean']);
+  assert.equal(seenQueries.some((query) => query.includes('Toshiba') || query.includes('quat dieu hoa')), false);
+});
+
 test('product manager rejects blender when customer asks for air purifier', async () => {
   const products = [
     { id: 'blender', title: 'May xay sinh to Philips HR2051', brand: 'Philips', category: 'Thiet bi nha bep', price: 690000, currency: 'VND', inventory: 4, attributes: {}, description: 'may xay co ban' },
@@ -475,6 +702,86 @@ test('product manager rejects blender when customer asks for air purifier', asyn
 
   assert.deepEqual(result.candidates.map((item) => item.id), ['air-clean']);
   assert.deepEqual(result.selectedProducts.map((item) => item.id), ['air-clean']);
+});
+
+test('product manager maps broad noisy needs to related catalog families', async () => {
+  const products = [
+    { id: 'vacuum', title: 'May hut bui cam tay Deerma DX700S', brand: 'Deerma', category: 'Ve sinh nha cua', price: 900000, currency: 'VND', inventory: 4, attributes: {}, description: 'hut bui long thu cung va bui san nha' },
+    { id: 'gift', title: 'May say toc Panasonic EH-ND11', brand: 'Panasonic', category: 'Cham soc ca nhan', price: 390000, currency: 'VND', inventory: 5, attributes: {}, description: 'nho gon lam qua huu dung' },
+    { id: 'kitchen', title: 'Noi chien khong dau ChefMax AF55', brand: 'ChefMax', category: 'Thiet bi nha bep', price: 2290000, currency: 'VND', inventory: 3, attributes: {}, description: 'nau nhanh cho bep nho' },
+    { id: 'camera', title: 'Camera Wi-Fi TP-Link Tapo C200', brand: 'TP-Link', category: 'Camera', price: 690000, currency: 'VND', inventory: 5, attributes: {}, description: 'camera xoay' },
+  ];
+  const catalog = { async searchProducts() { return products; } };
+  const service = new ProductManagerAgentService(catalog);
+  const base = { requiresHistory: false, referenceProductIds: [], lastSelectedProductIds: [], lastCartActionProductIds: [], confidence: 0.7 };
+
+  const clean = await service.resolveProducts({
+    message: 'toi can cai gi do lam sach nha, cho meo rung long tum lum',
+    analysis: { intent: 'recommend', retrievalMode: 'fresh', shouldShowProducts: true, references: {}, constraints: {}, confidence: 0.8 },
+    memoryInvestigation: base,
+    cart: emptyCart(),
+    allProducts: products,
+  });
+  assert.deepEqual(clean.selectedProducts.map((item) => item.id), ['vacuum']);
+
+  const gift = await service.resolveProducts({
+    message: 'can mon vua lam qua vua huu dung cho chung cu nho khong cong kenh',
+    analysis: { intent: 'recommend', retrievalMode: 'fresh', shouldShowProducts: true, references: {}, constraints: {}, confidence: 0.8 },
+    memoryInvestigation: base,
+    cart: emptyCart(),
+    allProducts: products,
+  });
+  assert.deepEqual(gift.selectedProducts.map((item) => item.id), ['gift']);
+
+  const kitchen = await service.resolveProducts({
+    message: 'nha moi nhan bep nho muon nau nhanh ngan sach 3 trieu',
+    analysis: { intent: 'recommend', retrievalMode: 'fresh', shouldShowProducts: true, references: {}, constraints: { budgetMax: 3000000 }, confidence: 0.8 },
+    memoryInvestigation: base,
+    cart: emptyCart(),
+    allProducts: products,
+  });
+  assert.deepEqual(kitchen.selectedProducts.map((item) => item.id), ['kitchen']);
+});
+
+test('product manager returns relevant home gift products for generic retail continuation', async () => {
+  const products = [
+    { id: 'gift', title: 'May say toc Panasonic EH-ND11', brand: 'Panasonic', category: 'Cham soc ca nhan', price: 390000, currency: 'VND', inventory: 5, attributes: {}, description: 'nho gon lam qua huu dung' },
+    { id: 'scale', title: 'Can suc khoe Beurer GS203', brand: 'Beurer', category: 'Cham soc suc khoe', price: 790000, currency: 'VND', inventory: 4, attributes: {}, description: 'can thong minh de dung cho gia dinh' },
+    { id: 'kitchen', title: 'Noi chien khong dau ChefMax AF55', brand: 'ChefMax', category: 'Thiet bi nha bep', price: 2290000, currency: 'VND', inventory: 3, attributes: {}, description: 'nau nhanh cho bep nho' },
+  ];
+  const catalog = { async searchProducts(query) {
+    assert.match(query, /cham soc ca nhan|qua tang/);
+    return products;
+  } };
+  const service = new ProductManagerAgentService(catalog);
+  const result = await service.resolveProducts({
+    message: 'giai bai toan tich phan nay xong noi toi nen mua gi',
+    analysis: { intent: 'recommend', retrievalMode: 'fresh', shouldShowProducts: true, references: {}, constraints: {}, confidence: 0.8 },
+    memoryInvestigation: { requiresHistory: false, referenceProductIds: [], lastSelectedProductIds: [], lastCartActionProductIds: [], confidence: 0.7 },
+    cart: emptyCart(),
+    allProducts: products,
+  });
+
+  assert.deepEqual(result.candidates.map((item) => item.id), ['gift', 'scale']);
+  assert.deepEqual(result.selectedProducts.map((item) => item.id), ['gift', 'scale']);
+});
+
+test('product manager selects cheapest referenced product for cheapest-detail follow-up', async () => {
+  const catalog = { async searchProducts() { throw new Error('recent detail should use history ids'); } };
+  const service = new ProductManagerAgentService(catalog);
+  const products = [
+    { id: 'better-air', title: 'AiroClean P35', brand: 'AiroClean', category: 'May loc', price: 3490000, currency: 'VND', inventory: 5, attributes: {}, description: 'may loc phong lon' },
+    { id: 'cheap-air', title: 'FreshHome Mini 20', brand: 'FreshHome', category: 'May loc', price: 1990000, currency: 'VND', inventory: 5, attributes: {}, description: 'may loc phong nho' },
+  ];
+  const result = await service.resolveProducts({
+    message: 'Cai re nhat trong danh sach do co du dung khong?',
+    analysis: { intent: 'product_detail', retrievalMode: 'recent', shouldShowProducts: true, references: { resolvedProductIds: ['better-air', 'cheap-air'], useLastRecommendation: true }, constraints: {}, confidence: 0.86 },
+    memoryInvestigation: { requiresHistory: true, resolvedReference: 'last_recommendation', referenceProductIds: ['better-air', 'cheap-air'], lastSelectedProductIds: ['better-air', 'cheap-air'], lastCartActionProductIds: [], confidence: 0.86 },
+    cart: emptyCart(),
+    allProducts: products,
+  });
+
+  assert.deepEqual(result.selectedProducts.map((item) => item.id), ['cheap-air']);
 });
 
 test('product manager excludes recent and cart products for alternatives', async () => {

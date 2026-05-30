@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import type { Cart, CartItem, Order, PaymentIntent } from '../models/commerce.models.js';
+import { withTransientPrismaRetry } from '../utils/prisma-retry.js';
 import { CatalogService } from './catalog.service.js';
 import { PrismaService } from './prisma.service.js';
 
@@ -12,26 +13,28 @@ export class CommerceService {
   ) {}
 
   async getCart(cartId = 'default'): Promise<Cart> {
-    const cart = await this.prisma.client.cart.upsert({
+    const cart = await withTransientPrismaRetry(() => this.prisma.client.cart.upsert({
       where: { id: cartId },
       update: {},
       create: { id: cartId },
       include: { items: { orderBy: { createdAt: 'asc' } } },
-    });
+    }));
     return toCart(cart);
   }
 
   async getCurrentCart(userId: string): Promise<Cart> {
-    const existing = await this.prisma.client.cart.findFirst({
-      where: { userId, status: 'active' },
-      orderBy: { updatedAt: 'desc' },
-      include: { items: { orderBy: { createdAt: 'asc' } } },
-    });
-    if (existing) return toCart(existing);
+    const cart = await withTransientPrismaRetry(async () => {
+      const existing = await this.prisma.client.cart.findFirst({
+        where: { userId, status: 'active' },
+        orderBy: { updatedAt: 'desc' },
+        include: { items: { orderBy: { createdAt: 'asc' } } },
+      });
+      if (existing) return existing;
 
-    const cart = await this.prisma.client.cart.create({
-      data: { id: `user-cart-${userId}-${Date.now()}`, userId },
-      include: { items: { orderBy: { createdAt: 'asc' } } },
+      return this.prisma.client.cart.create({
+        data: { id: `user-cart-${userId}-${Date.now()}`, userId },
+        include: { items: { orderBy: { createdAt: 'asc' } } },
+      });
     });
     return toCart(cart);
   }

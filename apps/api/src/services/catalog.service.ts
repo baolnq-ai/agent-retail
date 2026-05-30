@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { loadEnvironment } from '../config/environment.js';
 import type { Product } from '../models/catalog.models.js';
+import { withTransientPrismaRetry } from '../utils/prisma-retry.js';
 import { PrismaService } from './prisma.service.js';
 import { RedisCacheService } from './redis-cache.service.js';
 
@@ -20,7 +21,7 @@ export class CatalogService {
     const cachedProducts = await this.redisCache.getJson<Product[]>(CATALOG_PRODUCTS_CACHE_KEY);
     if (cachedProducts) return cachedProducts;
 
-    const products = await this.prisma.client.product.findMany({ orderBy: { title: 'asc' } });
+    const products = await withTransientPrismaRetry(() => this.prisma.client.product.findMany({ orderBy: { title: 'asc' } }));
     const catalogProducts = products.map(toProduct);
     await this.redisCache.setJson(CATALOG_PRODUCTS_CACHE_KEY, catalogProducts, this.environment.catalogCacheTtlSeconds);
     return catalogProducts;
@@ -31,7 +32,7 @@ export class CatalogService {
     const cachedProduct = await this.redisCache.getJson<Product>(cacheKey);
     if (cachedProduct) return cachedProduct;
 
-    const product = await this.prisma.client.product.findUnique({ where: { id: productId } });
+    const product = await withTransientPrismaRetry(() => this.prisma.client.product.findUnique({ where: { id: productId } }));
     if (!product) return undefined;
 
     const catalogProduct = toProduct(product);
@@ -229,7 +230,12 @@ function normalize(value: string): string {
   return value
     .toLocaleLowerCase('vi-VN')
     .normalize('NFD')
+    .replace(/[đĐ]/g, 'd')
     .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'd')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'd')
     .replace(/đ/g, 'd')
     .replace(/Đ/g, 'd')
     .replace(/\s+/g, ' ')
@@ -279,35 +285,35 @@ const PRODUCT_FAMILIES: ProductFamily[] = [
   },
   {
     key: 'air_fryer',
-    expansion: 'noi chien khong dau air fryer chien nuong nha bep',
-    intentPattern: /\b(noi chien|air fryer)\b/,
-    productPattern: /\b(noi chien|air fryer)\b/,
+    expansion: 'noi chien lo chien khong dau air fryer chien nuong nha bep cua kinh',
+    intentPattern: /\b(noi chien|lo chien|air fryer|bep nho|nau nhanh|nha moi nhan|me toi kho tinh)\b/,
+    productPattern: /\b(noi chien|lo chien|air fryer)\b/,
   },
   {
     key: 'air_cooling',
     expansion: 'quat dieu hoa quat lam mat lam mat phong',
-    intentPattern: /\b(may lanh|dieu hoa|air conditioner|cooling|lam mat|quat|nong|oi|hoi bi|bi nong|bi oi|mua nong|tiet kiem dien)\b/,
+    intentPattern: /\b(may lanh|dieu hoa|air conditioner|cooling|lam mat|quat dieu hoa|quat lam mat|quat|nong|oi buc|oi nong|bi nong|bi oi|mua nong|tiet kiem dien)\b/,
     productPattern: /\b(quat|quat dieu hoa|quat lam mat|lam mat bay hoi|cooling|cool|30 lit|40 lit|45 lit|50 lit|remote|dao gio)\b/,
     exactProductPattern: /\b(quat dieu hoa|quat lam mat)\b/,
   },
   {
     key: 'vacuum',
-    expansion: 'may hut bui robot hut bui ve sinh nha cua lau nha',
-    intentPattern: /\b(hut bui|robot hut|lau nha|vacuum|nha sach|lam sach nha|lam sach san|don nha|don dep|san nha|san gach|nen nha|long thu cung|toc rung|meo|thu cung|ve sinh nha)\b/,
-    productPattern: /\b(hut bui|robot hut|ve sinh|lau nha|vacuum)\b/,
+    expansion: 'may hut bui robot hut bui hut bui cam tay ve sinh nha cua lau nha',
+    intentPattern: /\b(hut bui|hut bui cam tay|robot hut|lau nha|vacuum|nha sach|lam sach nha|lam sach san|don nha|don dep|san nha|san gach|nen nha|long thu cung|toc rung|rung long|cho meo|meo|thu cung|ve sinh nha)\b/,
+    productPattern: /\b(hut bui|hut bui cam tay|robot hut|ve sinh|lau nha|vacuum)\b/,
   },
   {
     key: 'air_purifier',
-    expansion: 'may loc khong khi loc bui hepa pm2 5 phong ngu phong khach',
-    intentPattern: /\b(may loc|loc khong khi|air purifier|bui|min|pm2|di ung|khong khi|mui|tre so sinh|em be|nom am|phong kin|phong ngu)\b/,
+    expansion: 'may loc khong khi may loc kk loc bui hepa pm2 5 phong ngu phong khach tre so sinh',
+    intentPattern: /\b(may loc|loc kk|may loc kk|loc khong khi|air purifier|bui|min|pm2|di ung|khong khi|mui|tre so sinh|be so sinh|em be|nom am|phong kin|phong ngu)\b/,
     productPattern: /\b(may loc|loc khong khi|loc khi|khong khi|hepa|pm2|air purifier)\b/,
     exactProductPattern: /\bmay loc khong khi\b/,
   },
   {
     key: 'camera',
-    expansion: 'camera wifi an ninh quan sat trong nha',
-    intentPattern: /\b(camera|quan sat|an ninh|smart home|bao dong|canh bao|cua ra vao|cam bien|qua app|dien thoai)\b/,
-    productPattern: /\b(camera|wifi|an ninh|cam bien cua|bao dong|doorbell|chuong hinh|aqara|tp-link|tapo|ezviz|imou|homekit|zigbee|matter|thread)\b/,
+    expansion: 'camera wifi an ninh quan sat trong nha cam bien cua bao qua dien thoai nha thue it khoan duc',
+    intentPattern: /\b(camera|quan sat|an ninh|smart home|bao dong|canh bao|bao qua dien thoai|bao ve dien thoai|cua ra vao|cam bien|cam bien cua|qua app|dien thoai|it khoan duc|nha thue)\b/,
+    productPattern: /\b(camera|wifi|an ninh|cam bien cua|cam bien|bao dong|doorbell|chuong hinh|aqara|tp-link|tapo|ezviz|imou|homekit|zigbee|matter|thread)\b/,
     exactProductPattern: /\b(camera|cam bien cua|doorbell|chuong hinh|aqara|tapo|ezviz|imou|homekit|zigbee|matter|thread)\b/,
   },
   {
@@ -318,14 +324,14 @@ const PRODUCT_FAMILIES: ProductFamily[] = [
   },
   {
     key: 'personal_care',
-    expansion: 'cham soc ca nhan may say toc ban chai dien can suc khoe qua tang bo me',
-    intentPattern: /\b(cham soc ca nhan|bo me|qua tang nho gon|cong tac|du lich|may say toc|ban chai dien)\b/,
+    expansion: 'cham soc ca nhan may say toc ban chai dien can suc khoe qua tang bo me nho gon di cong tac',
+    intentPattern: /\b(cham soc ca nhan|bo me|qua tang nho gon|qua gia dung|do gia dung huu dung|goi y qua|goi y mon|nen mua gi|mua gi|cong tac|du lich|may say toc|say toc|ban chai dien|vua lam qua|lam qua|qua huu dung|huu dung|chung cu nho|khong thich do cong kenh|nho gon)\b/,
     productPattern: /\b(cham soc ca nhan|may say toc|say toc|ban chai|can suc khoe|can thong minh|body composition|oral|beurer|dyson|philips hp|panasonic eh)\b/,
   },
   {
     key: 'blender',
-    expansion: 'may xay sinh to may ep xay da nha bep',
-    intentPattern: /\b(may xay|may ep|xay sinh to|blender)\b/,
-    productPattern: /\b(may xay|may ep|xay sinh to|blender)\b/,
+    expansion: 'may xay sinh to may ep xay da nha bep blender',
+    intentPattern: /\b(may xay|may ep|xay sinh to|xay da|sinh to|blender)\b/,
+    productPattern: /\b(may xay|may ep|xay sinh to|xay da|sinh to|blender)\b/,
   },
 ];

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Buffer } from 'node:buffer';
 import type { MemoryInvestigationResult, PendingCartPlan, RetrievalMode, UserAnalysis } from '../../models/agent-execution.models.js';
 import { detectSalesIntent } from '../agent-orchestrator.service.js';
 import { AgentHistoryService } from '../agent-history.service.js';
@@ -50,8 +51,12 @@ export class UserAnalysisAgentService {
 function buildRuleAnalysis(params: { message: string; pendingPlan?: PendingCartPlan; memoryInvestigation?: MemoryInvestigationResult }): UserAnalysis {
     const normalizedMessage = normalize(params.message);
     const asciiMessage = stripVietnameseTone(normalizedMessage).replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
-    if (isUnsafeOrOutOfScopeMessage(asciiMessage)) {
+    const retailContinuationNeed = isRetailContinuationNeed(asciiMessage);
+    if (isUnsafeOrOutOfScopeMessage(asciiMessage) && !retailContinuationNeed) {
       return baseAnalysis('smalltalk', 0.98, 'none', false);
+    }
+    if (isStrongPolicyOperationMessage(asciiMessage)) {
+      return baseAnalysis('policy', 0.95, 'none', false);
     }
     if (params.pendingPlan && /^(dung|ok|okay|uh|u|xac nhan|chot)(?:\s|$)|(?:^|\s)(xac nhan|chot)(?:\s|$)/i.test(asciiMessage)) {
       return baseAnalysis('confirm_pending', 0.98, 'none', false);
@@ -73,12 +78,20 @@ function buildRuleAnalysis(params: { message: string; pendingPlan?: PendingCartP
     }
 
     const references = detectReferences(normalizedMessage, params.memoryInvestigation);
-    const detectedIntent = detectSalesIntent(params.message);
+    const giftOrCareNeed = retailContinuationNeed || /mua\s+qu/i.test(normalizedMessage) || isGiftOrCareProductNeed(asciiMessage);
+    const detectedIntent = giftOrCareNeed ? 'recommend' : detectSalesIntent(params.message);
     const isDiscoveryRequest = isProductDiscoveryRequest(normalizedMessage);
+    if (isDiscoveryRequest && !hasConcreteHistoryReference(asciiMessage)) {
+      references.resolvedProductIds = [];
+      references.useLastRecommendation = false;
+      references.previousProduct = false;
+      references.useCurrentCartItem = false;
+    }
     const cartOperation = detectedIntent === 'cart_status' || detectedIntent === 'policy' || detectedIntent === 'compare' || detectedIntent === 'smalltalk' || isDiscoveryRequest ? undefined : detectCartOperation(normalizedMessage, references);
     const canUseAlternativeIntent = detectedIntent !== 'policy' && detectedIntent !== 'cart_status';
-    const intent = cartOperation ? 'cart_action' : references.anotherOption && canUseAlternativeIntent ? 'recommend' : detectedIntent === 'smalltalk' && isProductDiscoveryRequest(normalizedMessage) ? 'recommend' : detectedIntent;
-    const retrievalMode = detectRetrievalMode(intent, references, params.memoryInvestigation, cartOperation);
+    const intent = cartOperation ? 'cart_action' : references.anotherOption && canUseAlternativeIntent ? 'recommend' : detectedIntent === 'smalltalk' && (isProductDiscoveryRequest(normalizedMessage) || isGiftOrCareProductNeed(asciiMessage) || retailContinuationNeed) ? 'recommend' : detectedIntent;
+    let retrievalMode = detectRetrievalMode(intent, references, params.memoryInvestigation, cartOperation);
+    if (/prod_[a-z0-9_]+/i.test(normalizedMessage) && isProductIntent(intent)) retrievalMode = 'fresh';
     const analysis = baseAnalysis(intent, cartOperation ? 0.9 : 0.78, retrievalMode, shouldShowProducts(intent, retrievalMode, cartOperation));
     analysis.cartOperation = cartOperation;
     analysis.quantity = detectQuantity(normalizedMessage, cartOperation);
@@ -121,15 +134,34 @@ function buildAnalysisPrompt(params: { message: string; pendingPlan?: PendingCar
 
 function readUserAnalysis(content: string, fallback: UserAnalysis): UserAnalysis {
   const parsed = JSON.parse(stripJsonFence(content)) as Partial<UserAnalysis>;
-  const references = typeof parsed.references === 'object' && parsed.references ? { ...fallback.references, ...parsed.references } : fallback.references;
+  const mergedReferences = typeof parsed.references === 'object' && parsed.references ? { ...fallback.references, ...parsed.references } : fallback.references;
+  const forceFreshDiscovery = isProductIntent(fallback.intent)
+    && fallback.retrievalMode === 'fresh'
+    && fallback.shouldShowProducts
+    && !fallback.references.resolvedProductIds?.length
+    && !fallback.references.useLastRecommendation
+    && !fallback.references.useCurrentCartItem
+    && !fallback.references.previousProduct
+    && !fallback.references.anotherOption
+    && !fallback.references.allLastRecommendations;
+  const references = forceFreshDiscovery ? {
+    ...mergedReferences,
+    resolvedProductIds: [],
+    useLastRecommendation: false,
+    useCurrentCartItem: false,
+    previousProduct: false,
+    anotherOption: false,
+    allLastRecommendations: false,
+  } : mergedReferences;
   const hasExplicitProductReference = Boolean(references.resolvedProductIds?.some((productId) => /^prod_/i.test(productId)));
   const parsedIntent = isIntent(parsed.intent) ? parsed.intent : fallback.intent;
+  const parsedCartWithoutRuleSupport = parsedIntent === 'cart_action' && fallback.intent !== 'cart_action';
   const mustKeepFallbackIntent = fallback.intent === 'cart_action' || fallback.intent === 'cart_status' || fallback.intent === 'policy' || (fallback.intent === 'smalltalk' && fallback.retrievalMode === 'none' && fallback.shouldShowProducts === false);
   const shouldKeepFallbackProductIntent = isProductIntent(fallback.intent) && (!isProductIntent(parsedIntent) || fallback.intent === 'compare' || fallback.intent === 'product_detail');
-  const intent = mustKeepFallbackIntent ? fallback.intent : hasExplicitProductReference && parsedIntent === 'smalltalk' ? 'product_detail' : shouldKeepFallbackProductIntent ? fallback.intent : parsedIntent;
+  const intent = mustKeepFallbackIntent || parsedCartWithoutRuleSupport ? fallback.intent : hasExplicitProductReference && parsedIntent === 'smalltalk' ? 'product_detail' : shouldKeepFallbackProductIntent ? fallback.intent : parsedIntent;
   const parsedRetrievalMode = isRetrievalMode(parsed.retrievalMode) ? parsed.retrievalMode : fallback.retrievalMode;
   const shouldKeepProductRetrieval = isProductIntent(fallback.intent) && parsedRetrievalMode === 'none';
-  const retrievalMode = mustKeepFallbackIntent || shouldKeepProductRetrieval ? fallback.retrievalMode : (hasExplicitProductReference || shouldKeepFallbackProductIntent) && parsedRetrievalMode === 'none' ? fallback.retrievalMode === 'none' ? 'fresh' : fallback.retrievalMode : parsedRetrievalMode;
+  const retrievalMode = forceFreshDiscovery || mustKeepFallbackIntent || shouldKeepProductRetrieval ? fallback.retrievalMode : (hasExplicitProductReference || shouldKeepFallbackProductIntent) && parsedRetrievalMode === 'none' ? fallback.retrievalMode === 'none' ? 'fresh' : fallback.retrievalMode : parsedRetrievalMode;
   const cartOperation = fallback.intent === 'cart_action' ? fallback.cartOperation : intent === 'cart_action' && isCartOperation(parsed.cartOperation) ? parsed.cartOperation : undefined;
   const constraints = typeof parsed.constraints === 'object' && parsed.constraints ? { ...parsed.constraints, ...fallback.constraints } : fallback.constraints;
   return {
@@ -180,6 +212,7 @@ function detectCartOperation(normalizedMessage: string, references: UserAnalysis
   const asciiMessage = stripVietnameseTone(normalizedMessage);
   const asciiMentionsCart = /vao gio|bo vao gio|gio hang|cart|san pham|mon|cai|nay|do|thu|so/.test(asciiMessage);
   const asciiHasResolvedHistoryTarget = Boolean(references.resolvedProductIds?.length);
+  if (asciiHasResolvedHistoryTarget && /^(them|add|lay|chon|mua)\b/.test(asciiMessage)) return 'add';
   if (/(giam|bot|decrease|tru).*(ve\s+(?:so luong\s+)?0|xuong\s+(?:so luong\s+)?0|thanh\s+(?:so luong\s+)?0)/.test(asciiMessage) && asciiMentionsCart) return 'set_quantity';
   if (/(?:^|\s)(xoa|go|remove)(?:\s|$).*(khoi gio|ra khoi gio|san pham|mon|cai|nay|do|thu|vua them|con lai)/.test(asciiMessage)) return 'remove';
   if (/(xoa\s+(?:het|toan bo|sach)|don sach|clear|empty).*(gio|cart)|(?:gio hang|cart).*(xoa\s+(?:het|toan bo|sach)|don sach|clear|empty)/.test(asciiMessage)) return 'clear';
@@ -208,13 +241,24 @@ function isProductDiscoveryRequest(normalizedMessage: string): boolean {
   if (/prod_[a-z0-9_]+/.test(asciiMessage)) return false;
   if (/san pham\s+(nay|do|hien tai)?.*bao hanh|bao hanh.*san pham\s+(nay|do|hien tai)?/.test(asciiMessage)) return false;
   if (/abcxyz|\?\?\?|@@@|cai gi do|khong biet nha toi can gi|khong chu de|noi linh tinh/.test(asciiMessage) && !hasNoisyShoppingNeed(asciiMessage)) return false;
-  if (isUnsafeOrOutOfScopeMessage(asciiMessage)) return false;
-  const hasProductTerm = /\b(san pham|mon|do|do dien|do gia dung|qua|may|noi|robot|camera|den|quat|bep|thiet bi|hut bui|loc|ve sinh|cam bien|bao dong|smart home|ban chai|cham soc ca nhan|lam mat|quat thap|dieu hoa|may lanh|noi com|noi chien|may xay|phong|nha|can ho|chung cu|van phong|bep mo|em be|tre nho)\b/.test(asciiMessage);
-  const asksForAdvice = /\b(can|muon|nao|hop|tot|goi y|de xuat|tu van|tim|chon|phu hop|nen mua|dang mua|co gi|co|chi co|ngan sach|gia|duoi|tren|khoang|lap dat|qua app|bao dong|uu tien|dat trong|tac dung|co ich|nho gon|mang di|cong tac|tam|dung duoc|dong nghiep)\b/.test(asciiMessage);
+  if (isUnsafeOrOutOfScopeMessage(asciiMessage) && !isRetailContinuationNeed(asciiMessage)) return false;
+  const hasProductTerm = /\b(san pham|mon|do|do dien|do gia dung|qua|may|noi|lo|robot|camera|den|quat|bep|thiet bi|hut bui|loc|loc kk|ve sinh|cam bien|bao dong|smart home|ban chai|cham soc ca nhan|lam mat|quat thap|dieu hoa|may lanh|noi com|noi chien|lo chien|may xay|xay da|sinh to|can suc khoe|may say toc|say toc|phong|nha|can ho|chung cu|van phong|bep mo|em be|tre nho|be so sinh)\b/.test(asciiMessage);
+  const asksForAdvice = /\b(can|muon|nao|hop|tot|goi y|de xuat|tu van|tim|chon|phu hop|nen mua|dang mua|co gi|co|chi co|ngan sach|gia|duoi|tren|khoang|lap dat|qua app|bao dong|bao qua dien thoai|uu tien|dat trong|tac dung|co ich|nho gon|mang di|cong tac|tam|dung duoc|dong nghiep|nhe|shop oi|mau nao)\b/.test(asciiMessage);
   const hasUseCaseOrArea = /\b(cho|dung cho|de|phong|nha|can ho|chung cu|van phong|bep|tre|em be|nguoi lon tuoi|thu cung|meo|dien tich)\b/.test(asciiMessage)
     || /\b\d+\s*(?:m2|m vuong|met vuong|m²)\b/.test(asciiMessage);
+  const concreteNeedSignal = /\b(xay da|sinh to|be so sinh|tre so sinh|cam bien cua|bao qua dien thoai|it khoan duc|nha thue|chu to|cong tac|cua kinh|nha co meo|long thu cung|toc rung)\b/.test(asciiMessage);
   const explicitCartAction = /(\bthem\b|add|bo|mua|xoa|\bgo\b|remove|don|clear|empty|sua|doi|cap nhat|update).*(vao gio|bo vao gio|khoi gio|ra khoi gio|gio hang|cart)|(?:gio hang|cart).*(xoa|\bgo\b|remove|don|clear|empty|sua|doi|cap nhat|update)/.test(asciiMessage);
-  return hasProductTerm && (asksForAdvice || hasUseCaseOrArea) && !explicitCartAction;
+  return hasProductTerm && (asksForAdvice || hasUseCaseOrArea || concreteNeedSignal) && !explicitCartAction;
+}
+
+function isGiftOrCareProductNeed(asciiMessage: string): boolean {
+  return /mua\s+qu\S*(?:\s+cho|\s+de|\s+nen|.*nen mua)/.test(asciiMessage)
+    || /(?:mua|chon|tim|tu van|goi y|nen mua).*(?:qua|qua gia dung|do gia dung|bo me|nguoi lon tuoi|de dung|cham soc ca nhan)|(?:qua|qua gia dung|do gia dung|bo me|nguoi lon tuoi|de dung|cham soc ca nhan).*(?:mua|chon|tim|tu van|goi y|nen mua)/.test(asciiMessage);
+}
+
+function isRetailContinuationNeed(asciiMessage: string): boolean {
+  return /(?:xong|roi|tien|sau do|nhung|that ra).*(?:noi toi nen mua gi|nen mua gi|mua gi|goi y|de xuat|tu van|san pham|do gia dung|qua gia dung)|(?:noi toi nen mua gi|nen mua gi|mua gi|goi y|de xuat|tu van).*(?:san pham|do gia dung|qua gia dung|qua|mon|mua|can)/.test(asciiMessage)
+    || /\b(?:noi toi nen mua gi|nen mua gi|mua gi|goi y qua gia dung|goi y do gia dung|goi y mon|goi y san pham)\b/.test(asciiMessage);
 }
 
 function isUnsafeOrOutOfScopeMessage(asciiMessage: string): boolean {
@@ -222,7 +266,16 @@ function isUnsafeOrOutOfScopeMessage(asciiMessage: string): boolean {
 }
 
 function hasNoisyShoppingNeed(asciiMessage: string): boolean {
-  return /(nha sach|lam nha sach|may loc|loc khong khi|bui|tre nho|em be|mui bep|nha nong|mua gi|duoi \d|tam \d|can .* san pham|goi y|tu van)/.test(asciiMessage);
+  return /(nha sach|lam nha sach|lam sach nha|ve sinh nha|cho meo|long thu cung|rung long|may loc|loc kk|loc khong khi|bui|tre nho|em be|be so sinh|mui bep|bep nho|nau nhanh|nha nong|mua gi|duoi \d|tam \d|can .* san pham|can mon|goi y|tu van|xay da|sinh to|cam bien cua|bao qua dien thoai|can suc khoe|may say toc|lo chien|vua lam qua|lam qua|qua.*huu dung|khong thich do cong kenh|chung cu nho)/.test(asciiMessage);
+}
+
+function isStrongPolicyOperationMessage(asciiMessage: string): boolean {
+  return /(giao cham|giao tre|tre hang|huy don|doi dia chi|thieu phu kien|mat phu kien|quay video|lap dat|ho tro the nao|khieu nai|mua online|doi sang mau|mau khac dat hon|roi vo|lam roi vo|hoan tien|thanh toan chuyen khoan|kiem tra hang|shipper|cua hang.*ban gi|hau mai|khuyen mai|voucher|san pham loi|doi tra|bao hanh)/.test(asciiMessage)
+    && !/(ngan sach|bep nho|nau nhanh|nha moi nhan|me toi kho tinh|can mon|lam sach nha|ve sinh nha|rung long|long thu cung|vua lam qua|lam qua|mua san pham|chon san pham|tim san pham|tu van san pham)/.test(asciiMessage);
+}
+
+function hasConcreteHistoryReference(asciiMessage: string): boolean {
+  return /(cai do|cai nay|mau do|san pham do|danh sach do|trong danh sach|re nhat|dat nhat|cung nhu cau|nhu cau cu|nhu cau do|no|vua them|mon vua them|san pham vua them|o tren|hai mon dau|2 mon dau|cai thu hai|san pham thu hai|con lai|trong gio|gio hang)/.test(asciiMessage);
 }
 
 function detectQuantity(normalizedMessage: string, operation: UserAnalysis['cartOperation']): UserAnalysis['quantity'] | undefined {
@@ -254,7 +307,8 @@ function detectReferences(normalizedMessage: string, memoryInvestigation: Memory
   const asciiMessage = stripVietnameseTone(normalizedMessage);
   const ordinal = parseOrdinal(normalizedMessage);
   if (ordinal) references.ordinal = ordinal;
-  if (/nay|do|vua roi|o tren|dang chon|vua them|mon vua them|san pham vua them|con lai/.test(asciiMessage)) references.demonstrative = true;
+  if (/nay|do|vua roi|o tren|dang chon|vua them|mon vua them|san pham vua them|con lai|hai mon dau|2 mon dau|mon dau|cai thu hai|san pham thu hai|san pham con lai|danh sach do|trong danh sach|re nhat|dat nhat|cung nhu cau|nhu cau cu|nhu cau do/.test(asciiMessage)) references.demonstrative = true;
+  if (/hai mon dau|2 mon dau|mon dau|cai thu hai|san pham thu hai|o tren|danh sach do|trong danh sach|re nhat|dat nhat|cung nhu cau|nhu cau cu|nhu cau do/.test(asciiMessage)) references.useLastRecommendation = true;
   if (/trong gio|gio hang|cart|vua them|mon vua them|san pham vua them|con lai/.test(asciiMessage)) references.useCurrentCartItem = true;
   if (/vua them|mon vua them|san pham vua them/.test(asciiMessage) && memoryInvestigation?.lastCartActionProductIds.length) {
     references.resolvedProductIds = memoryInvestigation.lastCartActionProductIds;
@@ -267,7 +321,8 @@ function detectReferences(normalizedMessage: string, memoryInvestigation: Memory
   if (/trong giỏ|giỏ hàng|cart/.test(normalizedMessage)) references.useCurrentCartItem = true;
   if (/sản phẩm mới|mẫu mới|cái mới/.test(normalizedMessage)) references.newProduct = true;
   if (/vừa rồi|trước đó|lúc nãy/.test(normalizedMessage)) references.previousProduct = true;
-  if (/sản phẩm khác|mẫu khác|cái khác|khác|nhiều sản phẩm hơn|thêm lựa chọn|thêm gợi ý|gợi ý thêm|xem thêm/.test(normalizedMessage)) references.anotherOption = true;
+  if (/re hon|gia mem hon|tiet kiem hon|tot hon|nang cap hon|xin hon|manh hon|cao hon|hon mot chut|hon 1 chut|cung nhu cau|nhu cau cu|nhu cau do|mau nao.*hon|lua chon khac|goi y them|xem them|them gi nua|san pham khac|mau khac|cai khac|khac|nhieu san pham hon|them lua chon|them goi y/.test(asciiMessage)) references.anotherOption = true;
+  if (/sáº£n pháº©m khÃ¡c|máº«u khÃ¡c|cÃ¡i khÃ¡c|khÃ¡c|nhiá»u sáº£n pháº©m hÆ¡n|thÃªm lá»±a chá»n|thÃªm gá»£i Ã½|gá»£i Ã½ thÃªm|xem thÃªm/.test(normalizedMessage)) references.anotherOption = true;
   if (/khac nhau|khac biet|so sanh/.test(asciiMessage)) references.anotherOption = false;
   if (/thêm hết|tất cả|cả \d|mấy cái đó|các cái đó/.test(normalizedMessage)) references.allLastRecommendations = true;
   if (memoryInvestigation?.referenceProductIds.length && !references.resolvedProductIds?.length) references.resolvedProductIds = memoryInvestigation.referenceProductIds;
@@ -293,7 +348,7 @@ function detectExplicitCartProductName(normalizedMessage: string): string | unde
 function detectRetrievalMode(intent: UserAnalysis['intent'], references: UserAnalysis['references'], memoryInvestigation: MemoryInvestigationResult | undefined, cartOperation?: UserAnalysis['cartOperation']): RetrievalMode {
   if (references.anotherOption) return 'alternatives';
   if (intent === 'cart_action' && cartOperation === 'add' && references.resolvedProductIds?.length) return 'recent';
-  if (references.resolvedProductIds?.some((productId) => /^prod_/i.test(productId)) && (intent === 'recommend' || intent === 'compare' || intent === 'product_detail')) return 'fresh';
+  if (references.resolvedProductIds?.some((productId) => /^prod_/i.test(productId)) && (intent === 'recommend' || intent === 'compare' || intent === 'product_detail')) return 'recent';
   if (references.resolvedProductIds?.length && (references.newProduct || references.previousProduct || references.allLastRecommendations || references.useLastRecommendation)) return 'recent';
   if (intent === 'cart_action' && cartOperation === 'add' && references.productName) return 'fresh';
   if (intent === 'recommend' || intent === 'compare' || intent === 'product_detail') return 'fresh';
@@ -371,13 +426,32 @@ function parseVietnameseNumber(normalizedMessage: string): number | undefined {
 }
 
 function normalize(value: string): string {
-  return value.toLocaleLowerCase('vi-VN');
+  return repairVietnameseMojibake(value).toLocaleLowerCase('vi-VN');
+}
+
+function repairVietnameseMojibake(value: string): string {
+  let current = value;
+  for (let index = 0; index < 3 && /[\u00c3\u00c4\u00c6\u00ba\u00bb]/.test(current); index += 1) {
+    try {
+      const repaired = Buffer.from(current, 'latin1').toString('utf8');
+      if (!repaired || repaired === current) break;
+      current = repaired;
+    } catch {
+      break;
+    }
+  }
+  return current;
 }
 
 function stripVietnameseTone(value: string): string {
   return value
     .normalize('NFD')
+    .replace(/[đĐ]/g, 'd')
     .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'd')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'd')
     .replace(/đ/g, 'd')
     .replace(/Đ/g, 'd')
     .replace(/đ/g, 'd')

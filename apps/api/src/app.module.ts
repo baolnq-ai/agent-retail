@@ -12,6 +12,7 @@ import { ModelSettingsController } from './controllers/model-settings.controller
 import { PromptSettingsController } from './controllers/prompt-settings.controller.js';
 import { AgentHistoryService } from './services/agent-history.service.js';
 import { AgentOrchestratorService } from './services/agent-orchestrator.service.js';
+import { AgentTaskBlackboardService } from './services/agent-task-blackboard.service.js';
 import { AgentTraceService } from './services/agent-trace.service.js';
 import { AgentQualityGateService } from './services/agents/agent-quality-gate.service.js';
 import { BusinessRagAgentService } from './services/agents/business-rag-agent.service.js';
@@ -70,6 +71,7 @@ import { RedisCacheService } from './services/redis-cache.service.js';
     CommerceService,
     AgentHistoryService,
     AgentOrchestratorService,
+    AgentTaskBlackboardService,
     AgentTraceService,
     AgentQualityGateService,
     BusinessRagAgentService,

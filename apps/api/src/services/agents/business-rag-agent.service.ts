@@ -26,11 +26,14 @@ export class BusinessRagAgentService {
 
     const query = buildBusinessRagQuery(params.message, params.analysis);
     const result = await this.knowledgeService.retrieveKnowledge(query);
+    const recoverySummary = result.diagnostics.recoveryMode === 'keyword'
+      ? ` Vector/rerank recovery used Knowledge DB keyword ranking (${result.diagnostics.recoveryReason ?? 'no reason'}).`
+      : '';
     return {
       documents: result.documents,
       diagnostics: result.diagnostics,
       pipeline: [
-        event(result.documents.length ? 'completed' : 'skipped', `Business RAG embedded the request, searched ${result.diagnostics.vectorCandidateCount} vector candidates, reranked and selected ${result.documents.length} documents.`),
+        event(result.documents.length ? 'completed' : 'skipped', `Business RAG checked internal policy documents, searched ${result.diagnostics.vectorCandidateCount} candidates and selected ${result.documents.length} documents.${recoverySummary}`),
       ],
       evidence: result.documents.map((document) => `knowledge:${document.id}:${document.type}`),
     };

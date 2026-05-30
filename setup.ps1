@@ -12,6 +12,7 @@ $WebLog = Join-Path $WebLogDir 'web-3100.log'
 $EnvFile = Join-Path $RootDir '.env'
 $EnvExample = Join-Path $RootDir '.env.example'
 $TerminalMode = if ($env:SETUP_TERMINAL_MODE) { $env:SETUP_TERMINAL_MODE.ToLowerInvariant() } else { 'window' }
+$ShellSkipDocker = $env:SKIP_DOCKER
 
 New-Item -ItemType Directory -Force -Path $SetupLogDir, $ApiLogDir, $WebLogDir | Out-Null
 New-Item -ItemType File -Path $SetupLog -Force | Out-Null
@@ -117,6 +118,7 @@ function Import-EnvFile {
     CHAT_MODEL_BASE_URL = $env:CHAT_MODEL_BASE_URL
     CHAT_MODEL_ID = $env:CHAT_MODEL_ID
     EMBED_RERANK_BASE_URL = $env:EMBED_RERANK_BASE_URL
+    SKIP_DOCKER = $env:SKIP_DOCKER
   }
 
   if (-not (Test-Path $EnvFile) -and (Test-Path $EnvExample)) {
@@ -250,8 +252,10 @@ if ($env:SETUP_SKIP_STOP -ne '1') {
   if (Test-Path $stopScript) {
     try {
       & $stopScript >> $SetupLog
+      if (-not [string]::IsNullOrWhiteSpace($ShellSkipDocker)) { $env:SKIP_DOCKER = $ShellSkipDocker }
       Write-Ok 'Old project runtime stopped when present'
     } catch {
+      if (-not [string]::IsNullOrWhiteSpace($ShellSkipDocker)) { $env:SKIP_DOCKER = $ShellSkipDocker }
       Write-Warn 'stop.ps1 reported a non-fatal cleanup issue; continuing setup'
     }
   }

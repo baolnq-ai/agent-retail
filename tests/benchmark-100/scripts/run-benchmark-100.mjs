@@ -15,6 +15,9 @@ const requestTimeoutMs = Number.parseInt(envValue('BENCHMARK_REQUEST_TIMEOUT_MS'
 const startIndex = Number.parseInt(envValue('BENCHMARK_START_INDEX', '1'), 10);
 const limit = Number.parseInt(envValue('BENCHMARK_LIMIT', '100'), 10);
 const resume = envValue('BENCHMARK_RESUME', '0') === '1';
+const writeAuthCheckpoint = envValue('BENCHMARK_WRITE_AUTH_CHECKPOINT', '0') === '1';
+const warmupGroups = envValue('BENCHMARK_WARMUP_GROUPS', '1') === '1';
+const warmupDelayMs = Number.parseInt(envValue('BENCHMARK_WARMUP_DELAY_MS', String(Math.min(delayMs, 1000))), 10);
 
 const cases = JSON.parse(await readFile(casesPath, 'utf8'));
 if (!Array.isArray(cases) || cases.length < 100) {
@@ -31,6 +34,29 @@ const authGroups = new Map(previous?.authGroups ?? []);
 const groupState = new Map(previous?.groupState ?? []);
 
 const selectedCases = cases.slice(Math.max(0, startIndex - 1), Math.max(0, startIndex - 1) + limit);
+
+if (warmupGroups && startIndex > 1) {
+  const selectedGroupIds = new Set(selectedCases.map((testCase) => testCase.group).filter((group) => !groupState.has(group)));
+  const warmupCases = cases.slice(0, Math.max(0, startIndex - 1)).filter((testCase) => selectedGroupIds.has(testCase.group));
+  if (warmupCases.length > 0) {
+    console.log(`WARMUP ${warmupCases.length} prior turns for ${selectedGroupIds.size} selected conversation group(s).`);
+  }
+  for (let warmupIndex = 0; warmupIndex < warmupCases.length; warmupIndex += 1) {
+    const testCase = warmupCases[warmupIndex];
+    const startedAt = Date.now();
+    try {
+      const cookie = testCase.mode === 'auth' ? await cookieForGroup(testCase.group, authGroups) : '';
+      const beforeState = groupState.get(testCase.group) ?? {};
+      const response = await postJson('/api/v1/chat', { message: testCase.prompt }, cookie);
+      const warmupResult = evaluateCase(testCase, response, Date.now() - startedAt, beforeState);
+      groupState.set(testCase.group, stateFromResponse(response, warmupResult));
+      console.log(`WARMUP ${warmupIndex + 1}/${warmupCases.length} ${testCase.id} ${testCase.group} ${warmupResult.elapsedMs}ms ${warmupResult.issues.map((issue) => issue.code).join(', ')}`);
+    } catch (error) {
+      console.log(`WARMUP_FAIL ${warmupIndex + 1}/${warmupCases.length} ${testCase.id} ${error instanceof Error ? error.message : String(error)}`);
+    }
+    if (warmupIndex < warmupCases.length - 1 && warmupDelayMs > 0) await sleep(warmupDelayMs);
+  }
+}
 
 for (let caseIndex = 0; caseIndex < selectedCases.length; caseIndex += 1) {
   const testCase = selectedCases[caseIndex];
@@ -120,6 +146,16 @@ function evaluateBlocks(testCase, blocks, text) {
   const normalized = normalize(text);
 
   if (testCase.expectedBlocks?.includes('product_list') && products.length === 0) issues.push(fail('empty_product_list'));
+  if (testCase.semanticStrict && testCase.expectedBlocks?.includes('product_list') && products.length > 0 && Array.isArray(testCase.expectedFamilies) && testCase.expectedFamilies.length > 0) {
+    const mismatchedProducts = products.filter((product) => !matchesAnyExpectedFamily(product, testCase.expectedFamilies));
+    if (mismatchedProducts.length === products.length) issues.push(fail(`semantic_product_family_mismatch:${testCase.expectedFamilies.join('+')}`));
+  }
+  if (testCase.semanticStrict && testCase.expectedBlocks?.includes('product_list') && products.length > 0) {
+    const budgetMax = parseBudgetMax(testCase.prompt);
+    if (budgetMax !== undefined && products.some((product) => product.price > budgetMax) && !/chưa có|không có|vượt ngân sách|cao hơn ngân sách/i.test(text)) {
+      issues.push(fail(`semantic_budget_mismatch:max_${budgetMax}`));
+    }
+  }
   if (testCase.expectedBlocks?.includes('policy_answer') && policies.length === 0) issues.push(fail('empty_policy_sources'));
   if (testCase.category === 'policy' && products.length > 0 && !/sản phẩm|san pham|hàng|hang/.test(normalized)) issues.push(warn('policy_returned_product_rail_review'));
   if (testCase.category.includes('cart') && !blocks.some((block) => block.type === 'cart_summary')) issues.push(fail('missing_cart_summary'));
@@ -133,7 +169,9 @@ function evaluateTrace(testCase, trace) {
   const nodeIds = new Set((trace.nodes ?? []).map((node) => node.id));
   const edges = trace.graphEdges ?? [];
   const agents = trace.agents ?? [];
-  const requiredNodes = ['pipeline-executor', 'session-context', 'task-context', 'lead-agent', 'sales-agent', 'assistant-response'];
+  const requiredNodes = testCase.semanticStrict
+    ? ['pipeline-executor', 'task-blackboard', 'session-context', 'task-context', 'lead-agent', 'sales-agent', 'assistant-response']
+    : ['pipeline-executor', 'session-context', 'task-context', 'lead-agent', 'sales-agent', 'assistant-response'];
   for (const id of requiredNodes) {
     if (!nodeIds.has(id)) issues.push(fail(`flow_missing_node:${id}`));
   }
@@ -154,6 +192,7 @@ function evaluateTrace(testCase, trace) {
     }
   }
   if (testCase.category === 'policy' && (trace.retrieval?.contextDocumentCount ?? 0) === 0) issues.push(fail('policy_without_rag_context'));
+  if (testCase.semanticStrict && testCase.category === 'policy' && (trace.blackboard?.evidence?.length ?? 0) === 0) issues.push(fail('policy_without_blackboard_evidence'));
   if ((testCase.category === 'product' || testCase.category === 'compare' || testCase.category === 'product_detail') && !agents.includes('search-agent')) issues.push(fail('product_without_search_agent'));
   return issues;
 }
@@ -255,7 +294,7 @@ async function writeReports({ inProgress, results, authGroups, groupState }) {
   await writeFile(reportMdPath, renderMarkdownReport(payload), 'utf8');
   await writeFile(checkpointPath, JSON.stringify({
     generatedAt: payload.generatedAt,
-    authGroups: [...authGroups.entries()],
+    authGroups: writeAuthCheckpoint ? [...authGroups.entries()] : [...authGroups.keys()].map((group) => [group, '[redacted]']),
     groupState: [...groupState.entries()],
     results,
   }, null, 2), 'utf8');
@@ -326,21 +365,26 @@ function topIssues(results) {
 
 async function cookieForGroup(group, authGroups) {
   if (authGroups.has(group)) return authGroups.get(group);
-  const suffix = `${group}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`
-    .toLocaleLowerCase('vi-VN')
-    .replace(/[^a-z0-9_]/g, '_')
-    .replace(/_+/g, '_')
-    .slice(0, 24);
-  const response = await fetch(`${apiBaseUrl}/api/v1/auth/register`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json; charset=utf-8' },
-    body: JSON.stringify({ name: `bench_${suffix}`.slice(0, 32), password: `StrongPass_${suffix}` }),
-  });
-  const text = await response.text();
-  if (response.status !== 201) throw new Error(`auth_register_${response.status}:${text.slice(0, 200)}`);
-  const cookie = response.headers.get('set-cookie') ?? '';
-  authGroups.set(group, cookie);
-  return cookie;
+  let lastError = '';
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const randomPart = Math.random().toString(36).slice(2, 10);
+    const groupPart = group.toLocaleLowerCase('vi-VN').replace(/[^a-z0-9_]/g, '_').replace(/_+/g, '_').slice(0, 12);
+    const suffix = `${randomPart}_${Date.now().toString(36).slice(-6)}_${groupPart}`.slice(0, 24);
+    const response = await fetch(`${apiBaseUrl}/api/v1/auth/register`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json; charset=utf-8' },
+      body: JSON.stringify({ name: `bench_${suffix}`.slice(0, 32), password: `StrongPass_${suffix}` }),
+    });
+    const text = await response.text();
+    if (response.status === 201) {
+      const cookie = response.headers.get('set-cookie') ?? '';
+      authGroups.set(group, cookie);
+      return cookie;
+    }
+    lastError = `auth_register_${response.status}:${text.slice(0, 200)}`;
+    if (response.status !== 409) break;
+  }
+  throw new Error(lastError);
 }
 
 async function postJson(path, body, cookie = '') {
@@ -443,6 +487,40 @@ function normalize(value) {
     .replace(/đ/g, 'd')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function matchesAnyExpectedFamily(product, expectedFamilies) {
+  const normalizedProduct = normalize(`${product.title ?? ''} ${product.brand ?? ''} ${product.category ?? ''} ${product.description ?? ''} ${Object.values(product.attributes ?? {}).join(' ')}`);
+  return expectedFamilies.some((family) => familyPattern(family).test(normalizedProduct));
+}
+
+function familyPattern(family) {
+  const patterns = {
+    may_loc_khong_khi: /\b(may loc|loc kk|loc khong khi|loc khi|hepa|pm2|air purifier)\b/,
+    quat_dieu_hoa: /\b(quat|lam mat|dieu hoa|cooling|dao gio|remote|lit)\b/,
+    robot_hut_bui: /\b(robot hut|hut bui|lau nha|vacuum)\b/,
+    may_hut_bui: /\b(hut bui|vacuum)\b/,
+    smart_home: /\b(camera|cam bien|bao dong|doorbell|chuong hinh|aqara|tapo|zigbee|matter|thread|homekit)\b/,
+    camera: /\b(camera|chuong hinh|doorbell|ezviz|imou|tapo)\b/,
+    cham_soc_ca_nhan: /\b(may say toc|ban chai|can suc khoe|can thong minh|beurer|oral|body composition)\b/,
+    noi_com: /\b(noi com|rice cooker)\b/,
+    noi_chien: /\b(noi chien|lo chien|air fryer)\b/,
+    may_xay: /\b(may xay|may ep|xay sinh to|xay da|sinh to|blender)\b/,
+  };
+  return patterns[family] ?? new RegExp(`\\b${escapeRegex(String(family))}\\b`);
+}
+
+function parseBudgetMax(prompt) {
+  const normalizedPrompt = normalize(prompt);
+  const millionMatch = normalizedPrompt.match(/(?:duoi|khong qua|tam|toi da|khoang)\s*(\d+(?:[,.]\d+)?)\s*(?:trieu|tr)\b/);
+  if (millionMatch) return Math.round(Number.parseFloat(millionMatch[1].replace(',', '.')) * 1_000_000);
+  const thousandMatch = normalizedPrompt.match(/(?:duoi|khong qua|tam|toi da|khoang)\s*(\d+(?:[,.]\d+)?)\s*(?:k|nghin|ngan)\b/);
+  if (thousandMatch) return Math.round(Number.parseFloat(thousandMatch[1].replace(',', '.')) * 1_000);
+  return undefined;
+}
+
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function looksLikeRefusalOrClarify(normalizedText) {

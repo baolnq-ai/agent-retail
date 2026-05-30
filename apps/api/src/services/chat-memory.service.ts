@@ -3,6 +3,7 @@ import type { Prisma } from '@prisma/client';
 import type { AgentChatResponse } from '../models/agent.models.js';
 import type { MemoryInvestigationResult, PendingCartPlan } from '../models/agent-execution.models.js';
 import type { Product } from '../models/catalog.models.js';
+import { withTransientPrismaRetry } from '../utils/prisma-retry.js';
 import { PrismaService } from './prisma.service.js';
 
 export interface ChatMemoryContext {
@@ -30,12 +31,12 @@ export class ChatMemoryService {
     if (!userId) return { recentTurns: [], preferences: [], recentRecommendationIds: [] };
 
     const [thread, preferences] = await Promise.all([
-      this.prisma.client.chatThread.findFirst({
+      withTransientPrismaRetry(() => this.prisma.client.chatThread.findFirst({
         where: { userId },
         orderBy: { updatedAt: 'desc' },
         include: { messages: { orderBy: { createdAt: 'desc' }, take: 6 } },
-      }),
-      this.prisma.client.userPreference.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 8 }),
+      })),
+      withTransientPrismaRetry(() => this.prisma.client.userPreference.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 8 })),
     ]);
 
     const preferenceContext = preferences.map((preference) => ({ key: preference.key, value: preference.value }));
@@ -51,12 +52,12 @@ export class ChatMemoryService {
   async getInvestigationSource(userId: string | undefined): Promise<{ messages: Array<{ role: string; content: string; metadata?: unknown }>; preferences: Array<{ key: string; value: unknown }> }> {
     if (!userId) return { messages: [], preferences: [] };
     const [thread, preferences] = await Promise.all([
-      this.prisma.client.chatThread.findFirst({
+      withTransientPrismaRetry(() => this.prisma.client.chatThread.findFirst({
         where: { userId },
         orderBy: { updatedAt: 'desc' },
         include: { messages: { orderBy: { createdAt: 'desc' }, take: 8 } },
-      }),
-      this.prisma.client.userPreference.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 8 }),
+      })),
+      withTransientPrismaRetry(() => this.prisma.client.userPreference.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 8 })),
     ]);
     return {
       messages: thread?.messages.map((message) => ({ role: message.role, content: message.content, metadata: message.metadata })) ?? [],

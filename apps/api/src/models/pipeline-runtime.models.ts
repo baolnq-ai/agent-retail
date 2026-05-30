@@ -56,10 +56,52 @@ export interface PipelineContextBudget {
   maxRawPayloadRefs: number;
 }
 
+export interface AgentTaskBudget {
+  maxLoops: number;
+  maxToolCalls: number;
+  maxEvaluatorRetries: number;
+  maxWallTimeMs: number;
+}
+
+export interface AgentTaskBlackboardEvent {
+  id?: string;
+  agent: PipelineV2Agent | 'memory-agent' | 'user-analysis-agent' | 'product-manager-agent' | 'cart-manager-agent' | 'sales-evaluator-agent';
+  stage: string;
+  status: AgentTraceStepStatus;
+  summary: string;
+  inputRefs?: string[];
+  outputRefs?: string[];
+  evidence?: Array<{ kind: PipelineRefKind | 'text'; label: string; ids?: string[]; confidence?: number }>;
+  toolCall?: { name: string; argsSummary: string; resultSummary?: string };
+  decision?: Record<string, string | number | boolean | string[]>;
+  durationMs?: number;
+}
+
+export interface AgentTaskBlackboardSnapshot {
+  taskId: string;
+  requestId: string;
+  status: PipelineRuntimeStatus;
+  goal: string;
+  budget: AgentTaskBudget;
+  hypotheses: Array<{ label: string; confidence: number; source: string }>;
+  evidence: AgentTaskBlackboardEvent['evidence'];
+  decisions: Array<Record<string, string | number | boolean | string[]>>;
+  evaluatorVerdict?: Record<string, unknown>;
+  finalContract?: Record<string, unknown>;
+  eventCount: number;
+}
+
 export const DEFAULT_PIPELINE_CONTEXT_BUDGET: PipelineContextBudget = {
   maxLeadContextTokens: 4096,
   maxAgentContextTokens: 3072,
   maxRawPayloadRefs: 0,
+};
+
+export const DEFAULT_AGENT_TASK_BUDGET: AgentTaskBudget = {
+  maxLoops: 6,
+  maxToolCalls: 14,
+  maxEvaluatorRetries: 2,
+  maxWallTimeMs: 120000,
 };
 
 export function sortPlaybackEvents(events: PipelineTracePlaybackEvent[]): PipelineTracePlaybackEvent[] {

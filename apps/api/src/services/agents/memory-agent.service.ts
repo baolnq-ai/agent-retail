@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Buffer } from 'node:buffer';
 import type { AgentChatResponse } from '../../models/agent.models.js';
 import type { MemoryAgentResult, MemoryAgentVisitedNode, MemoryInvestigationResult } from '../../models/agent-execution.models.js';
 import { ChatMemoryService } from '../chat-memory.service.js';
@@ -124,14 +125,15 @@ function emptyInvestigation(requiresHistory: boolean): MemoryInvestigationResult
 }
 
 function requiresHistoryLookup(normalizedMessage: string): boolean {
-  if (/(vua them|mon vua them|san pham vua them|o tren|de dung nhat|con lai)/.test(stripVietnameseTone(normalizedMessage))) return true;
+  if (/(vua them|mon vua them|san pham vua them|o tren|de dung nhat|con lai|hai mon dau|2 mon dau|mon dau|cai thu hai|san pham thu hai|san pham con lai|phuong an mua cuoi|re hon|gia mem hon|tiet kiem hon|mau nao.*hon|lua chon khac|goi y them|xem them|them gi nua)/.test(stripVietnameseTone(normalizedMessage))) return true;
   return /(sản phẩm mới|mẫu mới|cái mới|vừa gợi ý|vừa đề xuất|vừa rồi|thêm hết|tất cả|mấy cái đó|các cái đó|sản phẩm khác|mẫu khác|cái khác|nó|đó|này|thêm máy|thêm nồi|thêm robot|thêm camera|thêm đèn|thêm quạt|thêm bếp|thêm lọc)/.test(normalizedMessage);
 }
 
 function detectResolvedReference(normalizedMessage: string): MemoryInvestigationResult['resolvedReference'] | undefined {
   const asciiMessage = stripVietnameseTone(normalizedMessage);
-  if (/vua them|mon vua them|san pham vua them|con lai/.test(asciiMessage)) return 'previous_product';
-  if (/o tren|de dung nhat/.test(asciiMessage)) return 'last_recommendation';
+  if (/vua them|mon vua them|san pham vua them|con lai|san pham con lai/.test(asciiMessage)) return 'previous_product';
+  if (/o tren|de dung nhat|hai mon dau|2 mon dau|mon dau|cai thu hai|san pham thu hai/.test(asciiMessage)) return 'last_recommendation';
+  if (/re hon|gia mem hon|tiet kiem hon|mau nao.*hon|lua chon khac|goi y them|xem them|them gi nua/.test(asciiMessage)) return 'another_option';
   if (/thêm hết|tất cả|cả \d|mấy cái đó|các cái đó/.test(normalizedMessage)) return 'all_last_recommendations';
   if (/sản phẩm khác|mẫu khác|cái khác|khác/.test(normalizedMessage)) return 'another_option';
   if (/sản phẩm mới|mẫu mới|cái mới/.test(normalizedMessage)) return 'new_product';
@@ -192,7 +194,21 @@ function stringifyValue(value: unknown): string {
 }
 
 function normalize(value: string): string {
-  return value.toLocaleLowerCase('vi-VN').replace(/\s+/g, ' ').trim();
+  return repairVietnameseMojibake(value).toLocaleLowerCase('vi-VN').replace(/\s+/g, ' ').trim();
+}
+
+function repairVietnameseMojibake(value: string): string {
+  let current = value;
+  for (let index = 0; index < 3 && /[\u00c3\u00c4\u00c6\u00ba\u00bb]/.test(current); index += 1) {
+    try {
+      const repaired = Buffer.from(current, 'latin1').toString('utf8');
+      if (!repaired || repaired === current) break;
+      current = repaired;
+    } catch {
+      break;
+    }
+  }
+  return current;
 }
 
 function stripVietnameseTone(value: string): string {

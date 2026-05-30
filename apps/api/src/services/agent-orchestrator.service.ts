@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Buffer } from 'node:buffer';
 import type { ChatMemoryContext } from './chat-memory.service.js';
 import type { Cart } from '../models/commerce.models.js';
 import type { Product } from '../models/catalog.models.js';
@@ -43,11 +44,19 @@ export class AgentOrchestratorService {
 export function detectSalesIntent(message: string): SalesAgentIntent {
   const normalizedMessage = normalize(message);
   const asciiMessage = stripVietnameseTone(normalizedMessage);
+  const retailContinuationNeed = isRetailContinuationNeed(asciiMessage);
   if (isAmbiguousNoise(asciiMessage) && !isNoisyShoppingNeed(asciiMessage)) return 'smalltalk';
-  if (isUnsafeOrOutOfScopeInstruction(asciiMessage)) return 'smalltalk';
+  if (isUnsafeOrOutOfScopeInstruction(asciiMessage) && !retailContinuationNeed) return 'smalltalk';
   if (/san pham\s+(nay|do|hien tai)?.*bao hanh|bao hanh.*san pham\s+(nay|do|hien tai)?/.test(asciiMessage)
     && !/(doi tra|tra hang|hoan tien|chinh sach|quy trinh|sau\s+\d+\s+ngay|loi|hong|khieu nai)/.test(asciiMessage)) return 'smalltalk';
-  if (isPolicySupportRequest(asciiMessage)) return 'policy';
+  if (/prod_[a-z0-9_]+/.test(asciiMessage)) return 'product_detail';
+  if (isPolicyOperationOnly(asciiMessage)) return 'policy';
+  if (isSpecificHistoryProductQuestion(asciiMessage)) return 'product_detail';
+  if (isSameNeedUpgradeRequest(asciiMessage)) return 'recommend';
+  const policyNeed = isPolicySupportRequest(asciiMessage);
+  const commercialSelectionNeed = isCommercialProductSelectionNeed(asciiMessage);
+  if (policyNeed && !commercialSelectionNeed) return 'policy';
+  if (commercialSelectionNeed || retailContinuationNeed) return 'recommend';
   if (isCartClearRequest(asciiMessage)) return 'cart_action';
   if (isCartStatusRequest(asciiMessage)) return 'cart_status';
   if (isCartRemoveRequest(asciiMessage)) return 'cart_action';
@@ -61,8 +70,12 @@ export function detectSalesIntent(message: string): SalesAgentIntent {
   if (/tang so luong|giam so luong|them so luong|mon vua them|san pham vua them|vua them len/.test(asciiMessage)) return 'cart_action';
   if (/doi tra|hoan tien|bao hanh|van chuyen|chinh sach|phi giao|giao hang|ngoai noi thanh|noi thanh/.test(asciiMessage) && !/san pham|may|robot|camera|den|quat|loc|bep|mua|tu van/.test(asciiMessage)) return 'policy';
   if (/prod_[a-z0-9_]+/.test(asciiMessage)) return 'product_detail';
+  if (isCatalogProductRequest(asciiMessage)) return 'recommend';
+  if (isGiftOrCareProductNeed(asciiMessage)) return 'recommend';
   if (/(cai|san pham|mon).*(dau tien|thu hai|thu ba|o tren).*(co can|hub|rieng|bao hanh|thong so|chi tiet)/.test(asciiMessage)) return 'product_detail';
+  if (/(cai|san pham|mon).*(dau tien|thu hai|thu ba|o tren|trong danh sach|trong cac mon).*(nhuoc diem|uu diem|dung hang ngay|co tot|co on|phu hop|dung duoc)|(?:nhuoc diem|uu diem|dung hang ngay|co tot|co on|phu hop|dung duoc).*(cai|san pham|mon).*(dau tien|thu hai|thu ba|o tren|trong danh sach|trong cac mon)/.test(asciiMessage)) return 'product_detail';
   if (/(cai|san pham|mon).*(re nhat|dat nhat|nay|do|o tren|trong cac mon).*(nhuoc diem|uu diem|co tot|co on|phu hop|dung duoc|thong so|chi tiet)|(?:nhuoc diem|uu diem|co tot|co on|phu hop|dung duoc).*(cai|san pham|mon).*(re nhat|dat nhat|nay|do|o tren|trong cac mon)/.test(asciiMessage)) return 'product_detail';
+  if (/(san pham|mon|cai).*(con lai).*(hop|phu hop|nhu cau|co on|co tot|dung duoc|chi tiet|thong so)|(?:hop|phu hop|nhu cau|co on|co tot|dung duoc).*(san pham|mon|cai).*(con lai)/.test(asciiMessage)) return 'product_detail';
   if (/(may|noi|robot|camera|den|quat|bep|thiet bi|hut bui|loc|cam bien|bao dong|smart home|ban chai|cham soc ca nhan|lam mat).*(co phu hop|phu hop .* khong|co on khong|co du|dung duoc|nhuoc diem|uu diem)/.test(asciiMessage)) return 'product_detail';
   if (/chi tiet|thong so|mo ta|bao hanh.*san pham/.test(asciiMessage)) return 'product_detail';
   if (isProductUseCaseRequest(asciiMessage)) return 'recommend';
@@ -114,9 +127,9 @@ function isPolicyOnlyRequest(normalizedMessage: string): boolean {
 }
 
 function isPolicySupportRequest(asciiMessage: string): boolean {
-  const hasPolicyTopic = /gioi thieu cua hang|ve cua hang|retailhome la gi|cua hang ban gi|dia chi|lien he|hotline|tong dai|khuyen mai|uu dai|voucher|hau mai|cham soc sau ban|doi tra|tra duoc|doi san pham|sua doi san pham|doi sang mau|doi sang san pham|don da giao|da giao|chua nhan|hoan tien|bao hanh|van chuyen|chinh sach|khieu nai|ho tro|san pham loi|hang loi|loi cam bien|phat tieng on|tieng on la|giao hang|phi giao|mien phi giao|giao noi thanh|giao ngoai noi thanh|giao cham|kiem tra hang|mat phu kien|thieu phu kien|thieu sac|huy don|hoa don|vat|sai mau|nhan sai|giao sai|doi hang|nhan nham|nham phien ban|dat hang|doi dia chi|goi lai|cskh|cham soc khach hang|don hang lon|thanh toan|tra gop|cod|chuyen khoan/.test(asciiMessage);
+  const hasPolicyTopic = /gioi thieu cua hang|ve cua hang|retailhome la gi|cua hang ban gi|dia chi|lien he|hotline|tong dai|khuyen mai|uu dai|voucher|hau mai|cham soc sau ban|doi tra|tra duoc|doi san pham|sua doi san pham|doi sang mau|doi sang san pham|don da giao|da giao|chua nhan|hoan tien|bao hanh|van chuyen|chinh sach|khieu nai|ho tro|san pham loi|hang loi|loi cam bien|phat tieng on|tieng on la|giao hang|phi giao|mien phi giao|giao noi thanh|giao ngoai noi thanh|giao cham|giao tre|tre hang|kiem tra hang|mat phu kien|thieu phu kien|thieu sac|huy don|hoa don|vat|sai mau|nhan sai|giao sai|doi hang|nhan nham|nham phien ban|dat hang|doi dia chi|goi lai|cskh|cham soc khach hang|don hang lon|thanh toan|tra gop|cod|chuyen khoan/.test(asciiMessage);
   if (hasPolicyTopic && /(gioi thieu|cua hang|retailhome|dia chi|lien he|hotline|tong dai|khuyen mai|uu dai|voucher|hau mai|chinh sach|doi tra|hoan tien|bao hanh|quy trinh|cskh|cham soc khach hang|nhan nham|dat hang|loi cam bien|sau khi nhan|thanh toan|tra gop|cod)/.test(asciiMessage)) return true;
-  if (/phi giao|mien phi giao|giao hang|giao noi thanh|ngoai noi thanh|noi thanh|don da giao|da giao|chua nhan|giao cham|huy don|hoa don|vat/.test(asciiMessage)) return hasPolicyTopic;
+  if (/phi giao|mien phi giao|giao hang|giao noi thanh|ngoai noi thanh|noi thanh|don da giao|da giao|chua nhan|giao cham|giao tre|tre hang|huy don|hoa don|vat/.test(asciiMessage)) return hasPolicyTopic;
   const asksProductRecommendation = /(nao|tot|goi y|de xuat|tu van|tim|chon|nen mua).*(san pham|may|noi|robot|camera|den|quat|bep|thiet bi|hut bui|loc|cam bien|ban chai)|(?:san pham|may|noi|robot|camera|den|quat|bep|thiet bi|hut bui|loc|cam bien|ban chai).*(nao|tot|goi y|de xuat|tu van|tim|chon|nen mua)/.test(asciiMessage);
   if (/khong chen goi y san pham|khong can|chi dua thong tin chinh sach|co can cu/.test(asciiMessage)) return hasPolicyTopic;
   return hasPolicyTopic && !asksProductRecommendation;
@@ -139,20 +152,65 @@ function isAmbiguousNoise(asciiMessage: string): boolean {
 }
 
 function isNoisyShoppingNeed(asciiMessage: string): boolean {
-  return /(nha sach|lam nha sach|may loc|loc khong khi|bui|tre nho|em be|mui bep|nha nong|mua gi|duoi \d|tam \d|can .* san pham|goi y|tu van)/.test(asciiMessage);
+  return /(nha sach|lam nha sach|lam sach nha|ve sinh nha|cho meo|long thu cung|rung long|may loc|loc kk|loc khong khi|bui|tre nho|em be|be so sinh|mui bep|bep nho|nau nhanh|nha nong|mua gi|duoi \d|tam \d|can .* san pham|can mon|goi y|tu van|xay da|sinh to|cam bien cua|bao qua dien thoai|can suc khoe|may say toc|lo chien|vua lam qua|lam qua|qua.*huu dung|khong thich do cong kenh|chung cu nho)/.test(asciiMessage);
+}
+
+function isCommercialProductSelectionNeed(asciiMessage: string): boolean {
+  if (isPolicyOperationOnly(asciiMessage)) return false;
+  if (isRetailContinuationNeed(asciiMessage)) return true;
+  if (isSameNeedUpgradeRequest(asciiMessage)) return true;
+  if (isGiftOrCareProductNeed(asciiMessage)) return true;
+  if (isNoisyShoppingNeed(asciiMessage) && /(can|muon|tim|mua|chon|goi y|tu van|ngan sach|duoi|tam|hop|phu hop|dang mua|co gi|neu khong co|gan nhat|dung hoi lai|noi ngan|noi kieu de hieu)/.test(asciiMessage)) return true;
+  if (/(can mon|mon).*?(vua lam qua|lam qua|huu dung|chung cu nho|khong thich do cong kenh)|(?:vua lam qua|lam qua|qua.*huu dung|chung cu nho|khong thich do cong kenh).*?(can mon|mon|do|san pham)/.test(asciiMessage)) return true;
+  if (/(lam sach nha|ve sinh nha|cho meo|long thu cung|rung long).*(can|tim|co gi|goi y|tu van|dung hoi lai)|(?:can|tim|co gi|goi y|tu van).*(lam sach nha|ve sinh nha|cho meo|long thu cung|rung long)/.test(asciiMessage)) return true;
+  if (/(bep nho|nau nhanh|nha moi nhan|me toi kho tinh|ngan sach\s+\d+\s*(trieu|tr)).*(can|muon|tim|chon|goi y|tu van|san pham|thiet bi|bep|nau)|(?:can|muon|tim|chon|goi y|tu van).*(bep nho|nau nhanh|ngan sach\s+\d+\s*(trieu|tr))/.test(asciiMessage)) return true;
+  if (isProductUseCaseRequest(asciiMessage)) return true;
+  if (isCatalogProductRequest(asciiMessage) && !/(lap dat|bao hanh|doi tra|hoan tien|giao cham|giao tre|huy don|doi dia chi|thieu phu kien|khieu nai|ho tro the nao)/.test(asciiMessage)) return true;
+  return false;
+}
+
+function isPolicyOperationOnly(asciiMessage: string): boolean {
+  return /(giao cham|giao tre|tre hang|huy don|doi dia chi|thieu phu kien|mat phu kien|quay video|lap dat|ho tro the nao|khieu nai|mua online|doi sang mau|mau khac dat hon|roi vo|lam roi vo|hoan tien|thanh toan chuyen khoan|kiem tra hang|shipper|cua hang.*ban gi|hau mai|khuyen mai|voucher|san pham loi|doi tra|bao hanh)/.test(asciiMessage)
+    && !/(ngan sach|bep nho|nau nhanh|nha moi nhan|me toi kho tinh|can mon|lam sach nha|ve sinh nha|rung long|long thu cung|vua lam qua|lam qua|mua san pham|chon san pham|tim san pham|tu van san pham)/.test(asciiMessage);
+}
+
+function isSpecificHistoryProductQuestion(asciiMessage: string): boolean {
+  return /(cai|san pham|mon|mau).*(re nhat|dat nhat|danh sach do|trong danh sach|o tren).*(du dung|du xai|dung duoc|co on|on khong|phu hop|co tot|nhuoc diem|uu diem|thong so|chi tiet)|(?:du dung|du xai|dung duoc|co on|on khong|phu hop|co tot|nhuoc diem|uu diem|thong so|chi tiet).*(cai|san pham|mon|mau).*(re nhat|dat nhat|danh sach do|trong danh sach|o tren)/.test(asciiMessage);
+}
+
+function isSameNeedUpgradeRequest(asciiMessage: string): boolean {
+  return /(tot hon|nang cap hon|xin hon|manh hon|cao hon|hon mot chut|hon 1 chut).*(cung nhu cau|nhu cau cu|nhu cau do|van cung)|(?:cung nhu cau|nhu cau cu|nhu cau do|van cung).*(tot hon|nang cap hon|xin hon|manh hon|cao hon|hon mot chut|hon 1 chut)/.test(asciiMessage);
 }
 
 function isProductUseCaseRequest(asciiMessage: string): boolean {
-  const productTerm = /\b(san pham|mon|do gia dung|may|noi|robot|camera|den|quat|bep|thiet bi|hut bui|loc|cam bien|bao dong|smart home|ban chai|cham soc ca nhan|lam mat|dieu hoa|may lanh|noi com|noi chien|may xay)\b/.test(asciiMessage);
+  const productTerm = /\b(san pham|mon|do gia dung|may|noi|lo|robot|camera|den|quat|bep|thiet bi|hut bui|loc|loc kk|cam bien|bao dong|smart home|ban chai|cham soc ca nhan|lam mat|dieu hoa|may lanh|noi com|noi chien|lo chien|may xay|xay da|sinh to|can suc khoe|may say toc|say toc)\b/.test(asciiMessage);
   if (!productTerm) return false;
   const useCaseSignal = /\b(cho|dung cho|de|phong|nha|can ho|chung cu|van phong|bep|tre|em be|nguoi lon tuoi|thu cung|meo|cho nha|dien tich)\b/.test(asciiMessage);
   const areaSignal = /\b\d+\s*(?:m2|m vuong|met vuong|m²)\b/.test(asciiMessage);
-  const explicitProductNeed = /\b(can|muon|tim|kiem|mua|chon|tu van|goi y|de xuat|co)\b/.test(asciiMessage);
-  return (useCaseSignal || areaSignal) && (explicitProductNeed || /\b(dieu hoa|may lanh|lam mat|quat|may loc|noi com|noi chien|robot|camera)\b/.test(asciiMessage));
+  const explicitProductNeed = /\b(can|muon|tim|kiem|mua|chon|tu van|goi y|de xuat|co|nhe|shop oi)\b/.test(asciiMessage);
+  const concreteNeedSignal = /\b(xay da|sinh to|be so sinh|tre so sinh|cam bien cua|bao qua dien thoai|it khoan duc|nha thue|chu to|cong tac|cua kinh|nha co meo|long thu cung|toc rung|de rua|de ve sinh|re|nho gon)\b/.test(asciiMessage);
+  return (useCaseSignal || areaSignal || concreteNeedSignal) && (explicitProductNeed || concreteNeedSignal || /\b(dieu hoa|may lanh|lam mat|quat|may loc|loc kk|noi com|noi chien|lo chien|robot|camera|may xay|can suc khoe|may say toc)\b/.test(asciiMessage));
+}
+
+function isCatalogProductRequest(asciiMessage: string): boolean {
+  if (/(bao hanh|doi tra|hoan tien|chinh sach|giao hang|phi giao|khieu nai)/.test(asciiMessage)) return false;
+  const productSignal = /\b(robot hut bui|hut bui|may hut bui|may xay|xay da|sinh to|noi chien|lo chien|air fryer|may loc|loc kk|loc khong khi|camera|chuong hinh|cam bien cua|can suc khoe|may say toc|ban chai dien|noi com|quat dieu hoa|quat lam mat)\b/.test(asciiMessage);
+  if (!productSignal) return false;
+  return /\b(can|muon|tim|kiem|mua|chon|tu van|goi y|de xuat|co|co mau nao|mau nao|duoi|tren|tam|khoang|cho|phong|nha|nhe|shop oi|minh hoi that|noi ngan thoi|dung hoi lai nhieu|neu khong co|gan nhat|re|de rua|de ve sinh|cong tac|chu to|it khoan duc|nha thue|nha co meo)\b/.test(asciiMessage);
+}
+
+function isGiftOrCareProductNeed(asciiMessage: string): boolean {
+  return /mua\s+qu\S*(?:\s+cho|\s+de|\s+nen|.*nen mua)/.test(asciiMessage)
+    || /(?:mua|chon|tim|tu van|goi y|nen mua|can mon|can do).*(?:qua|qua gia dung|do gia dung|bo me|nguoi lon tuoi|de dung|cham soc ca nhan|huu dung|chung cu nho|khong thich do cong kenh)|(?:qua|qua gia dung|do gia dung|bo me|nguoi lon tuoi|de dung|cham soc ca nhan|huu dung|chung cu nho|khong thich do cong kenh).*(?:mua|chon|tim|tu van|goi y|nen mua|can mon|can do)/.test(asciiMessage);
+}
+
+function isRetailContinuationNeed(asciiMessage: string): boolean {
+  return /(?:xong|roi|tien|sau do|nhung|that ra).*(?:noi toi nen mua gi|nen mua gi|mua gi|goi y|de xuat|tu van|san pham|do gia dung|qua gia dung)|(?:noi toi nen mua gi|nen mua gi|mua gi|goi y|de xuat|tu van).*(?:san pham|do gia dung|qua gia dung|qua|mon|mua|can)/.test(asciiMessage)
+    || /\b(?:noi toi nen mua gi|nen mua gi|mua gi|goi y qua gia dung|goi y do gia dung|goi y mon|goi y san pham)\b/.test(asciiMessage);
 }
 
 function isCartStatusRequest(asciiMessage: string): boolean {
-  return /tom tat.*gio|gio hang sau|gio sau thao tac|kiem tra lai.*gio|xem lai.*gio|trong gio.*con gi|gio hang.*con gi|gio hang.*dang co|gio hang.*hien tai|gio hang.*bao nhieu|tong tien|tam tinh/.test(asciiMessage)
+  return /tom tat.*gio|tom tat.*phuong an mua|phuong an mua cuoi|gio hang sau|gio sau thao tac|kiem tra lai.*gio|xem lai.*gio|trong gio.*con gi|gio hang.*con gi|gio hang.*dang co|gio hang.*hien tai|gio hang.*bao nhieu|tong tien|tam tinh/.test(asciiMessage)
     || /(?:^|\s)(?:xem|coi|mo|hien|kiem tra|show|view)(?=\s|$).*(?:^|\s)(?:gio hang|cart)(?=\s|$)|(?:^|\s)(?:gio hang|cart)(?=\s|$).*(?:^|\s)(?:dau|hien|xem|coi|show|view)(?=\s|$)/.test(asciiMessage)
     || /(gio hang|cart|trong gio|gio cua minh).*(co gi|co san pham|bao nhieu|hien tai|dang co)|(?:co gi|co san pham|bao nhieu|trong).*(gio hang|cart|trong gio|gio cua minh)/.test(asciiMessage);
 }
@@ -179,13 +237,32 @@ function isCartStatusViewRequest(normalizedMessage: string): boolean {
 }
 
 function normalize(value: string): string {
-  return value.toLocaleLowerCase('vi-VN');
+  return repairVietnameseMojibake(value).toLocaleLowerCase('vi-VN');
+}
+
+function repairVietnameseMojibake(value: string): string {
+  let current = value;
+  for (let index = 0; index < 3 && /[\u00c3\u00c4\u00c6\u00ba\u00bb]/.test(current); index += 1) {
+    try {
+      const repaired = Buffer.from(current, 'latin1').toString('utf8');
+      if (!repaired || repaired === current) break;
+      current = repaired;
+    } catch {
+      break;
+    }
+  }
+  return current;
 }
 
 function stripVietnameseTone(value: string): string {
   return value
     .normalize('NFD')
+    .replace(/[đĐ]/g, 'd')
     .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'd')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'd')
     .replace(/đ/g, 'd')
     .replace(/Đ/g, 'd')
     .replace(/đ/g, 'd')
