@@ -21,9 +21,12 @@ export default async function ProductsPage({ searchParams }: { searchParams?: Pr
 }
 
 async function loadProducts(): Promise<Product[]> {
-  const response = await fetch(`${apiBaseUrl}/api/v1/products`, { next: { revalidate: 20 } });
-  if (!response.ok) throw new Error(`Không tải được sản phẩm: ${response.status}`);
-  const payload = await response.json() as { items: Product[] };
-  return payload.items;
+  try {
+    const response = await fetch(`${apiBaseUrl}/api/v1/products`, { next: { revalidate: 20 } });
+    if (!response.ok) throw new Error(`Không tải được sản phẩm: ${response.status}`);
+    const payload = await response.json() as { items: Product[] };
+    return payload.items;
+  } catch {
+    return [];
+  }
 }
-

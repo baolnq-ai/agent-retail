@@ -26,6 +26,7 @@
 - `BENCHMARK_SEED=20260531 node "tests/backend tests/benchmark1000/scripts/generate-benchmark-1000.mjs"`: tạo 1000 case.
 - `corepack pnpm --filter @retail-agent/api typecheck`: pass.
 - `corepack pnpm --filter @retail-agent/web typecheck`: pass.
+- `API_BASE_URL=http://127.0.0.1:39999 corepack pnpm --filter @retail-agent/web build`: pass sau khi `/cart` và `/products` không còn fail khi API chưa tồn tại ở build phase.
 - `docker compose -f infra/docker/docker-compose.yml config --quiet`: pass.
 - `docker compose --env-file .env.example -p retail_agent_full -f docker-compose.yml config --quiet`: pass.
 - `$env:SETUP_TERMINAL_MODE='hidden'; .\setup.ps1`: pass.

@@ -20,6 +20,7 @@
 | Setup Bash hidden alias | `SETUP_TERMINAL_MODE=hidden SETUP_RUN_MODE=source ./setup.sh` | Pass; log `logs/setup/setup-20260531-132633.log` ghi nhận normalize sang `background` |
 | API typecheck | `corepack pnpm --filter @retail-agent/api typecheck` | Pass |
 | Web typecheck | `corepack pnpm --filter @retail-agent/web typecheck` | Pass |
+| Web Docker build boundary | `API_BASE_URL=http://127.0.0.1:39999 corepack pnpm --filter @retail-agent/web build` | Pass; `/cart` và `/products` không vỡ build khi API chưa chạy |
 | Diff hygiene | `git diff --check` | Pass |
 | Secret scan | `rg --pcre2 ... secret/tunnel patterns` | Không phát hiện secret hoặc URL tunnel thật trong working tree |
 | Provider health | `GET http://127.0.0.1:3120/nginx-health` | HTTP 200 |
