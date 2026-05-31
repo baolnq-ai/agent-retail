@@ -3,7 +3,7 @@
 Ngày: 29-05-2026
 
 ## Mục tiêu
-- Kiểm tra link tunnel `https://screensaver-constructed-entered-tales.trycloudflare.com/`.
+- Kiểm tra link tunnel dạng `https://<cloudflare-quick-tunnel>.trycloudflare.com/` mà không lưu URL thật vào Git.
 - So sánh tunnel public với local nginx `http://127.0.0.1:3120`.
 - Tìm nguyên nhân web đơ/load không được khi đi qua tunnel.
 - Sửa config/script/code cần thiết, không hardcode secret hoặc domain cố định nếu có thể tránh.

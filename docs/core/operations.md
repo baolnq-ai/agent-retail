@@ -92,6 +92,8 @@ SETUP_TERMINAL_MODE=background ./setup.sh
 tail -f logs/runtime/backend/api-3110.log logs/runtime/frontend/web-3100.log
 ```
 
+`SETUP_TERMINAL_MODE=hidden` is accepted by `setup.sh` as a compatibility alias and is normalized to `background`. This keeps a shared `.env` usable across PowerShell and Bash.
+
 ### Windows PowerShell
 
 `setup.ps1` uses `SETUP_TERMINAL_MODE=window` by default and opens two visible PowerShell windows:

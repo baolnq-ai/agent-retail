@@ -1,68 +1,46 @@
-# Sales Agent Design
+# Response Agent Design
 
-- Created: 2026-05-21 19:02
-- Updated: 2026-05-21 19:02
-- Status: draft
-- Related plan: `plans/agent-pipeline/agents/sales-agent/plan.md`
+- Cập nhật: 31-05-2026
+- Trạng thái: hiện hành
+- Runtime name liên quan: `sales-agent`, `assistant-response`, `sales-evaluator-agent`
 
-## Summary
+## Mục Tiêu
 
-Sales Agent is the final customer-facing response composer. It receives the original user message and grounded findings from Lead, then writes a helpful sales answer and product blocks.
-
-It does not search, recommend, mutate cart or invent facts.
+Response Agent viết câu trả lời cuối cho user như một nhân viên bán hàng/chăm sóc khách hàng. Agent này chỉ dùng grounded facts từ Lead/Task Blackboard và không tự search, không tự recommend, không mutate cart, không bịa chính sách.
 
 ## Input
 
-Sales Agent receives:
+Response Agent nhận:
 
-- original user question;
+- câu hỏi gốc của user;
 - Lead summary;
-- referenced product facts from History/Search;
-- recommended or companion products from Recommendation;
-- cart facts from Cart Agent;
-- RAG/support facts when relevant;
-- claim contract: `mustMentionProductIds`, `mustNotMentionProductIds`, `allowedClaims`, `forbiddenClaims`.
+- product facts từ Search/Recommendation/History;
+- cart facts từ Cart Agent;
+- policy/support facts từ Business RAG/Customer Support Agent;
+- contract về product ids được phép nhắc, claims được phép nói và claims bị cấm.
 
 ## Pipeline
 
-```txt
-Lead grounded facts
-  -> validate product ids and claim contract
-  -> select response template
-  -> compose response-only draft
-  -> verify product ids in text and blocks
-  -> verify forbidden claims
-  -> build blocks
-  -> return SalesAgentResult to Lead
+```text
+grounded facts
+  -> kiểm allowed product ids và claim contract
+  -> viết draft ngắn, tự nhiên
+  -> kiểm text có khớp product rail/policy/cart không
+  -> Evaluator Agent duyệt hoặc yêu cầu revise
+  -> trả blocks cho frontend
 ```
 
-## Response Style
+## Style
 
-Sales Agent should sound like a helpful retail consultant:
+- Nói như nhân viên retail, rõ ràng và không phô kỹ thuật.
+- Không dùng câu quá dài khi product card đã có thông tin.
+- Nếu catalog không có sản phẩm chính xác, nói rõ “hiện chưa có” và đưa gợi ý liên quan nhất nếu có evidence.
+- Nếu policy có nguồn nội bộ, trả lời đúng phạm vi chính sách, không hứa quá mức.
+- Nếu phải hỏi làm rõ, hỏi một câu ngắn và vẫn đưa hướng tạm thời khi đủ dữ liệu.
 
-- acknowledge the user's intent;
-- identify the referenced product if any;
-- explain why it fits;
-- present recommendations as optional;
-- keep text concise when product cards carry details;
-- never exaggerate or pressure.
+## Quy Tắc Nhất Quán
 
-Example:
-
-```txt
-Bạn đang nói đến AiroClean P35 đúng không. Mẫu này hợp với phòng 25-35m2 và đang còn hàng.
-
-Nếu bạn mua mẫu này, mình gợi ý thêm vài món đi kèm để dùng tiện hơn. Mình gửi luôn các sản phẩm bên dưới để bạn tham khảo nhé.
-```
-
-## Consistency Rules
-
-- Text and product cards must use the same product ids.
-- Referenced product must be separated from companion recommendations.
-- Sales cannot mention a product outside Lead-approved ids.
-- If Search/Recommendation says semantic fallback, Sales must preserve fallback wording.
-- If facts are missing, Sales asks clarification or states uncertainty.
-
-## LLM Rule
-
-No LLM toolcall. LLM may only produce structured response draft. Backend validates ids, claims, block schema and semantic fallback wording.
+- Text và product cards phải dùng cùng product ids.
+- Không nhắc sản phẩm ngoài candidate được Recommendation Agent duyệt.
+- Không nói thao tác giỏ hàng thành công nếu Cart Agent chưa verify.
+- Không lộ product id nội bộ, prompt, tool name, stack trace hoặc pipeline handoff.

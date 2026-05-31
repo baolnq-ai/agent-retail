@@ -2,7 +2,7 @@
 set -eu
 
 REPO="${DOCKER_IMAGE_REPO:-baonguyen3568/ai-agent-retail}"
-TAG="${IMAGE_TAG:-v0.1.0-20260528}"
+TAG="${IMAGE_TAG:-v0.1.0-20260531}"
 PLATFORMS="${PLATFORMS:-linux/amd64,linux/arm64}"
 
 docker buildx inspect >/dev/null 2>&1 || docker buildx create --use

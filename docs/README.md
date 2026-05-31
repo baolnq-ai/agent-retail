@@ -1,6 +1,6 @@
 ﻿# Index Tài Liệu
 
-- Cập nhật: 2026-05-29
+- Cập nhật: 2026-05-31
 - Phạm vi: tài liệu kỹ thuật của dự án RetailHome AI Agent.
 
 ## Nên Đọc Trước
@@ -39,7 +39,8 @@
 | [task/readme-banner-ci-polish-20260528.md](task/readme-banner-ci-polish-20260528.md) | Làm lại banner GIF, polish README và sửa CI |
 | [task/docker-hub-multiarch-compose-20260528.md](task/docker-hub-multiarch-compose-20260528.md) | Đóng gói Docker Hub multi-arch và Compose một file |
 | [task/docs-readme-sync-and-release-push-20260528.md](task/docs-readme-sync-and-release-push-20260528.md) | Đồng bộ README/docs/logs/plans trước khi push |
-| [task/source-clean-skill-alignment-20260529.md](task/source-clean-skill-alignment-20260529.md) | Clean source theo skill, chuẩn hóa tests/benchmark và config |
+| [task/source-clean-skill-alignment-20260529.md](task/source-clean-skill-alignment-20260529.md) | Clean source theo skill, chuẩn hóa test backend và config |
+| [backend/benchmark1000-chatbot-retail.md](backend/benchmark1000-chatbot-retail.md) | Benchmark1000 backend chatbot retail và tiêu chí pass hiện tại |
 | [task/setup-port-range-3100-3150-20260529.md](task/setup-port-range-3100-3150-20260529.md) | Chuyển setup/runtime sang port 3100-3150 và fix 502 |
 | [task/setup-port-process-cleanup-20260529.md](task/setup-port-process-cleanup-20260529.md) | Sửa setup tự dọn process/port cũ của dự án |
 | [task/setup-linux-tmux-port-cleanup-20260527.md](task/setup-linux-tmux-port-cleanup-20260527.md) | Setup Linux/tmux, port 6800-6850 và cleanup source |
@@ -52,16 +53,8 @@
 
 | Tài liệu | Nội dung |
 | --- | --- |
-| [reports/production-architecture-audit-20260526.md](reports/production-architecture-audit-20260526.md) | Audit Docker, DB, vector search và readiness production |
-| [../tests/backend tests/source-clean/README.md](<../tests/backend tests/source-clean/README.md>) | Evidence backend source clean 2026-05-29 |
-| [../tests/backend tests/setup-port-3100-3150/README.md](<../tests/backend tests/setup-port-3100-3150/README.md>) | Evidence backend setup port 3100-3150 |
-| [../tests/backend tests/setup-port-process-cleanup/README.md](<../tests/backend tests/setup-port-process-cleanup/README.md>) | Evidence setup port/process cleanup 2026-05-29 |
-| [../tests/frontend tests/setup-port-3100-3150/README.md](<../tests/frontend tests/setup-port-3100-3150/README.md>) | Evidence frontend setup port 3100-3150 |
-| [../tests/frontend tests/source-clean/README.md](<../tests/frontend tests/source-clean/README.md>) | Evidence frontend source clean 2026-05-29 |
-| [../tests/docker-full-compose-evidence-2026-05-28/README.md](../tests/docker-full-compose-evidence-2026-05-28/README.md) | Evidence Docker full compose từ Docker Hub |
-| [../tests/benchmark-100/](../tests/benchmark-100/) | Benchmark chatbot 100 câu |
-| [../tests/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/README.md](../tests/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/README.md) | Benchmark 20 câu khó và audit flow |
-| [../tests/agent-dashboard-icon-legend-density-evidence-2026-05-26/README.md](../tests/agent-dashboard-icon-legend-density-evidence-2026-05-26/README.md) | Evidence dashboard icon/legend/flow |
+| [reports/production-architecture-audit-20260526.md](reports/production-architecture-audit-20260526.md) | Audit Docker, DB, Business RAG/vector và readiness production |
+| [../tests/backend tests/benchmark1000/README.md](<../tests/backend tests/benchmark1000/README.md>) | Benchmark1000 backend chatbot retail theo chuẩn backend-skill |
 
 ## Quy Tắc
 

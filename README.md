@@ -4,7 +4,7 @@
 
 # RetailHome AI Agent
 
-Trợ lý bán hàng retail dùng pipeline nhiều agent, trace dashboard, Qdrant search và Docker Compose full stack.
+Trợ lý bán hàng retail dùng pipeline nhiều agent, trace dashboard, catalog search, Business RAG và Docker Compose full stack.
 
 [![CI](https://img.shields.io/github/actions/workflow/status/baolnq-ai/agent-retail/ci.yml?branch=main&style=for-the-badge&label=CI&logo=github)](https://github.com/baolnq-ai/agent-retail/actions/workflows/ci.yml)
 ![Docker](https://img.shields.io/badge/Docker-multi--arch-2496ED?style=for-the-badge&logo=docker&logoColor=white)
@@ -30,9 +30,9 @@ Trợ lý bán hàng retail dùng pipeline nhiều agent, trace dashboard, Qdran
 <table>
   <tr>
     <td><strong>Cập nhật</strong></td>
-    <td>2026-05-29</td>
+    <td>2026-05-31</td>
     <td><strong>Docker image</strong></td>
-    <td><code>v0.1.0-20260528</code></td>
+    <td><code>v0.1.0-20260531</code></td>
   </tr>
   <tr>
     <td><strong>Docker Hub</strong></td>
@@ -51,7 +51,7 @@ Trợ lý bán hàng retail dùng pipeline nhiều agent, trace dashboard, Qdran
     </td>
     <td width="36%">
       <h3>Agent Ops</h3>
-      <p>Dashboard trace đọc trực tiếp flow sau mỗi lượt chat: task, memory, search, recommendation, RAG, cart, guardrail và phản hồi cuối.</p>
+      <p>Dashboard trace đọc trực tiếp flow sau mỗi lượt chat: task blackboard, history, search, recommendation, business RAG, cart, evaluator và phản hồi cuối.</p>
       <table>
         <tr><td><strong>Pipeline</strong></td><td><code>multi-agent</code></td></tr>
         <tr><td><strong>Vector</strong></td><td><code>Qdrant + embedding</code></td></tr>
@@ -99,7 +99,13 @@ Repo này là hệ thống retail chatbot có web storefront, chat widget, giỏ
   </tr>
 </table>
 
-Search Agent dùng embedding API và Qdrant cho nhánh semantic khi exact/lexical search không đủ recall. PostgreSQL vẫn là nguồn fact chính cho giá, tồn kho, catalog, user, cart và memory; Redis cache catalog public để giảm độ trễ tải web.
+Product search dùng catalog thật trong PostgreSQL theo keyword/facet/SKU/brand/category/budget và không dùng embedding/rerank. Embedding, Qdrant và rerank chỉ dùng cho Business RAG khi trả lời chính sách, bảo hành, đổi trả, hậu mãi và thông tin cửa hàng. Redis cache catalog public để giảm độ trễ tải web.
+
+## Trạng Thái Pipeline
+
+Pipeline hiện tại đã được chuẩn hóa theo kiến trúc Lead Orchestrator, Task Blackboard, History Agent, Catalog Search Agent, Recommendation Agent, Business RAG Agent, Cart Agent, Evaluator Agent và Response Agent. Benchmark1000 là evidence chính để kiểm tra request thật, product rail, policy, cart, history và dashboard trace.
+
+Ghi chú trung thực: pipeline vẫn chưa được xem là mượt ở mức production cho mọi hội thoại tự nhiên. Các lỗi cần tiếp tục harden gồm tham chiếu lịch sử dài kiểu “cái đó/mẫu trên”, câu hỏi so sánh nhiều sản phẩm trong một bong bóng chat, đổi ý liên tục, và trường hợp user hỏi lan man ngoài bộ test. Benchmark giúp bắt hồi quy, nhưng không thay thế kiểm thử thực tế dài phiên.
 
 ## Giao Diện Và Evidence
 
@@ -221,6 +227,8 @@ SETUP_RUN_MODE=source ./setup.sh
 
 Với `source`, script đọc `.env`, cài workspace bằng `pnpm`, chạy hạ tầng dev, generate/push/seed Prisma, build API, dọn process cũ trong dải port dự án, rồi chạy API và Web. Linux/macOS mặc định dùng tmux session `egnt-retail`:
 
+`setup.sh` nhận `SETUP_TERMINAL_MODE=auto|tmux|background`. Nếu `.env` đang để `hidden` cho PowerShell, Bash sẽ tự chuyển sang `background`.
+
 Windows PowerShell cũng tự dọn runtime cũ trước khi start: `setup.ps1` load `.env`, gọi `stop.ps1`, dừng PID/process tree của API/Web thuộc repo, down các Compose project của repo (`retail_agent_provider`, `retail_agent_dev`, `retail_agent_full`), rồi mới start lại. Nếu Docker Desktop chưa sẵn sàng, setup sẽ fail sớm ở bước Docker Compose thay vì chờ DB timeout.
 
 | Window | Nội dung |
@@ -234,15 +242,15 @@ Dự án dùng Docker Hub repository `baonguyen3568/ai-agent-retail`. `Dockerfil
 
 | Image tag | Vai trò | Kiến trúc |
 | --- | --- | --- |
-| `baonguyen3568/ai-agent-retail:api-v0.1.0-20260528` | Backend NestJS, Prisma, agent pipeline | `linux/amd64`, `linux/arm64` |
-| `baonguyen3568/ai-agent-retail:web-v0.1.0-20260528` | Frontend Next.js | `linux/amd64`, `linux/arm64` |
+| `baonguyen3568/ai-agent-retail:api-v0.1.0-20260531` | Backend NestJS, Prisma, agent pipeline | `linux/amd64`, `linux/arm64` |
+| `baonguyen3568/ai-agent-retail:web-v0.1.0-20260531` | Frontend Next.js | `linux/amd64`, `linux/arm64` |
 | `baonguyen3568/ai-agent-retail:api-latest` | Latest backend | `linux/amd64`, `linux/arm64` |
 | `baonguyen3568/ai-agent-retail:web-latest` | Latest frontend | `linux/amd64`, `linux/arm64` |
 
 Build local trên kiến trúc hiện tại:
 
 ```bash
-DOCKER_IMAGE_REPO=baonguyen3568/ai-agent-retail IMAGE_TAG=v0.1.0-20260528 sh scripts/docker-build-local.sh
+DOCKER_IMAGE_REPO=baonguyen3568/ai-agent-retail IMAGE_TAG=v0.1.0-20260531 sh scripts/docker-build-local.sh
 docker compose up -d
 ```
 
@@ -250,7 +258,7 @@ Build và push multi-arch:
 
 ```bash
 docker login
-DOCKER_IMAGE_REPO=baonguyen3568/ai-agent-retail IMAGE_TAG=v0.1.0-20260528 sh scripts/docker-buildx-push.sh
+DOCKER_IMAGE_REPO=baonguyen3568/ai-agent-retail IMAGE_TAG=v0.1.0-20260531 sh scripts/docker-buildx-push.sh
 ```
 
 Khi chạy qua tunnel/domain:
@@ -286,10 +294,10 @@ Không commit `.env`, token hoặc credential Docker Hub.
 | Biến | Mặc định | Ý nghĩa |
 | --- | --- | --- |
 | `DOCKER_IMAGE_REPO` | `baonguyen3568/ai-agent-retail` | Repo image dùng bởi root compose |
-| `IMAGE_TAG` | `v0.1.0-20260528` | Tag phát hành cho image API/Web |
+| `IMAGE_TAG` | `v0.1.0-20260531` | Tag phát hành cho image API/Web |
 | `PLATFORMS` | `linux/amd64,linux/arm64` | Kiến trúc buildx khi push multi-arch |
 | `DOCKER_COMPOSE_PROJECT_NAME` | `retail_agent_full` | Project Compose full Docker |
-| `COMPOSE_PROJECT_NAME` | `retail_agent_dev` | Project Compose dev infra |
+| `COMPOSE_PROJECT_NAME` | `retail_agent_provider` | Project Compose dev infra |
 | `CHAT_MODEL_BASE_URL` | placeholder trong `.env.example` | API vLLM/chat model |
 | `CHAT_MODEL_ID` | `google/gemma-4-E4B-it` | Model chat mặc định |
 | `EMBED_RERANK_BASE_URL` | placeholder trong `.env.example` | API embedding/rerank |
@@ -322,7 +330,6 @@ flowchart LR
   Lead --> Security[Security agent]
   Lead --> Sales[Sales agent]
   Search --> Postgres[(PostgreSQL)]
-  Search --> Qdrant[(Qdrant)]
   RAG --> Qdrant
   Sales --> ChatModel[vLLM/chat API]
   RAG --> Embed[Embedding/Rerank API]
@@ -392,17 +399,15 @@ Evidence chính:
 
 | Bộ test | Evidence |
 | --- | --- |
-| Docker full compose | [`tests/docker-full-compose-evidence-2026-05-28/README.md`](tests/docker-full-compose-evidence-2026-05-28/README.md) |
-| Benchmark 100 câu | [`tests/benchmark-100/`](tests/benchmark-100/) |
-| Hard flow 20 câu | [`tests/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/README.md`](tests/retail-chatbot-hard-flow-benchmark-evidence-2026-05-26/README.md) |
-| Dashboard flow | [`tests/agent-dashboard-icon-legend-density-evidence-2026-05-26/README.md`](tests/agent-dashboard-icon-legend-density-evidence-2026-05-26/README.md) |
+| Benchmark1000 backend | [`tests/backend tests/benchmark1000/README.md`](<tests/backend tests/benchmark1000/README.md>) |
 
 ## Production Readiness
 
 | Mảng | Hiện trạng | Cần làm trước production thật |
 | --- | --- | --- |
 | Docker runtime | Root compose chạy API, Web, PostgreSQL, Redis, Qdrant và nginx | Dùng registry/tag release cố định theo môi trường |
-| Vector search | Search Agent query Qdrant bằng embedding thật khi cần semantic recall | Tách job ingest/index riêng, version collection, benchmark tải lớn |
+| Agent pipeline | Multi-agent pipeline đã có Benchmark1000 | Cần soak test dài phiên, kiểm lịch sử/so sánh/entity ngoài bộ test trước khi production |
+| Business RAG | Qdrant + embedding/rerank cho tài liệu nghiệp vụ nội bộ | Tách job ingest/index riêng, version collection, benchmark tải lớn |
 | PostgreSQL | Prisma schema rõ, có bảng memory/cart/search/prompt | Dùng migration versioned thay cho `db push` khi deploy production |
 | Security | HttpOnly cookie, CORS allowlist env, không đưa secret vào `.env.example` | Audit authz, rate limit, secret manager, TLS production |
 | Observability | Có logs và dashboard trace | Thêm metrics, alerting, trace id xuyên suốt request |

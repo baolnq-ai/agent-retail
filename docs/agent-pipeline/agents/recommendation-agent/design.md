@@ -1,51 +1,30 @@
 # Recommendation Agent Design
 
-- Created: 2026-05-21 17:40
-- Updated: 2026-05-21 18:04
-- Status: draft
-- Related plan: `plans/agent-pipeline/agents/recommendation-agent/plan.md`
+- Cập nhật: 31-05-2026
+- Trạng thái: hiện hành
 
-## Summary
+## Mục Tiêu
 
-Recommendation Agent is the personalization and ranking pipeline. It does not perform hard search. It takes candidate pools from Search Agent, embeddings, popularity, complements or curated sources, then scores and reranks based on probability and behavior.
+Recommendation Agent chọn product rail từ candidate hợp lệ do Search Agent hoặc Cart Agent cung cấp. Agent này không tự search catalog rộng và không tự lấy sản phẩm ngoài danh sách được phép.
 
 ## Pipeline
 
-```txt
-load profile/behavior/cart
-  -> candidate pool from search/embedding/popular/complements
-  -> extract features
-  -> weighted score or ML probability
-  -> rerank for diversity/business rules
-  -> response-only LLM reason/judge if needed
-  -> verify ids and claims
-  -> write snapshot/feedback hooks
-  -> return RecommendationResult
+```text
+load goal + candidate evidence
+  -> đọc nhu cầu, ngân sách, lịch sử và cart state nếu được cung cấp
+  -> chấm fit theo category/brand/thuộc tính/giá/tồn kho/liên quan
+  -> loại sản phẩm lệch nhóm hoặc vượt budget không có lý do
+  -> chọn product rail
+  -> trả lý do ngắn + allowed product ids cho Response Agent
 ```
+
+## Tiêu Chí Chọn Sản Phẩm
+
+- Đúng nhóm nhu cầu trước, giá rẻ hơn không được ưu tiên nếu lệch nhóm.
+- Nếu không có sản phẩm chính xác, chọn nhóm liên quan nhất và ghi rõ vì sao liên quan.
+- Follow-up như “mẫu trên”, “cái đó”, “rẻ hơn” phải dùng History Agent hoặc candidate đã lưu trong task.
+- Không hiện product rail nếu tất cả candidate đều lệch nhu cầu.
 
 ## Boundary
 
-Search Agent retrieves. Recommendation Agent ranks. Cart Agent mutates cart. Lead Agent composes final answer.
-
-Lead Agent calls Recommendation Agent when it wants product suggestions, alternatives, upsell/cross-sell or personalization. If the request needs hard product lookup first, Lead or Recommendation asks Search Agent for a candidate pool.
-
-## Private History
-
-Recommendation Agent has its own interaction and memory history:
-
-- `RecommendationAgentInteraction`: goal, candidate source, features, scores, selected ids, issues, status.
-- `RecommendationAgentMemory`: near/mid/far summaries for recent recommendations, rejected choices, preferences and stable behavior.
-
-This lets it understand "gợi ý giống lúc nãy nhưng rẻ hơn", "đừng hiện hãng đó nữa", "cho thêm lựa chọn khác" and long-term preference patterns.
-
-## ML Direction
-
-Start with deterministic weighted scoring and feature logs. Once feedback data is enough, train or fit a model for `addToCartProbability`/`purchaseProbability` without changing the public contract.
-
-## LLM Rule
-
-No LLM toolcall. LLM may only produce structured reason/judge over selected candidates; backend validates all ids and claims.
-
-## Semantic Candidate Language
-
-When candidates come from embedding or Search Agent `semantic_fallback`, Recommendation Agent must describe them as similar, related or likely suitable. It must not claim they are exact search matches.
+Recommendation Agent không trả lời chính sách, không mutate cart, không gọi embedding/rerank cho product search. Nếu cần policy, Lead gọi Business RAG. Nếu cần thêm candidate, Lead gọi Search Agent.

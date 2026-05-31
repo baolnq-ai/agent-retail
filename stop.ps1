@@ -8,7 +8,7 @@ $ApiLogDir = Join-Path $RuntimeLogDir 'backend'
 $WebLogDir = Join-Path $RuntimeLogDir 'frontend'
 $StopLog = Join-Path $SetupLogDir ("stop-{0}.log" -f (Get-Date -Format 'yyyyMMdd-HHmmss'))
 $EnvFile = Join-Path $RootDir '.env'
-$ShellSkipDocker = $env:SKIP_DOCKER
+$StopSkipDocker = $env:STOP_SKIP_DOCKER
 
 New-Item -ItemType Directory -Force -Path $SetupLogDir, $ApiLogDir, $WebLogDir | Out-Null
 New-Item -ItemType File -Path $StopLog -Force | Out-Null
@@ -209,14 +209,13 @@ Write-Host "Stop log: $StopLog"
 Write-Host ''
 
 Import-EnvFile
-if (-not [string]::IsNullOrWhiteSpace($ShellSkipDocker)) { $env:SKIP_DOCKER = $ShellSkipDocker }
 Write-Step 'Stop processes from setup PID files'
 Stop-PidFile (Join-Path $ApiLogDir 'api.pid') 'backend'
 Stop-PidFile (Join-Path $WebLogDir 'web.pid') 'frontend'
 Write-Step 'Stop repo-scoped runtime processes'
 Stop-RepoRuntimeProcesses
-if ($env:SKIP_DOCKER -eq '1') {
-  Write-Warn 'SKIP_DOCKER=1; keeping external/provider Docker services running'
+if ($StopSkipDocker -eq '1') {
+  Write-Warn 'STOP_SKIP_DOCKER=1; keeping external/provider Docker services running'
 } else {
   Write-Step 'Stop provider Docker services'
   Stop-ComposeServices

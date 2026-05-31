@@ -1,20 +1,13 @@
 # Backend Source Clean
 
-- Cập nhật: 2026-05-29
-- Service: source-clean
-- Source liên quan: `apps/api/src/config/environment.ts`, `apps/api/src/app.module.ts`, `scripts/prepare-generated.mjs`
+- Cập nhật: 31-05-2026
+- Trạng thái: historical task đã được gom evidence về Benchmark1000.
 
-## Thay Đổi Chính
+## Nội Dung
 
-- Backend config đọc `.env` trước, sau đó dùng `.env.example` làm cấu hình mẫu, không hardcode URL model trong logic runtime.
-- `AppModule` được format lại để danh sách controller/provider dễ review.
-- Script generated tránh cảnh báo spawn args với shell trên Windows.
-- Active backend source/test đã được sửa mojibake tiếng Việt.
+Source backend hiện ưu tiên tài liệu và test evidence mới tại:
 
-## Validation
+- [Benchmark1000 Chatbot Retail](benchmark1000-chatbot-retail.md)
+- [tests/backend tests/benchmark1000](<../../tests/backend tests/benchmark1000/README.md>)
 
-| Evidence | Nội dung |
-| --- | --- |
-| [tests/backend tests/source-clean/validation.md](<../../tests/backend tests/source-clean/validation.md>) | Validation backend source clean và blocker runtime DB nếu Docker chưa mở. |
-
-dev by ambrouse
+Các evidence source-clean cũ đã được dọn theo yêu cầu chỉ giữ bộ test Benchmark1000 trong thư mục `tests/`.

@@ -1,97 +1,49 @@
-# Audit kiến trúc production 2026-05-26
+# Audit Kiến Trúc Production
 
-- Trạng thái: completed
-- Phạm vi: Docker Compose, database, vector search, ảnh sản phẩm, dashboard trace, readiness production.
-- Log liên quan: `logs/security/production-architecture-audit-20260526.md`
+- Cập nhật lại: 31-05-2026
+- Trạng thái: historical audit đã được đồng bộ với pipeline hiện tại
+- Phạm vi: Docker Compose, database, Business RAG, ảnh sản phẩm, dashboard trace và readiness production.
 
-## Kết luận
+## Kết Luận Hiện Tại
 
-Dự án đã đủ rõ để chạy local/dev bằng một Docker Compose cho hạ tầng: PostgreSQL, Redis, Qdrant và nginx. Search Agent hiện đã query Qdrant bằng embedding thật cho nhánh semantic thay vì heuristic text trong PostgreSQL. Tuy nhiên chưa nên gọi là production-ready hoàn toàn vì index Qdrant vẫn đang được upsert theo request, schema còn bảng `ProductEmbedding.vector` dạng `Json` kế thừa, và deploy production vẫn cần migration/versioning, observability, authz/rate limit và storage ảnh chuẩn hơn.
+Dự án đã đủ rõ để chạy local/dev bằng setup source: PostgreSQL, Redis, Qdrant và nginx provider chạy bằng `infra/docker/docker-compose.yml`, API/Web chạy từ source. Root `docker-compose.yml` vẫn là đường full Docker.
 
-## Hạ tầng Docker
+Pipeline hiện tại tách rõ:
 
-Compose hiện quản lý:
+- PostgreSQL là source of truth cho catalog, user, cart, memory và prompt.
+- Product search dùng hard catalog search: keyword, SKU, brand, category, facet, budget và tồn kho.
+- Business RAG mới dùng embedding, Qdrant collection `business_knowledge` và rerank để trả lời chính sách/cửa hàng/hậu mãi.
+- Redis dùng cho cache catalog public và giảm độ trễ storefront/search.
+- Dashboard trace hiển thị task blackboard, agent, tool result, node/edge/playback cho từng lượt chat.
+
+## Hạ Tầng Docker
+
+Compose dev provider quản lý:
 
 - `postgres`: dữ liệu chính cho catalog, user, cart, memory, audit.
-- `redis`: cache/session phụ trợ.
-- `qdrant`: vector DB mục tiêu cho product/doc chunks.
-- `nginx`: một entry `7080` để tunnel web và API cùng origin.
+- `redis`: cache runtime.
+- `qdrant`: vector DB cho tài liệu nghiệp vụ Business RAG.
+- `nginx`: entry `3120` cho tunnel/web/API cùng origin.
 
-Khuyến nghị tiếp theo:
+Sửa ngày 31-05-2026: dev provider compose không còn bind mount nginx template. Nginx config được inline trong compose để tránh lỗi Docker Desktop với path Windows có dấu cách.
 
-- Thêm profile `app` để build API/Web thành container khi cần chạy toàn bộ app bằng Docker.
-- Tách profile `dev` và `prod` để tránh dùng default credential/local port trong production.
-- Dùng secret manager hoặc Docker secrets cho credential thật.
+## Database Và Retrieval
 
-## Database và vector search
-
-Hiện trạng thực tế:
-
-- PostgreSQL đang là source of truth cho catalog/cart/user/memory.
-- `SearchAgentService` vẫn load product metadata từ PostgreSQL để khóa fact, exact/filter/lexical.
-- Khi recall thấp và policy cho phép embedding, `SearchAgentService` tạo vector qua embedding API, upsert/query collection `products` trong Qdrant và chỉ lấy candidate id từ Qdrant.
-- `ProductEmbedding.vector` hiện là `Json` kế thừa, không còn là đường semantic fallback chính.
-
-Kiến trúc đúng cho production:
-
-1. PostgreSQL giữ metadata, product row, audit, memory và document metadata.
-2. Qdrant giữ vector của product chunks và knowledge chunks.
-3. Embedding API tạo vector query.
-4. Search/RAG gọi Qdrant để lấy candidate ids.
-5. Backend lấy ids quay lại PostgreSQL để khóa fact, giá, tồn kho, ảnh, policy.
-6. Rerank API chỉ chạy trên candidate set đã giới hạn.
-
-## Bảng biểu hiện tại
-
-Nhóm bảng chính:
-
-- Account/session: `User`, `UserSession`.
-- Catalog/search: `Product`, `ProductSearchDocument`, `ProductEmbedding`, `KnowledgeDocument`.
-- Commerce: `Cart`, `CartItem`, `CartEvent`, `PendingCartAction`, `Order`, `PaymentIntent`, `IdempotencyKey`.
-- Chat/memory: `ChatThread`, `ChatMessage`, `MemoryTurn`, `MemoryEvent`, `MemoryItem`, `MemorySummary`, `MemoryPreference`, `MemoryBehaviorSignal`, `MemoryAgentIndex`.
-- Agent riêng: `CartAgentMemory`, `CartAgentInteraction`, `SearchAgentInteraction`, `SearchAgentMemory`.
-
-Đánh giá:
-
-- Tách domain khá rõ cho cart, memory, search interaction.
-- Cần migration versioned trước production, không chỉ `prisma db push`.
-- Cần index theo workload thật sau benchmark DB lớn.
-- Cần quyết định rõ `ProductEmbedding`: bỏ nếu dùng Qdrant hoàn toàn, hoặc đổi sang pgvector nếu muốn vector trong PostgreSQL.
-
-## Ảnh sản phẩm
-
-Hiện seed dùng URL ảnh ngoài. Cách này ổn cho demo nhưng chưa tối ưu production vì phụ thuộc nguồn ngoài, license/cache không kiểm soát và có nguy cơ ảnh hỏng.
-
-Khuyến nghị:
-
-- Dùng object storage hoặc CDN riêng.
-- Lưu `imageUrl`, `imageSource`, `alt`, checksum nếu có ingest.
-- Có fallback image và kiểm tra broken image trong test frontend.
-- Không hotlink nguồn ngoài cho production catalog.
-
-## Dashboard trace
-
-Dashboard nên tiếp tục bám nguyên tắc:
-
-- Node chung: session context, task context, PostgreSQL, Qdrant, LLM nếu cùng một nguồn dùng chung.
-- Node riêng theo agent: agent, history riêng, tool riêng theo từng lần gọi.
-- Nếu hai agent gọi cùng tool nhưng là hai lần độc lập thì vẽ hai tool node riêng.
-- Edge phải có chiều gọi và chiều trả về cho tool/agent/task, không để line chỉ đi một chiều nếu runtime đã có response.
-- Cụm agent cần đủ gần để hiểu quan hệ, nhưng tool/history/DB không được dính sát làm che line.
-
-## Readiness production
-
-| Mảng | Đánh giá | Việc cần làm |
+| Vùng dữ liệu | Source of truth | Ghi chú |
 | --- | --- | --- |
-| Runtime app | Dev/local tốt | Container hóa API/Web nếu cần deploy bằng Compose/Kubernetes |
-| Data | PostgreSQL schema khá đầy đủ | Migration versioned, backup/restore, retention |
-| Vector | Search Agent đã query Qdrant thật khi cần semantic recall | Tách job ingest/index, collection versioning, benchmark tải lớn |
-| Security | Có redaction và cookie session | Rate limit, CORS production, authz audit, secret manager |
-| Observability | Có logs và dashboard trace | Structured logs, metrics, alert, distributed trace |
-| Test | Có benchmark và evidence | Thêm integration test Qdrant, Docker smoke test, load test |
+| Catalog/product | PostgreSQL | Product search khóa fact từ DB, không dùng vector để tìm sản phẩm |
+| Cart/order | PostgreSQL | Cart Agent mutate qua private tool và verify sau ghi |
+| Memory/history | PostgreSQL | History Agent truy xuất theo yêu cầu cụ thể |
+| Business knowledge | PostgreSQL + Qdrant | Tài liệu seed ở DB, vector index ở Qdrant, rerank qua model gateway |
+| Cache | Redis | Cache catalog public và dữ liệu runtime ngắn hạn |
 
-## Quyết định
+## Readiness
 
-- Giữ PostgreSQL làm database chính.
-- Dùng Qdrant cho vector search/RAG production target thay vì lưu vector search bằng `Json` trong PostgreSQL.
-- Không tuyên bố production-ready cho semantic search cho đến khi Qdrant có job ingest/index riêng, version collection và benchmark tải lớn.
+- Cần migration versioned trước production, không chỉ dùng `prisma db push`.
+- Cần secret manager/TLS/rate limit cho production thật.
+- Cần job ingest/index riêng cho Business RAG khi tài liệu nội bộ tăng lớn.
+- Cần monitoring latency theo API, model gateway, Redis, Qdrant và Postgres.
+
+## Benchmark Liên Quan
+
+Benchmark backend chính hiện tại nằm ở [tests/backend tests/benchmark1000](<../../tests/backend tests/benchmark1000/README.md>).

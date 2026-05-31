@@ -250,6 +250,8 @@ if ($env:SETUP_SKIP_STOP -ne '1') {
   Write-Step 'Stop old project runtime before startup'
   $stopScript = Join-Path $RootDir 'stop.ps1'
   if (Test-Path $stopScript) {
+    $previousStopSkipDocker = $env:STOP_SKIP_DOCKER
+    if ($env:SKIP_DOCKER -eq '1') { $env:STOP_SKIP_DOCKER = '1' }
     try {
       & $stopScript >> $SetupLog
       if (-not [string]::IsNullOrWhiteSpace($ShellSkipDocker)) { $env:SKIP_DOCKER = $ShellSkipDocker }
@@ -257,6 +259,12 @@ if ($env:SETUP_SKIP_STOP -ne '1') {
     } catch {
       if (-not [string]::IsNullOrWhiteSpace($ShellSkipDocker)) { $env:SKIP_DOCKER = $ShellSkipDocker }
       Write-Warn 'stop.ps1 reported a non-fatal cleanup issue; continuing setup'
+    } finally {
+      if ($null -eq $previousStopSkipDocker) {
+        Remove-Item Env:STOP_SKIP_DOCKER -ErrorAction SilentlyContinue
+      } else {
+        $env:STOP_SKIP_DOCKER = $previousStopSkipDocker
+      }
     }
   }
 }

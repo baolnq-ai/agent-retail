@@ -186,6 +186,24 @@ validate_port_range() {
   fi
 }
 
+normalize_terminal_mode() {
+  case "${SETUP_TERMINAL_MODE:-auto}" in
+    hidden)
+      export SETUP_TERMINAL_MODE="background"
+      warn "SETUP_TERMINAL_MODE=hidden is a PowerShell alias; using background mode for setup.sh."
+      ;;
+    window)
+      export SETUP_TERMINAL_MODE="auto"
+      warn "SETUP_TERMINAL_MODE=window is a PowerShell mode; using auto mode for setup.sh."
+      ;;
+    auto|tmux|background)
+      ;;
+    *)
+      fail "Unknown SETUP_TERMINAL_MODE=$SETUP_TERMINAL_MODE. Use auto, tmux, background, hidden, or window."
+      ;;
+  esac
+}
+
 load_env_file() {
   local incoming_api_port="${API_PORT:-}"
   local incoming_web_port="${WEB_PORT:-}"
@@ -687,6 +705,7 @@ main() {
   fi
   print_banner
   load_env_file
+  normalize_terminal_mode
   choose_setup_mode
   cleanup_logs
   ensure_system_dependencies

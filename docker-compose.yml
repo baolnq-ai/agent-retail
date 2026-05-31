@@ -41,7 +41,7 @@ services:
       - qdrant_data:/qdrant/storage
 
   api:
-    image: ${DOCKER_IMAGE_REPO:-baonguyen3568/ai-agent-retail}:api-${IMAGE_TAG:-v0.1.0-20260528}
+    image: ${DOCKER_IMAGE_REPO:-baonguyen3568/ai-agent-retail}:api-${IMAGE_TAG:-v0.1.0-20260531}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -79,7 +79,7 @@ services:
       retries: 20
 
   web:
-    image: ${DOCKER_IMAGE_REPO:-baonguyen3568/ai-agent-retail}:web-${IMAGE_TAG:-v0.1.0-20260528}
+    image: ${DOCKER_IMAGE_REPO:-baonguyen3568/ai-agent-retail}:web-${IMAGE_TAG:-v0.1.0-20260531}
     restart: unless-stopped
     depends_on:
       api:

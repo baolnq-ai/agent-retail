@@ -1,163 +1,61 @@
 # Agent Pipeline System Definition
 
-- Created: 2026-05-21 13:46
-- Updated: 2026-05-21 19:55
-- Status: draft
-- Related plans: `plans/agent-pipeline/`
+- Cập nhật: 31-05-2026
+- Trạng thái: hiện hành
+- Evidence: [Benchmark1000](<../../../tests/backend tests/benchmark1000/README.md>)
 
-## Purpose
+## Mục Đích
 
-Định nghĩa hệ agent mới cho chatbot RetailHome. Tài liệu này là nguồn tham chiếu kiến trúc khi code lại pipeline.
+Tài liệu này định nghĩa pipeline chatbot retail đang chạy trong backend. Mục tiêu là đảm bảo mỗi câu trả lời có evidence, đúng ý khách hàng, đúng dữ liệu catalog/chính sách/giỏ hàng và có trace để debug trên dashboard.
 
-## Principle
+## Nguyên Tắc Vận Hành
 
-Pipeline mới dùng Lead Agent làm trung tâm điều phối. Lead Agent không làm thay việc của agent chuyên trách. Nó chỉ phân tích, lập kế hoạch, yêu cầu agent khác làm việc, tổng hợp kết quả và kiểm tra câu trả lời cuối.
+- Lead Orchestrator điều phối, không làm thay agent chuyên trách.
+- Task Blackboard lưu trạng thái của từng câu hỏi: mục tiêu, giả thuyết, tool calls, evidence, quyết định và verdict.
+- Agent chuyên trách chỉ trả structured result/evidence, không tự viết câu trả lời cuối cho user.
+- Response cuối chỉ được nói những gì đã được Search, Recommendation, RAG, Cart hoặc History cung cấp evidence.
+- Product search không dùng embedding/rerank; Business RAG mới dùng embedding/rerank.
+- Evaluator phải chặn câu trả lời lệch product rail, thiếu policy evidence, sai cart entity hoặc lộ pipeline.
 
-## Agents
+## Agent Boundary
 
-### Lead Agent
+| Agent | Vai trò | Không được làm |
+| --- | --- | --- |
+| Lead Orchestrator | Hiểu câu user, lập task, quyết định gọi agent/tool theo vòng lặp có ngân sách | Không tự mutate cart, không tự bịa policy, không tự chọn sản phẩm ngoài candidate |
+| Task Blackboard | Lưu evidence và trạng thái của một lượt xử lý | Không viết response cuối |
+| History Agent | Truy xuất đúng đoạn lịch sử khi có yêu cầu cụ thể | Không trả toàn bộ history nếu không cần |
+| Catalog Search Agent | Search catalog thật theo keyword/facet/SKU/brand/category/budget/tồn kho | Không dùng embedding/rerank, không mutate cart |
+| Recommendation Agent | Chọn product rail từ candidate hợp lệ, kiểm tra nhu cầu/ngân sách/liên quan | Không tự lấy sản phẩm ngoài candidate, không trả policy |
+| Business RAG Agent | Truy xuất chính sách/cửa hàng/bảo hành/hậu mãi bằng embedding + Qdrant + rerank | Không dùng để search sản phẩm catalog |
+| Cart Agent | Add/remove/update/clear/get cart bằng tool riêng, xác thực entity trước khi ghi | Không đoán sản phẩm mơ hồ, không xử lý refund/bảo hành |
+| Customer Support Agent | Điều phối câu hỏi hỗ trợ khách hàng, dùng RAG evidence | Không hứa đổi trả/bảo hành nếu thiếu nguồn |
+| Evaluator Agent | Kiểm cuối về đúng ý, evidence, product rail, cart/history, leak nội bộ | Không sửa dữ liệu gốc hoặc mutate state |
+| Response Agent | Viết câu trả lời tự nhiên như nhân viên | Không lộ pipeline/tool prompt/internal id |
 
-Vai trò:
+## Luồng Chuẩn
 
-- phân tích sâu câu hỏi;
-- lấy và đọc ngữ cảnh từ Storage/Memory Agent;
-- lập `ExecutionPlan`;
-- điều phối agent khác;
-- đánh giá kết quả agent;
-- kiểm tra câu trả lời cuối.
-
-Không làm:
-
-- không mutate cart;
-- không tự query catalog;
-- không tự trả lời chính sách nếu chưa có RAG/tool evidence;
-- không tự chọn sản phẩm nếu chưa có recommendation/search result.
-
-### Cart Agent
-
-Vai trò:
-
-- xem giỏ hàng;
-- thêm sản phẩm;
-- xóa sản phẩm;
-- cập nhật số lượng;
-- xác nhận side effect sau khi thao tác.
-
-Điều kiện:
-
-- chỉ execute khi target product rõ;
-- nếu thiếu target, trả `needs_resolution` cho Lead Agent.
-
-### Recommendation Agent
-
-Vai trò:
-
-- đề xuất sản phẩm theo nhu cầu, ngân sách, sở thích, hành vi;
-- chấm điểm product fit;
-- giải thích lý do đề xuất;
-- trả product rail nhất quán với câu trả lời.
-
-Pipeline con:
-
-```txt
-Recommendation request
-  -> lấy user preference/behavior
-  -> lấy candidate từ Search Agent hoặc Product Manager
-  -> rerank theo sale fit
-  -> judge sản phẩm cuối
-  -> trả score + reasons + product rail
+```text
+User message
+  -> Lead Orchestrator
+  -> Task Blackboard
+  -> History Agent nếu cần lịch sử
+  -> Catalog Search Agent nếu cần sản phẩm
+  -> Recommendation Agent nếu cần rail/so sánh/gợi ý
+  -> Business RAG Agent nếu cần nghiệp vụ
+  -> Cart Agent nếu cần giỏ hàng
+  -> Evaluator Agent
+  -> Response Agent
+  -> Dashboard trace
 ```
 
-### Search Agent
+## Response Contract
 
-Vai trò:
+Response cuối chỉ pass khi:
 
-- hard search theo tên, alias, category, brand, attribute, price, stock;
-- fallback semantic/embedding khi query mơ hồ;
-- rerank candidates;
-- dùng LLM judge để loại kết quả lệch.
-
-Pipeline con:
-
-```txt
-Search request
-  -> hard filters
-  -> exact/alias lexical search
-  -> category/attribute expansion
-  -> embedding fallback nếu thiếu kết quả
-  -> rerank
-  -> LLM judge
-  -> SearchResult
-```
-
-### Storage/Memory Agent
-
-Vai trò:
-
-- quản lý lịch sử hội thoại;
-- rolling summary;
-- sở thích;
-- hành vi;
-- sản phẩm từng xem/đề xuất;
-- pending action và context đang dang dở.
-
-Không làm:
-
-- không viết câu trả lời user;
-- không tự quyết định intent cuối.
-
-### RAG Agent
-
-Vai trò:
-
-- truy xuất thông tin chính sách shop;
-- pháp lý;
-- thương hiệu;
-- hướng dẫn mua hàng;
-- thông tin sản phẩm có nguồn tài liệu.
-
-Điều kiện:
-
-- trả evidence/source rõ;
-- nếu không có nguồn, báo không đủ dữ liệu.
-
-### Security Moderation Agent
-
-Vai trò:
-
-- kiểm duyệt input;
-- phát hiện prompt injection;
-- kiểm tra yêu cầu lộ dữ liệu;
-- kiểm tra output trước khi gửi user;
-- đảm bảo không leak tool prompt/internal handoff.
-
-### Customer Support Agent
-
-Vai trò:
-
-- xử lý lỗi sản phẩm;
-- đổi trả;
-- complaint;
-- bảo hành;
-- escalations;
-- phối hợp RAG Agent để dùng chính sách đúng.
-
-## Security And Support Contract Addendum
-
-Detailed contracts:
-
-- Security Moderation Agent: `plans/agent-pipeline/agents/security-agent/plan.md`
-- Customer Support Agent: `plans/agent-pipeline/agents/customer-support-agent/plan.md`
-
-Security Agent must guard input, plan/action gates, memory/RAG/cart/support access and final output. It must not mutate business data and must not log secrets, tokens, cookies, passwords or unnecessary PII.
-
-Customer Support Agent must handle defects, returns, refunds, warranty, shipping, wrong/missing items, complaints and human handoff. It must use RAG/tool evidence for support policy claims and must not promise refund/return/warranty without evidence.
-
-## Response Rule
-
-Response cuối chỉ được nói các sự kiện đã có evidence:
-
-- thao tác giỏ hàng phải dựa trên Cart Agent result;
-- sản phẩm đề xuất phải dựa trên Recommendation/Search result;
-- chính sách phải dựa trên RAG Agent result;
-- trường hợp không đủ thông tin phải hỏi lại user.
+- Trả lời đúng câu hỏi chính.
+- Product rail đúng nhóm, đúng ngân sách nếu có, đúng lịch sử nếu là follow-up.
+- Nếu không có sản phẩm chính xác, phải nói rõ và gợi ý sản phẩm liên quan nhất có lý do.
+- Câu hỏi nghiệp vụ phải dựa trên Business RAG nội bộ.
+- Thao tác giỏ hàng phải đúng entity, số lượng và trạng thái đăng nhập.
+- Câu off-topic phải kéo về phạm vi cửa hàng lịch sự.
+- Câu thiếu thông tin chỉ hỏi làm rõ khi thật sự bắt buộc, và vẫn đưa hướng tạm thời nếu đủ dữ liệu.

@@ -1,6 +1,6 @@
 ﻿# Current Documentation Index
 
-- Cập nhật: 2026-05-29 00:00 +07:00
+- Cập nhật: 2026-05-31 13:45 +07:00
 - Mục đích: map nhanh tài liệu hiện tại và evidence mới nhất.
 
 ## Đọc Trước
@@ -17,13 +17,8 @@
 
 | Thời gian | Evidence | Nội dung chứng minh |
 | --- | --- | --- |
-| 2026-05-29 | [backend/setup-port-3100-3150](<../tests/backend tests/setup-port-3100-3150/README.md>), [frontend/setup-port-3100-3150](<../tests/frontend tests/setup-port-3100-3150/README.md>) | Setup chạy bằng port 3100-3150, nginx không còn 502 |
-| 2026-05-29 | [setup-port-process-cleanup](<../tests/backend tests/setup-port-process-cleanup/README.md>) | Setup/stop PowerShell tự dọn process/port cũ, skip Docker-owned process |
-| 2026-05-29 | [backend/source-clean](<../tests/backend tests/source-clean/README.md>), [frontend/source-clean](<../tests/frontend tests/source-clean/README.md>) | Clean source theo skill, validation backend/frontend/build/compose pass |
-| 2026-05-28 | [docker-full-compose-evidence-2026-05-28](../tests/docker-full-compose-evidence-2026-05-28/README.md) | Root Docker Compose chạy full stack từ Docker Hub, API/Web/dashboard/cart hoạt động |
-| 2026-05-27 | [benchmark-100](../tests/benchmark-100/) | Benchmark chatbot 100 câu, kiểm tra pipeline/cart/history |
-| 2026-05-26 | [dashboard-line-animation-evidence-2026-05-26](../tests/dashboard-line-animation-evidence-2026-05-26/README.md) | Dashboard animation line/hạt và kiểm tra video/screenshot |
-| 2026-05-26 | [agent-dashboard-icon-legend-density-evidence-2026-05-26](../tests/agent-dashboard-icon-legend-density-evidence-2026-05-26/README.md) | Dashboard icon, legend, mật độ node và flow |
+| 2026-05-31 | [benchmark1000](<../tests/backend tests/benchmark1000/README.md>) | Benchmark1000 backend chatbot retail; test cũ đã dọn khỏi thư mục `tests/` |
+| 2026-05-31 | [backend/benchmark1000-chatbot-retail.md](backend/benchmark1000-chatbot-retail.md) | Ghi rõ pipeline hiện tại và known gaps: Benchmark1000 tốt cho hồi quy nhưng chưa đủ chứng nhận hội thoại thật |
 
 ## Tài Liệu Lịch Sử
 
